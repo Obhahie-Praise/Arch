@@ -1,159 +1,175 @@
-# Turborepo starter
+# Arch
 
-This Turborepo starter is maintained by the Turborepo core team.
+> **Find the opportunities worth going after.**
 
-## Using this example
+Arch is an opportunity intelligence and application platform that helps people discover relevant opportunities, understand what they involve, and pursue them with clarity.
 
-Run the following command:
+The core journey is:
 
-```sh
-npx create-turbo@latest
+**DISCOVER → UNDERSTAND → PURSUE**
+
+Arch starts with:
+
+- Jobs
+- Grants
+- Hackathons
+
+Over time, it can expand into more opportunity categories without losing its core purpose.
+
+## What Arch Does
+
+Arch helps users:
+
+- discover opportunities
+- understand requirements and eligibility
+- see why an opportunity may fit their profile
+- save opportunities
+- decide what to pursue
+- prepare for applications
+- track application progress
+
+Arch does **not** aim to be:
+
+- a generic AI chatbot
+- a traditional job board
+- an autonomous application bot
+- a replacement for application portals
+- an analytics-heavy dashboard
+
+When an opportunity requires an external application, Arch helps the user prepare and then sends them to the original provider to complete the submission.
+
+## Product Flow
+
+```text
+SIGN UP
+   ↓
+CREATE PROFILE
+   ↓
+DISCOVER
+   ↓
+UNDERSTAND
+   ↓
+SAVE / PURSUE
+   ↓
+PREPARE
+   ↓
+EXTERNAL APPLICATION
+   ↓
+TRACK
 ```
 
-## What's inside?
+The user's profile is central to the experience because it provides the information Arch uses to understand relevance and improve recommendations.
 
-This Turborepo includes the following packages/apps:
+## Architecture
 
-### Apps and Packages
+Arch uses a pnpm/Turborepo monorepo.
 
-- `docs`: a [Next.js](https://nextjs.org/) app
-- `web`: another [Next.js](https://nextjs.org/) app
-- `@repo/ui`: a stub React component library shared by both `web` and `docs` applications
-- `@repo/eslint-config`: `eslint` configurations (includes `@next/eslint-plugin-next` and `eslint-config-prettier`)
-- `@repo/typescript-config`: `tsconfig.json`s used throughout the monorepo
-
-Each package/app is 100% [TypeScript](https://www.typescriptlang.org/).
-
-### Utilities
-
-This Turborepo has some additional tools already setup for you:
-
-- [TypeScript](https://www.typescriptlang.org/) for static type checking
-- [ESLint](https://eslint.org/) for code linting
-- [Prettier](https://prettier.io) for code formatting
-
-### Build
-
-To build all apps and packages, run the following command:
-
-With [global `turbo`](https://turborepo.dev/docs/getting-started/installation#global-installation) installed (recommended):
-
-```sh
-cd my-turborepo
-turbo build
+```text
+arch/
+├── apps/
+│   └── web/              # Next.js web application
+│
+├── workers/
+│   └── api/              # Cloudflare Worker backend
+│
+├── packages/
+│   ├── ui/
+│   ├── types/
+│   ├── validation/
+│   ├── db/
+│   ├── eslint-config/
+│   └── typescript-config/
+│
+├── docs/
+│   ├── product/
+│   ├── design/
+│   └── engineering/
+│
+├── AGENTS.md
+├── README.md
+├── package.json
+├── pnpm-workspace.yaml
+└── turbo.json
 ```
 
-Without global `turbo`, use your package manager:
+### Core stack
 
-```sh
-cd my-turborepo
-npx turbo build
-pnpm exec turbo build
-pnpm exec turbo build
-```
+- **TypeScript**
+- **pnpm**
+- **Turborepo**
+- **Next.js**
+- **Cloudflare Workers**
+- **Hono**
+- **Cloudflare D1**
+- **Cloudflare Queues**
+- **Cloudflare Cron**
+- **Zod**
+- **Gemini**
+- **Tailwind CSS**
 
-You can build a specific package by using a [filter](https://turborepo.dev/docs/crafting-your-repository/running-tasks#using-filters):
+The architecture deliberately avoids unnecessary infrastructure. Platform capabilities should be preferred before introducing additional services or dependencies.
 
-With [global `turbo`](https://turborepo.dev/docs/getting-started/installation#global-installation) installed:
+## Documentation
 
-```sh
-turbo build --filter=docs
-```
+The repository documentation is organized by responsibility.
 
-Without global `turbo`:
+### Product
 
-```sh
-npx turbo build --filter=docs
-pnpm exec turbo build --filter=docs
-pnpm exec turbo build --filter=docs
-```
+`docs/product/`
 
-### Develop
+Defines what Arch is and what it should do.
 
-To develop all apps and packages, run the following command:
+- Vision
+- Product definition
+- Core journey
+- Information architecture
+- V1 scope
 
-With [global `turbo`](https://turborepo.dev/docs/getting-started/installation#global-installation) installed (recommended):
+### Design
 
-```sh
-cd my-turborepo
-turbo dev
-```
+`docs/design/`
 
-Without global `turbo`, use your package manager:
+Defines how Arch should feel and behave visually.
 
-```sh
-cd my-turborepo
-npx turbo dev
-pnpm exec turbo dev
-pnpm exec turbo dev
-```
+- Design direction
+- UI principles
+- Design system
+- Motion principles
 
-You can develop a specific package by using a [filter](https://turborepo.dev/docs/crafting-your-repository/running-tasks#using-filters):
+The visual implementation is intentionally owned by the project author. Agents should study the existing application before implementing or modifying UI.
 
-With [global `turbo`](https://turborepo.dev/docs/getting-started/installation#global-installation) installed:
+### Engineering
 
-```sh
-turbo dev --filter=web
-```
+`docs/engineering/`
 
-Without global `turbo`:
+Defines how Arch is built.
 
-```sh
-npx turbo dev --filter=web
-pnpm exec turbo dev --filter=web
-pnpm exec turbo dev --filter=web
-```
+- Architecture
+- Tech stack
+- Repository structure
+- Data model
+- API
+- Progress
 
-### Remote Caching
+## Development Principles
 
-> [!TIP]
-> Vercel Remote Cache is free for all plans. Get started today at [vercel.com](https://vercel.com/signup?utm_source=remote-cache-sdk&utm_campaign=free_remote_cache).
+Arch follows a few simple rules:
 
-Turborepo can use a technique known as [Remote Caching](https://turborepo.dev/docs/core-concepts/remote-caching) to share cache artifacts across machines, enabling you to share build caches with your team and CI/CD pipelines.
+1. **Understand before coding.**
+2. **Read the relevant documentation before changing the system.**
+3. **Inspect existing code before creating new patterns.**
+4. **Prefer the smallest correct solution.**
+5. **Do not introduce unnecessary dependencies or abstractions.**
+6. **Keep business logic in the backend.**
+7. **Keep the web application focused on the experience.**
+8. **Treat AI as an intelligence layer, not the product itself.**
+9. **Do not silently change product or architectural decisions.**
+10. **Keep documentation and implementation aligned.**
 
-By default, Turborepo will cache locally. To enable Remote Caching you will need an account with Vercel. If you don't have an account you can [create one](https://vercel.com/signup?utm_source=turborepo-examples), then enter the following commands:
+For detailed implementation rules, read [`AGENTS.md`](./AGENTS.md).
 
-With [global `turbo`](https://turborepo.dev/docs/getting-started/installation#global-installation) installed (recommended):
+## Status
 
-```sh
-cd my-turborepo
-turbo login
-```
+Arch is currently in its foundation and implementation phase.
 
-Without global `turbo`, use your package manager:
-
-```sh
-cd my-turborepo
-npx turbo login
-pnpm exec turbo login
-pnpm exec turbo login
-```
-
-This will authenticate the Turborepo CLI with your [Vercel account](https://vercel.com/docs/concepts/personal-accounts/overview).
-
-Next, you can link your Turborepo to your Remote Cache by running the following command from the root of your Turborepo:
-
-With [global `turbo`](https://turborepo.dev/docs/getting-started/installation#global-installation) installed:
-
-```sh
-turbo link
-```
-
-Without global `turbo`:
-
-```sh
-npx turbo link
-pnpm exec turbo link
-pnpm exec turbo link
-```
-
-## Useful Links
-
-Learn more about the power of Turborepo:
-
-- [Tasks](https://turborepo.dev/docs/crafting-your-repository/running-tasks)
-- [Caching](https://turborepo.dev/docs/crafting-your-repository/caching)
-- [Remote Caching](https://turborepo.dev/docs/core-concepts/remote-caching)
-- [Filtering](https://turborepo.dev/docs/crafting-your-repository/running-tasks#using-filters)
-- [Configuration Options](https://turborepo.dev/docs/reference/configuration)
-- [CLI Usage](https://turborepo.dev/docs/reference/command-line-reference)
+The repository is being built
