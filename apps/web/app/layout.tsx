@@ -40,7 +40,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" suppressHydrationWarning>
-      <body className={`${geistSans.variable} ${geistMono.variable}  ${atypMediumDisplay.variable} ${atypSemiBoldDisplay.variable} ${poppins.variable}`}>
+      <body className={`${geistSans.variable} ${geistMono.variable}  ${atypMediumDisplay.variable} ${atypSemiBoldDisplay.variable} ${poppins.variable} min-h-screen`}>
         <ThemeProvider
           attribute="class"
           defaultTheme="system"

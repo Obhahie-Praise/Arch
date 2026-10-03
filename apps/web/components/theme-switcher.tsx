@@ -15,7 +15,7 @@ export function ThemeSwitcher() {
   if (!mounted) {
     return (
       <button
-        className="inline-flex items-center justify-center w-10 h-10 rounded-md bg-transparent text-foreground border border-transparent cursor-pointer transition-colors duration-200 hover:bg-foreground hover:text-background focus-visible:outline-2 focus-visible:outline-foreground focus-visible:outline-offset-2 motion-reduce:transition-none"
+        className="inline-flex items-center justify-center w-8 h-8 rounded-md bg-transparent text-foreground border border-transparent cursor-pointer transition-colors duration-200 hover:bg-foreground hover:text-background focus-visible:outline-2 focus-visible:outline-foreground focus-visible:outline-offset-2 motion-reduce:transition-none"
         aria-label="Toggle theme"
         title="Toggle theme"
         disabled
@@ -45,14 +45,14 @@ export function ThemeSwitcher() {
   return (
     <button
       onClick={cycleTheme}
-      className="inline-flex items-center justify-center w-10 h-10 rounded-md bg-transparent text-foreground border border-transparent cursor-pointer transition-colors duration-200 hover:bg-foreground hover:text-background focus-visible:outline-2 focus-visible:outline-foreground focus-visible:outline-offset-2 motion-reduce:transition-none"
+      className="inline-flex items-center justify-center w-10 h-10 rounded-full bg-transparent text-foreground border border-transparent cursor-pointer transition-colors duration-200 hover:bg-foreground/5 focus-visible:outline-2 focus-visible:outline-foreground focus-visible:outline-offset-2 motion-reduce:transition-none"
       aria-label={`Toggle theme (current: ${theme})`}
       title={`Current theme: ${theme}. Click to change.`}
     >
       <div className="relative w-5 h-5">
-        <Sun className={getIconClass(theme === "light")} />
-        <Moon className={getIconClass(theme === "dark")} />
-        <Monitor className={getIconClass(theme === "system")} />
+        <Sun strokeWidth={1.3} className={getIconClass(theme === "light")} />
+        <Moon strokeWidth={1.3} className={getIconClass(theme === "dark")} />
+        <Monitor strokeWidth={1.3} className={getIconClass(theme === "system")} />
       </div>
     </button>
   );
