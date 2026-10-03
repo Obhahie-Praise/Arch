@@ -639,7 +639,7 @@ export default function ProfilePage() {
         <div className="flex flex-col gap-1">
           <h1 className="font-display text-3xl font-medium text-foreground">Profile</h1>
           <p className="text-muted-foreground text-sm">
-            Complete your profile intelligence so Arch can match you with relevant opportunities.
+            Build your profile so Arch can understand you and find opportunities that fit.
           </p>
         </div>
 

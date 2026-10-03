@@ -7,11 +7,10 @@ const SettingsPage = () => {
       <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-3">
         <div className="flex flex-col gap-1">
           <h1 className="font-display text-3xl font-medium text-foreground">
-            Profile
+            Settings
           </h1>
           <p className="text-muted-foreground text-sm">
-            Complete your profile intelligence so Arch can match you with
-            relevant opportunities.
+            Manage your account, preferences, notifications, and other settings.
           </p>
         </div>
       </div>

@@ -10,10 +10,12 @@ const HomePage = () => {
             Home
           </h1>
           <p className="text-muted-foreground text-sm">
-            Complete your profile intelligence so Arch can match you with
-            relevant opportunities.
+            See what’s relevant, what needs your attention, and where to go next.
           </p>
         </div>
+      </div>
+      <div className="">
+        
       </div>
     </div>
   );

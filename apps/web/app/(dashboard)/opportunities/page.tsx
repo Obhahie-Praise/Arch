@@ -7,11 +7,10 @@ const OpportuntiesPage = () => {
       <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-3">
         <div className="flex flex-col gap-1">
           <h1 className="font-display text-3xl font-medium text-foreground">
-            Profile
+            Opportunities
           </h1>
           <p className="text-muted-foreground text-sm">
-            Complete your profile intelligence so Arch can match you with
-            relevant opportunities.
+            Discover jobs, grants, hackathons, fellowships, and more, matched to what you’re looking for.
           </p>
         </div>
       </div>
