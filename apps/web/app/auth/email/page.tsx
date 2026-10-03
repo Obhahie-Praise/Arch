@@ -32,6 +32,7 @@ const EmailAuthPage = () => {
       name,
       email,
       password,
+      callbackURL: "/home",
     });
 
     if (authError) {

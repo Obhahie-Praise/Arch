@@ -30,6 +30,7 @@ const EmailSigninPage = () => {
     const { error: authError } = await authClient.signIn.email({
       email,
       password,
+      callbackURL: "/home",
     });
 
     if (authError) {
