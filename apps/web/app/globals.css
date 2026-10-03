@@ -19,6 +19,11 @@ body {
 body {
   color: var(--foreground);
   background: var(--background);
+  font-family: var(--font-atyp-display);
+}
+
+.font-display {
+  font-family:  var(--font-atyp-display);
 }
 
 * {

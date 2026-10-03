@@ -20,7 +20,7 @@ const ThemeImage = (props: Props) => {
 
 export default function Home() {
   return (
-    <div className={styles.page}>
+    <div className={`${styles.page}`}>
       <main className={styles.main}>
         <ThemeImage
           className={styles.logo}
@@ -97,6 +97,7 @@ export default function Home() {
           Go to turborepo.dev →
         </a>
       </footer>
+      <p className="">Hi there. Testing this design font</p>
     </div>
   );
 }
