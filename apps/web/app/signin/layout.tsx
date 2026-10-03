@@ -2,11 +2,11 @@ import { ReactNode } from "react";
 import { ThemeImage } from "../../components/theme-image";
 import Link from "next/link";
 
-interface AuthLayoutProps {
+interface SigninLayoutProps {
   children: ReactNode;
 }
 
-export default function AuthLayout({ children }: AuthLayoutProps) {
+export default function SigninLayout({ children }: SigninLayoutProps) {
   return (
     <div className="flex flex-col min-h-screen">
       <div className="flex items-center justify-between px-5 py-5">
@@ -20,9 +20,8 @@ export default function AuthLayout({ children }: AuthLayoutProps) {
             className="rounded-lg"
           />
         </Link>
-
         <p className="text-muted-foreground text-sm">
-          You are creating an account on{" "}
+          You are signin into{" "}
           <span className="font-medium font-display text-foreground">Arch</span>
         </p>
       </div>

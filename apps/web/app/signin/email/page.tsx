@@ -5,21 +5,9 @@ const EmailAuthPage = () => {
   return (
     <div className="space-y-10">
       <h2 className="text-2xl font-medium text-center">
-        Create an account with email
+        Sign in with your email
       </h2>
       <form className="min-w-md space-y-2">
-        <div className="flex flex-col gap-0.5">
-          <label htmlFor="fullname" className="text-sm ">
-            Full name
-          </label>
-          <input
-            type="text"
-            name="fullname"
-            id="fullname"
-            placeholder="Enter your fullname"
-            className="border-2 border-border text-base rounded-full px-6 py-3 w-full focus:outline-none focus:border-foreground/60 focus:ring-1 focus:ring-foreground/60 transition-all duration-300"
-          />
-        </div>
         <div className="flex flex-col gap-0.5">
           <label htmlFor="email" className="text-sm ">
             Email
@@ -50,7 +38,7 @@ const EmailAuthPage = () => {
         >
           Continue
         </button>
-        <Link href={"/auth"}>
+        <Link href={"/signin"}>
           {" "}
           <button
             type="button"
@@ -61,9 +49,12 @@ const EmailAuthPage = () => {
         </Link>
       </form>
       <p className="text-muted-foreground text-sm text-center">
-        Already have an account?{" "}
-        <Link href={"/signin/email"} className="cursor-pointer hover:underline text-foreground">
-          Sign in{" "}
+        Don't have an account?{" "}
+        <Link
+          href={"/auth/email"}
+          className="cursor-pointer hover:underline text-foreground"
+        >
+          Create an account{" "}
         </Link>
       </p>
     </div>
