@@ -17,16 +17,16 @@ const Hero = () => {
         <div className="flex items-center gap-2 mx-auto w-fit">
           <Link
             href={"./auth/login"}
-            className="bg-background/80 text-primary px-4 py-2 rounded-full text-sm transition-colors hover:bg-muted cursor-pointer duration-300 border shadow border-border"
+            className="bg-background/80 text-primary px-6 py-3 rounded-full text-sm transition-colors hover:bg-muted cursor-pointer duration-300 border shadow border-border"
           >
             How it works
           </Link>
           <Link
-            href={"./auth/login"}
-            className="bg-primary flex items-center text-primary-foreground px-4 py-2 rounded-full text-sm transition-colors hover:bg-primary/90 cursor-pointer duration-300 shadow-inner shadow-white"
+            href={"./auth"}
+            className="bg-primary flex items-center gap-1 text-primary-foreground px-6 py-3 rounded-full text-sm transition-colors hover:bg-primary/90 cursor-pointer duration-300 shadow-inner shadow-white"
           >
             <p className="">Start discovering</p>
-            <ChevronRight strokeWidth={1.3} />
+            <ChevronRight strokeWidth={1.5} size={16} />
           </Link>
         </div>
       </div>

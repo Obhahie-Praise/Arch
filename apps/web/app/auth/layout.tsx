@@ -1,4 +1,5 @@
 import { ReactNode } from "react";
+import { ThemeImage } from "../../components/theme-image";
 
 interface AuthLayoutProps {
   children: ReactNode;
@@ -6,9 +7,28 @@ interface AuthLayoutProps {
 
 export default function AuthLayout({ children }: AuthLayoutProps) {
   return (
-    <div className="flex min-h-screen items-center justify-center bg-gray-50 px-4 py-12 sm:px-6 lg:px-8">
-      <div className="w-full max-w-md space-y-8 rounded-xl bg-white p-8 shadow-md">
-        {children}
+    <div className="flex flex-col min-h-screen">
+      <div className="flex items-center justify-between px-5 py-5">
+        <ThemeImage
+          srcLight="/logo-lightmode.jpg"
+          srcDark="/logo-darkmode.jpg"
+          alt="Arch logo"
+          width={30}
+          height={30}
+          className="rounded-lg"
+        />
+        <p className="text-muted-foreground text-sm">
+          You are signin into{" "}
+          <span className="font-medium font-display">Arch</span>
+        </p>
+      </div>
+      <div className="flex-1 flex flex-col items-center justify-center">{children}</div>
+      <div className="flex items-center justify-center">
+        <p className="text-xs py-4 text-muted-foreground max-w-150 text-center">
+          Arch uses AI to help you discover and match with opportunities.
+          Results aren't guaranteed to be complete, the best fit, or a path to
+          acceptance.
+        </p>
       </div>
     </div>
   );
