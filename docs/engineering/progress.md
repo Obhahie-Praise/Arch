@@ -19,18 +19,18 @@ Keep it short and current.
 
 ### Backend
 
-- [ ] Cloudflare Worker initialized
-- [ ] Hono API initialized
-- [ ] Backend environment configuration established
-- [ ] Authentication implemented
+- [x] Cloudflare Worker initialized
+- [x] Hono API initialized
+- [x] Backend environment configuration established
+- [x] Authentication implemented
 - [ ] Database initialized
 - [ ] Core database schema implemented
 - [ ] API foundation implemented
 
 ### Web
 
-- [ ] Existing Next.js application reviewed
-- [ ] Authentication flow implemented
+- [x] Existing Next.js application reviewed
+- [x] Authentication flow implemented
 - [ ] Profile flow implemented
 - [ ] Home implemented
 - [ ] Opportunities implemented

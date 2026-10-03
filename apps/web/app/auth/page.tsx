@@ -19,7 +19,7 @@ const AuthPage = () => {
     try {
       await authClient.signIn.social({
         provider,
-        callbackURL: "/",
+        callbackURL: "/home",
       });
     } catch {
       setError(`Failed to sign in with ${provider}. Please try again.`);
