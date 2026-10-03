@@ -111,7 +111,7 @@ export default function DashboardLayout({
   return (
     <div className="h-screen max-w-6xl mx-auto">
       <nav className="fixed left-1/2 -translate-x-1/2 top-0 z-50 min-w-6xl flex items-center justify-between py-5">
-        <h1 className="flex items-center gap-2">
+        <Link href={"/"} className="flex items-center gap-2">
           <ThemeImage
             srcLight="/logo-lightmode.jpg"
             srcDark="/logo-darkmode.jpg"
@@ -121,7 +121,7 @@ export default function DashboardLayout({
             className="rounded-lg"
           />
           <p className="font-display text-xl">Arch</p>
-        </h1>
+        </Link>
 
         {/* Navigation bar with animated sliding pill */}
         <div ref={containerRef} className="relative text-sm flex items-center gap-2">
@@ -175,7 +175,7 @@ export default function DashboardLayout({
                   : "opacity-0 scale-95 -translate-y-2 pointer-events-none"
               }`}
             >
-              <div className="px-2 py-1 border-b-2 border-border">
+              <div className="px-2 py-3 border-b-2 border-border">
                 <p className="leading-none text-sm">{displayName}</p>
                 <span className="leading-none text-muted-foreground text-xs font-normal truncate block mt-0.5">
                   {displayEmail}
