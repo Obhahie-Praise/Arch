@@ -32,7 +32,7 @@ Keep it short and current.
 - [x] Existing Next.js application reviewed
 - [x] Authentication flow implemented
 - [x] Profile flow implemented (complete persistent matching-ready profile form)
-- [ ] Home implemented
+- [x] Home implemented (Arch home dashboard with completion gate, metrics, charts & mock sections)
 - [ ] Opportunities implemented
 - [ ] Opportunity detail implemented
 - [ ] Saved implemented

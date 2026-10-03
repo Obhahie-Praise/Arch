@@ -48,7 +48,7 @@ export const PrefixInput: React.FC<PrefixInputProps> = ({
         {optional && <span className="text-xs text-muted-foreground">Optional</span>}
       </div>
 
-      <div className="flex items-center border-2 border-border rounded-full px-6 py-3 bg-background focus-within:border-foreground/60 focus-within:ring-1 focus-within:ring-foreground/60 transition-all duration-300">
+      <div className="flex items-center border border-border rounded-full px-6 py-3 bg-background focus-within:border-foreground/60 focus-within:ring-1 focus-within:ring-foreground/60 transition-all duration-300">
         {prefix && (
           <span className="text-muted-foreground font-medium select-none pr-1 text-base">
             {prefix}

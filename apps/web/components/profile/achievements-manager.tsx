@@ -67,12 +67,11 @@ export const AchievementsManager: React.FC<AchievementsManagerProps> = ({
       <div className="flex items-center justify-between">
         <div>
           <h3 className="text-base font-medium text-foreground">Achievements</h3>
-          <p className="text-xs text-muted-foreground">Awards, hackathons, certifications and recognitions</p>
         </div>
         <button
           type="button"
           onClick={addAchievement}
-          className="flex items-center gap-1.5 px-4 py-2 text-sm font-medium border-2 border-border rounded-full hover:bg-muted transition-all cursor-pointer"
+          className="flex items-center gap-1.5 px-4 py-2 text-sm font-medium border border-border rounded-full hover:bg-muted transition-all cursor-pointer"
         >
           <Plus size={16} />
           <span>Add Achievement</span>
@@ -80,7 +79,7 @@ export const AchievementsManager: React.FC<AchievementsManagerProps> = ({
       </div>
 
       {achievements.length === 0 ? (
-        <div className="border-2 border-dashed border-border rounded-3xl p-6 text-center text-sm text-muted-foreground">
+        <div className="border border-dashed border-border rounded-3xl p-6 text-center text-sm text-muted-foreground">
           No achievements added yet. Click "Add Achievement" to list your recognitions.
         </div>
       ) : (
@@ -90,7 +89,7 @@ export const AchievementsManager: React.FC<AchievementsManagerProps> = ({
             return (
               <div
                 key={idx}
-                className="border-2 border-border rounded-3xl p-5 bg-card transition-all duration-200"
+                className="border border-border rounded-3xl p-5 bg-card transition-all duration-200"
               >
                 <div
                   className="flex items-center justify-between cursor-pointer select-none"
@@ -134,7 +133,7 @@ export const AchievementsManager: React.FC<AchievementsManagerProps> = ({
                         value={ach.title}
                         onChange={(e) => updateAchievement(idx, { ...ach, title: e.target.value })}
                         placeholder="e.g. 1st Place - Global AI Hackathon"
-                        className="border-2 border-border text-base rounded-full px-6 py-2.5 w-full focus:outline-none focus:border-foreground/60 transition-all"
+                        className="border border-border text-base rounded-full px-6 py-2.5 w-full focus:outline-none focus:border-foreground/60 transition-all"
                       />
                     </div>
 
@@ -152,7 +151,7 @@ export const AchievementsManager: React.FC<AchievementsManagerProps> = ({
                         value={ach.issuer || ""}
                         onChange={(e) => updateAchievement(idx, { ...ach, issuer: e.target.value })}
                         placeholder="e.g. Y Combinator, AWS, Google"
-                        className="border-2 border-border text-base rounded-full px-6 py-2.5 w-full focus:outline-none focus:border-foreground/60 transition-all"
+                        className="border border-border text-base rounded-full px-6 py-2.5 w-full focus:outline-none focus:border-foreground/60 transition-all"
                       />
                     </div>
 
@@ -163,7 +162,7 @@ export const AchievementsManager: React.FC<AchievementsManagerProps> = ({
                         value={ach.date || ""}
                         onChange={(e) => updateAchievement(idx, { ...ach, date: e.target.value })}
                         placeholder="e.g. Oct 2026"
-                        className="border-2 border-border text-base rounded-full px-6 py-2.5 w-full focus:outline-none focus:border-foreground/60 transition-all"
+                        className="border border-border text-base rounded-full px-6 py-2.5 w-full focus:outline-none focus:border-foreground/60 transition-all"
                       />
                     </div>
 
@@ -174,7 +173,7 @@ export const AchievementsManager: React.FC<AchievementsManagerProps> = ({
                         value={ach.url || ""}
                         onChange={(e) => updateAchievement(idx, { ...ach, url: e.target.value })}
                         placeholder="https://credential-or-event-link.com"
-                        className="border-2 border-border text-base rounded-full px-6 py-2.5 w-full focus:outline-none focus:border-foreground/60 transition-all"
+                        className="border border-border text-base rounded-full px-6 py-2.5 w-full focus:outline-none focus:border-foreground/60 transition-all"
                       />
                     </div>
 
@@ -185,7 +184,7 @@ export const AchievementsManager: React.FC<AchievementsManagerProps> = ({
                         value={ach.description || ""}
                         onChange={(e) => updateAchievement(idx, { ...ach, description: e.target.value })}
                         placeholder="Details about the recognition, score, or project submission..."
-                        className="border-2 border-border text-base rounded-3xl p-4 w-full focus:outline-none focus:border-foreground/60 transition-all resize-y"
+                        className="border border-border text-base rounded-3xl p-4 w-full focus:outline-none focus:border-foreground/60 transition-all resize-y"
                       />
                     </div>
                   </div>

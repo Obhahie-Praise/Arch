@@ -638,21 +638,13 @@ export default function ProfilePage() {
       <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-3">
         <div className="flex flex-col gap-1">
           <h1 className="font-display text-3xl font-medium text-foreground">Profile</h1>
-          <p className="text-muted-foreground text-sm">
-            Build your profile so Arch can understand you and find opportunities that fit.
-          </p>
         </div>
 
         {/* 2. SUBTLE LOCAL STORAGE COMMUNICATION NOTICE */}
-        {hasUnsavedChanges ? (
+        {hasUnsavedChanges && (
           <div className="flex items-center gap-1.5 text-xs text-muted-foreground font-normal bg-muted/50 border border-border px-3 py-1.5 rounded-full shrink-0">
             <Smartphone size={13} className="text-muted-foreground shrink-0" />
             <span>Your changes are saved on this device till you save your profile.</span>
-          </div>
-        ) : (
-          <div className="flex items-center gap-1.5 text-xs text-muted-foreground font-normal bg-muted/30 border border-border/60 px-3 py-1.5 rounded-full shrink-0">
-            <CheckCircle2 size={13} className="text-emerald-500 shrink-0" />
-            <span>Profile synced with server</span>
           </div>
         )}
       </div>
@@ -683,17 +675,16 @@ export default function ProfilePage() {
 
       {/* Notifications */}
       {saveSuccess && (
-        <div className="flex items-center gap-3 p-4 bg-emerald-500/10 border-2 border-emerald-500/30 rounded-3xl text-emerald-700 dark:text-emerald-300 text-sm">
+        <div className="flex items-center gap-3 p-4 bg-emerald-500/10 border border-emerald-500/30 rounded-3xl text-emerald-700 dark:text-emerald-300 text-sm">
           <CheckCircle size={20} className="shrink-0 text-emerald-500" />
           <div>
             <p className="font-medium">Profile saved successfully!</p>
-            <p className="text-xs opacity-90">Your profile information is updated and ready for opportunity matching.</p>
           </div>
         </div>
       )}
 
       {saveError && (
-        <div className="flex items-center gap-3 p-4 bg-red-500/10 border-2 border-red-500/30 rounded-3xl text-red-600 dark:text-red-400 text-sm">
+        <div className="flex items-center gap-3 p-4 bg-red-500/10 border border-red-500/30 rounded-3xl text-red-600 dark:text-red-400 text-sm">
           <AlertCircle size={20} className="shrink-0 text-red-500" />
           <p className="font-medium">{saveError}</p>
         </div>
@@ -704,10 +695,9 @@ export default function ProfilePage() {
         {isLoading ? (
           <IdentitySkeleton />
         ) : (
-          <section className="space-y-4 border-2 border-border rounded-3xl p-6 bg-card">
+          <section className="space-y-4 border border-border rounded-3xl p-6 bg-card">
             <div className="border-b border-border pb-3">
               <h2 className="font-display text-xl text-foreground font-medium">Identity</h2>
-              <p className="text-xs text-muted-foreground">Personal details, profile image and online accounts</p>
             </div>
 
             <div className="space-y-4">
@@ -732,7 +722,7 @@ export default function ProfilePage() {
                     value={fullName}
                     onChange={(e) => setFullName(e.target.value)}
                     placeholder="Enter your full name"
-                    className="border-2 border-border text-base rounded-full px-6 py-3 w-full focus:outline-none focus:border-foreground/60 focus:ring-1 focus:ring-foreground/60 transition-all duration-300"
+                    className="border border-border text-base rounded-full px-6 py-3 w-full focus:outline-none focus:border-foreground/60 focus:ring-1 focus:ring-foreground/60 transition-all duration-300"
                     required
                   />
                 </div>
@@ -748,7 +738,7 @@ export default function ProfilePage() {
                     value={preferredName}
                     onChange={(e) => setPreferredName(e.target.value)}
                     placeholder="How should we address you?"
-                    className="border-2 border-border text-base rounded-full px-6 py-3 w-full focus:outline-none focus:border-foreground/60 focus:ring-1 focus:ring-foreground/60 transition-all duration-300"
+                    className="border border-border text-base rounded-full px-6 py-3 w-full focus:outline-none focus:border-foreground/60 focus:ring-1 focus:ring-foreground/60 transition-all duration-300"
                   />
                 </div>
               </div>
@@ -788,7 +778,7 @@ export default function ProfilePage() {
                   value={userEmail}
                   onClick={handleEmailClick}
                   placeholder="email@example.com"
-                  className="border-2 border-border text-base rounded-full px-6 py-3 w-full bg-muted/40 cursor-not-allowed text-muted-foreground focus:outline-none"
+                  className="border border-border text-base rounded-full px-6 py-3 w-full bg-muted/40 cursor-not-allowed text-muted-foreground focus:outline-none"
                 />
                 {showEmailNotice && (
                   <p className="text-xs text-amber-600 dark:text-amber-400 mt-1 flex items-center gap-1">
@@ -809,7 +799,7 @@ export default function ProfilePage() {
                     value={phone}
                     onChange={(e) => setPhone(e.target.value)}
                     placeholder="+1 (555) 000-0000"
-                    className="border-2 border-border text-base rounded-full px-6 py-3 w-full focus:outline-none focus:border-foreground/60 focus:ring-1 focus:ring-foreground/60 transition-all duration-300"
+                    className="border border-border text-base rounded-full px-6 py-3 w-full focus:outline-none focus:border-foreground/60 focus:ring-1 focus:ring-foreground/60 transition-all duration-300"
                   />
                 </div>
 
@@ -824,7 +814,7 @@ export default function ProfilePage() {
                     value={website}
                     onChange={(e) => setWebsite(e.target.value)}
                     placeholder="https://yourwebsite.com"
-                    className="border-2 border-border text-base rounded-full px-6 py-3 w-full focus:outline-none focus:border-foreground/60 focus:ring-1 focus:ring-foreground/60 transition-all duration-300"
+                    className="border border-border text-base rounded-full px-6 py-3 w-full focus:outline-none focus:border-foreground/60 focus:ring-1 focus:ring-foreground/60 transition-all duration-300"
                   />
                 </div>
               </div>
@@ -863,10 +853,9 @@ export default function ProfilePage() {
         {isLoading ? (
           <PreferencesSkeleton />
         ) : (
-          <section className="space-y-4 border-2 border-border rounded-3xl p-6 bg-card">
+          <section className="space-y-4 border border-border rounded-3xl p-6 bg-card">
             <div className="border-b border-border pb-3">
               <h2 className="font-display text-xl text-foreground font-medium">Opportunity Preferences</h2>
-              <p className="text-xs text-muted-foreground">Define what opportunities you are looking for</p>
             </div>
 
             <div className="space-y-4">
@@ -880,7 +869,7 @@ export default function ProfilePage() {
                         type="button"
                         key={type}
                         onClick={() => toggleArrayItem(type, opportunityTypes, setOpportunityTypes)}
-                        className={`px-4 py-2 rounded-full text-sm font-medium border-2 transition-all cursor-pointer ${
+                        className={`px-4 py-2 rounded-full text-sm font-medium border transition-all cursor-pointer ${
                           isSelected
                             ? "bg-foreground text-background border-foreground"
                             : "bg-background text-foreground border-border hover:border-foreground/40"
@@ -918,7 +907,7 @@ export default function ProfilePage() {
                           type="button"
                           key={wt}
                           onClick={() => toggleArrayItem(wt, workTypes, setWorkTypes)}
-                          className={`px-3.5 py-1.5 rounded-full text-sm font-medium border-2 transition-all cursor-pointer ${
+                          className={`px-3.5 py-1.5 rounded-full text-sm font-medium border transition-all cursor-pointer ${
                             isSelected
                               ? "bg-foreground text-background border-foreground"
                               : "bg-background text-foreground border-border hover:border-foreground/40"
@@ -941,7 +930,7 @@ export default function ProfilePage() {
                           type="button"
                           key={wa}
                           onClick={() => toggleArrayItem(wa, workArrangements, setWorkArrangements)}
-                          className={`px-3.5 py-1.5 rounded-full text-sm font-medium border-2 transition-all cursor-pointer ${
+                          className={`px-3.5 py-1.5 rounded-full text-sm font-medium border transition-all cursor-pointer ${
                             isSelected
                               ? "bg-foreground text-background border-foreground"
                               : "bg-background text-foreground border-border hover:border-foreground/40"
@@ -962,10 +951,9 @@ export default function ProfilePage() {
         {isLoading ? (
           <SkillsSkeleton />
         ) : (
-          <section className="space-y-4 border-2 border-border rounded-3xl p-6 bg-card">
+          <section className="space-y-4 border border-border rounded-3xl p-6 bg-card">
             <div className="border-b border-border pb-3">
               <h2 className="font-display text-xl text-foreground font-medium">Skills</h2>
-              <p className="text-xs text-muted-foreground">Categorized skills, technologies and languages</p>
             </div>
 
             <div className="space-y-4">
@@ -1007,7 +995,7 @@ export default function ProfilePage() {
         {isLoading ? (
           <ExperienceSkeleton />
         ) : (
-          <section className="border-2 border-border rounded-3xl p-6 bg-card">
+          <section className="border border-border rounded-3xl p-6 bg-card">
             <ExperienceManager experiences={experiences} onChange={setExperiences} />
           </section>
         )}
@@ -1016,7 +1004,7 @@ export default function ProfilePage() {
         {isLoading ? (
           <EducationSkeleton />
         ) : (
-          <section className="border-2 border-border rounded-3xl p-6 bg-card">
+          <section className="border border-border rounded-3xl p-6 bg-card">
             <EducationManager education={education} onChange={setEducation} />
           </section>
         )}
@@ -1025,7 +1013,7 @@ export default function ProfilePage() {
         {isLoading ? (
           <ProjectsSkeleton />
         ) : (
-          <section className="border-2 border-border rounded-3xl p-6 bg-card">
+          <section className="border border-border rounded-3xl p-6 bg-card">
             <ProjectsManager projects={projects} onChange={setProjects} />
           </section>
         )}
@@ -1034,7 +1022,7 @@ export default function ProfilePage() {
         {isLoading ? (
           <AchievementsSkeleton />
         ) : (
-          <section className="border-2 border-border rounded-3xl p-6 bg-card">
+          <section className="border border-border rounded-3xl p-6 bg-card">
             <AchievementsManager achievements={achievements} onChange={setAchievements} />
           </section>
         )}
@@ -1043,10 +1031,9 @@ export default function ProfilePage() {
         {isLoading ? (
           <GoalsSkeleton />
         ) : (
-          <section className="space-y-4 border-2 border-border rounded-3xl p-6 bg-card">
+          <section className="space-y-4 border border-border rounded-3xl p-6 bg-card">
             <div className="border-b border-border pb-3">
               <h2 className="font-display text-xl text-foreground font-medium">Interests & Goals</h2>
-              <p className="text-xs text-muted-foreground">Free-form context and qualitative aspirations</p>
             </div>
 
             <div className="space-y-4">
@@ -1077,7 +1064,7 @@ export default function ProfilePage() {
                   value={bio}
                   onChange={(e) => setBio(e.target.value)}
                   placeholder="A concise summary of who you are and what drives you..."
-                  className="border-2 border-border text-base rounded-3xl p-4 w-full focus:outline-none focus:border-foreground/60 transition-all resize-y"
+                  className="border border-border text-base rounded-3xl p-4 w-full focus:outline-none focus:border-foreground/60 transition-all resize-y"
                 />
               </div>
 
@@ -1093,7 +1080,7 @@ export default function ProfilePage() {
                     value={shortTermGoals}
                     onChange={(e) => setShortTermGoals(e.target.value)}
                     placeholder="What are you focusing on over the next 6-12 months?"
-                    className="border-2 border-border text-base rounded-3xl p-4 w-full focus:outline-none focus:border-foreground/60 transition-all resize-y"
+                    className="border border-border text-base rounded-3xl p-4 w-full focus:outline-none focus:border-foreground/60 transition-all resize-y"
                   />
                 </div>
 
@@ -1108,7 +1095,7 @@ export default function ProfilePage() {
                     value={longTermGoals}
                     onChange={(e) => setLongTermGoals(e.target.value)}
                     placeholder="Where do you want to be in 3-5 years?"
-                    className="border-2 border-border text-base rounded-3xl p-4 w-full focus:outline-none focus:border-foreground/60 transition-all resize-y"
+                    className="border border-border text-base rounded-3xl p-4 w-full focus:outline-none focus:border-foreground/60 transition-all resize-y"
                   />
                 </div>
               </div>
@@ -1120,10 +1107,9 @@ export default function ProfilePage() {
         {isLoading ? (
           <EligibilitySkeleton />
         ) : (
-          <section className="space-y-4 border-2 border-border rounded-3xl p-6 bg-card">
+          <section className="space-y-4 border border-border rounded-3xl p-6 bg-card">
             <div className="border-b border-border pb-3">
               <h2 className="font-display text-xl text-foreground font-medium">Eligibility & Status</h2>
-              <p className="text-xs text-muted-foreground">Work authorization, citizenship and student status</p>
             </div>
 
             <div className="space-y-4">
@@ -1139,7 +1125,7 @@ export default function ProfilePage() {
                     value={citizenship}
                     onChange={(e) => setCitizenship(e.target.value)}
                     placeholder="e.g. United States, Nigeria, United Kingdom"
-                    className="border-2 border-border text-base rounded-full px-6 py-3 w-full focus:outline-none focus:border-foreground/60 transition-all"
+                    className="border border-border text-base rounded-full px-6 py-3 w-full focus:outline-none focus:border-foreground/60 transition-all"
                   />
                 </div>
 
@@ -1178,7 +1164,7 @@ export default function ProfilePage() {
                     value={graduationYear}
                     onChange={(e) => setGraduationYear(e.target.value)}
                     placeholder="e.g. 2026"
-                    className="border-2 border-border text-base rounded-full px-6 py-3 w-full focus:outline-none focus:border-foreground/60 transition-all"
+                    className="border border-border text-base rounded-full px-6 py-3 w-full focus:outline-none focus:border-foreground/60 transition-all"
                   />
                 </div>
               </div>
@@ -1190,10 +1176,9 @@ export default function ProfilePage() {
         {isLoading ? (
           <AvailabilitySkeleton />
         ) : (
-          <section className="space-y-4 border-2 border-border rounded-3xl p-6 bg-card">
+          <section className="space-y-4 border border-border rounded-3xl p-6 bg-card">
             <div className="border-b border-border pb-3">
               <h2 className="font-display text-xl text-foreground font-medium">Availability</h2>
-              <p className="text-xs text-muted-foreground">Start dates and available weekly commitments</p>
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -1207,7 +1192,7 @@ export default function ProfilePage() {
                   id="availStart"
                   value={availabilityStart}
                   onChange={(e) => setAvailabilityStart(e.target.value)}
-                  className="border-2 border-border text-base rounded-full px-6 py-3 w-full focus:outline-none focus:border-foreground/60 transition-all"
+                  className="border border-border text-base rounded-full px-6 py-3 w-full focus:outline-none focus:border-foreground/60 transition-all"
                 />
               </div>
 
@@ -1222,7 +1207,7 @@ export default function ProfilePage() {
                   value={hoursPerWeek}
                   onChange={(e) => setHoursPerWeek(e.target.value)}
                   placeholder="e.g. 40"
-                  className="border-2 border-border text-base rounded-full px-6 py-3 w-full focus:outline-none focus:border-foreground/60 transition-all"
+                  className="border border-border text-base rounded-full px-6 py-3 w-full focus:outline-none focus:border-foreground/60 transition-all"
                 />
               </div>
 
@@ -1237,7 +1222,7 @@ export default function ProfilePage() {
                   value={preferredSchedule}
                   onChange={(e) => setPreferredSchedule(e.target.value)}
                   placeholder="e.g. Flexible, US Eastern Overlap"
-                  className="border-2 border-border text-base rounded-full px-6 py-3 w-full focus:outline-none focus:border-foreground/60 transition-all"
+                  className="border border-border text-base rounded-full px-6 py-3 w-full focus:outline-none focus:border-foreground/60 transition-all"
                 />
               </div>
             </div>
@@ -1248,10 +1233,9 @@ export default function ProfilePage() {
         {isLoading ? (
           <CompensationSkeleton />
         ) : (
-          <section className="space-y-4 border-2 border-border rounded-3xl p-6 bg-card">
+          <section className="space-y-4 border border-border rounded-3xl p-6 bg-card">
             <div className="border-b border-border pb-3">
               <h2 className="font-display text-xl text-foreground font-medium">Compensation & Expectations</h2>
-              <p className="text-xs text-muted-foreground">Salary, rates, currency and equity preferences</p>
             </div>
 
             <div className="space-y-4">
@@ -1290,7 +1274,7 @@ export default function ProfilePage() {
                     value={desiredCompensationMin}
                     onChange={(e) => setDesiredCompensationMin(e.target.value)}
                     placeholder="e.g. 80000"
-                    className="border-2 border-border text-base rounded-full px-6 py-3 w-full focus:outline-none focus:border-foreground/60 transition-all"
+                    className="border border-border text-base rounded-full px-6 py-3 w-full focus:outline-none focus:border-foreground/60 transition-all"
                   />
                 </div>
 
@@ -1305,7 +1289,7 @@ export default function ProfilePage() {
                     value={desiredCompensationMax}
                     onChange={(e) => setDesiredCompensationMax(e.target.value)}
                     placeholder="e.g. 130000"
-                    className="border-2 border-border text-base rounded-full px-6 py-3 w-full focus:outline-none focus:border-foreground/60 transition-all"
+                    className="border border-border text-base rounded-full px-6 py-3 w-full focus:outline-none focus:border-foreground/60 transition-all"
                   />
                 </div>
               </div>
@@ -1317,10 +1301,9 @@ export default function ProfilePage() {
         {isLoading ? (
           <PreferencesSkeleton />
         ) : (
-          <section className="space-y-4 border-2 border-border rounded-3xl p-6 bg-card">
+          <section className="space-y-4 border border-border rounded-3xl p-6 bg-card">
             <div className="border-b border-border pb-3">
               <h2 className="font-display text-xl text-foreground font-medium">Preferences & Deal-Breakers</h2>
-              <p className="text-xs text-muted-foreground">Select what matters most and what you want to avoid</p>
             </div>
 
             <div className="space-y-4">
@@ -1334,7 +1317,7 @@ export default function ProfilePage() {
                         type="button"
                         key={priority}
                         onClick={() => toggleArrayItem(priority, keyPriorities, setKeyPriorities)}
-                        className={`px-4 py-2 rounded-full text-sm font-medium border-2 transition-all cursor-pointer ${
+                        className={`px-4 py-2 rounded-full text-sm font-medium border transition-all cursor-pointer ${
                           isSelected
                             ? "bg-foreground text-background border-foreground"
                             : "bg-background text-foreground border-border hover:border-foreground/40"
@@ -1362,10 +1345,9 @@ export default function ProfilePage() {
         {isLoading ? (
           <MaterialsSkeleton />
         ) : (
-          <section className="space-y-4 border-2 border-border rounded-3xl p-6 bg-card">
+          <section className="space-y-4 border border-border rounded-3xl p-6 bg-card">
             <div className="border-b border-border pb-3">
               <h2 className="font-display text-xl text-foreground font-medium">Application Materials</h2>
-              <p className="text-xs text-muted-foreground">Upload persistent resume / CV for opportunity applications</p>
             </div>
 
             <FileUpload

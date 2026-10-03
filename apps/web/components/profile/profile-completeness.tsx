@@ -23,7 +23,7 @@ export const ProfileCompleteness: React.FC<ProfileCompletenessProps> = ({
 
   const sections = [
     {
-      label: "Identity & Location",
+      label: "Identity",
       complete: Boolean(hasName && hasUsername),
     },
     {
@@ -33,7 +33,7 @@ export const ProfileCompleteness: React.FC<ProfileCompletenessProps> = ({
       ),
     },
     {
-      label: "Skills & Proficiency",
+      label: "Skills",
       complete: Boolean(
         (profile.technicalSkills?.length || 0) > 0 || (profile.tools?.length || 0) > 0
       ),
@@ -49,15 +49,12 @@ export const ProfileCompleteness: React.FC<ProfileCompletenessProps> = ({
   ];
 
   return (
-    <div className="border-2 border-border rounded-3xl p-6 bg-card flex flex-col gap-4 transition-all duration-300">
+    <div className="border border-border rounded-3xl p-5 bg-card flex flex-col gap-4 transition-all duration-300">
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
-          <Sparkles className="text-foreground shrink-0" size={20} />
+          <Sparkles className="text-foreground shrink-0" size={20} strokeWidth={1.5} />
           <div>
             <h3 className="font-display text-base text-foreground">Profile Completeness</h3>
-            <p className="text-xs text-muted-foreground">
-              A detailed profile gives Arch the best signal for matching opportunities.
-            </p>
           </div>
         </div>
         <div className="flex items-baseline gap-1 bg-muted px-4 py-1.5 rounded-full">

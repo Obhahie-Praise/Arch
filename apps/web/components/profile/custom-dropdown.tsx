@@ -84,7 +84,7 @@ export const CustomDropdown: React.FC<CustomDropdownProps> = ({
         aria-haspopup="listbox"
         aria-expanded={isOpen}
         aria-controls={listboxId}
-        className={`flex items-center justify-between px-6 py-3 border-2 border-border rounded-full w-full text-left bg-background text-base transition-all duration-300 ${
+        className={`flex items-center justify-between px-6 py-3 border border-border rounded-full w-full text-left bg-background text-base transition-all duration-300 ${
           disabled
             ? "opacity-50 cursor-not-allowed"
             : "cursor-pointer hover:border-foreground/40 focus:outline-none focus:border-foreground/60 focus:ring-1 focus:ring-foreground/60"
@@ -106,7 +106,7 @@ export const CustomDropdown: React.FC<CustomDropdownProps> = ({
         <div
           id={listboxId}
           role="listbox"
-          className="absolute top-full left-0 right-0 mt-2 z-50 max-h-60 overflow-y-auto bg-background rounded-3xl border-2 border-border shadow-xl px-2 pb-2  transition-all duration-200"
+          className="absolute top-full left-0 right-0 mt-2 z-50 max-h-60 overflow-y-auto bg-background rounded-3xl border border-border shadow-xl px-2 pb-2  transition-all duration-200"
         >
           {searchable && (
             <div className="p-2 border-b border-border mb-1 sticky top-0 bg-background">

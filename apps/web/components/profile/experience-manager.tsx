@@ -71,12 +71,11 @@ export const ExperienceManager: React.FC<ExperienceManagerProps> = ({
       <div className="flex items-center justify-between">
         <div>
           <h3 className="text-base font-medium text-foreground">Work Experience</h3>
-          <p className="text-xs text-muted-foreground">Add your past and current roles</p>
         </div>
         <button
           type="button"
           onClick={addExperience}
-          className="flex items-center gap-1.5 px-4 py-2 text-sm font-medium border-2 border-border rounded-full hover:bg-muted transition-all cursor-pointer"
+          className="flex items-center gap-1.5 px-4 py-2 text-sm font-medium border border-border rounded-full hover:bg-muted transition-all cursor-pointer"
         >
           <Plus size={16} />
           <span>Add Experience</span>
@@ -84,7 +83,7 @@ export const ExperienceManager: React.FC<ExperienceManagerProps> = ({
       </div>
 
       {experiences.length === 0 ? (
-        <div className="border-2 border-dashed border-border rounded-3xl p-6 text-center text-sm text-muted-foreground">
+        <div className="border border-dashed border-border rounded-3xl p-6 text-center text-sm text-muted-foreground">
           No work experiences added yet. Click "Add Experience" to add one.
         </div>
       ) : (
@@ -94,7 +93,7 @@ export const ExperienceManager: React.FC<ExperienceManagerProps> = ({
             return (
               <div
                 key={idx}
-                className="border-2 border-border rounded-3xl p-5 bg-card transition-all duration-200"
+                className="border border-border rounded-3xl p-5 bg-card transition-all duration-200"
               >
                 {/* Header */}
                 <div
@@ -142,7 +141,7 @@ export const ExperienceManager: React.FC<ExperienceManagerProps> = ({
                         value={exp.organization}
                         onChange={(e) => updateExperience(idx, { ...exp, organization: e.target.value })}
                         placeholder="e.g. Google, Vercel"
-                        className="border-2 border-border text-base rounded-full px-6 py-2.5 w-full focus:outline-none focus:border-foreground/60 transition-all"
+                        className="border border-border text-base rounded-full px-6 py-2.5 w-full focus:outline-none focus:border-foreground/60 transition-all"
                       />
                     </div>
 
@@ -153,7 +152,7 @@ export const ExperienceManager: React.FC<ExperienceManagerProps> = ({
                         value={exp.role}
                         onChange={(e) => updateExperience(idx, { ...exp, role: e.target.value })}
                         placeholder="e.g. Senior Software Engineer"
-                        className="border-2 border-border text-base rounded-full px-6 py-2.5 w-full focus:outline-none focus:border-foreground/60 transition-all"
+                        className="border border-border text-base rounded-full px-6 py-2.5 w-full focus:outline-none focus:border-foreground/60 transition-all"
                       />
                     </div>
 
@@ -171,7 +170,7 @@ export const ExperienceManager: React.FC<ExperienceManagerProps> = ({
                         value={exp.location || ""}
                         onChange={(e) => updateExperience(idx, { ...exp, location: e.target.value })}
                         placeholder="e.g. San Francisco, CA or Remote"
-                        className="border-2 border-border text-base rounded-full px-6 py-2.5 w-full focus:outline-none focus:border-foreground/60 transition-all"
+                        className="border border-border text-base rounded-full px-6 py-2.5 w-full focus:outline-none focus:border-foreground/60 transition-all"
                       />
                     </div>
 
@@ -181,7 +180,7 @@ export const ExperienceManager: React.FC<ExperienceManagerProps> = ({
                         type="month"
                         value={exp.startDate || ""}
                         onChange={(e) => updateExperience(idx, { ...exp, startDate: e.target.value })}
-                        className="border-2 border-border text-base rounded-full px-6 py-2.5 w-full focus:outline-none focus:border-foreground/60 transition-all"
+                        className="border border-border text-base rounded-full px-6 py-2.5 w-full focus:outline-none focus:border-foreground/60 transition-all"
                       />
                     </div>
 
@@ -205,7 +204,7 @@ export const ExperienceManager: React.FC<ExperienceManagerProps> = ({
                         disabled={exp.isCurrent}
                         value={exp.isCurrent ? "" : exp.endDate || ""}
                         onChange={(e) => updateExperience(idx, { ...exp, endDate: e.target.value })}
-                        className="border-2 border-border text-base rounded-full px-6 py-2.5 w-full focus:outline-none focus:border-foreground/60 transition-all disabled:opacity-50"
+                        className="border border-border text-base rounded-full px-6 py-2.5 w-full focus:outline-none focus:border-foreground/60 transition-all disabled:opacity-50"
                       />
                     </div>
 
@@ -216,7 +215,7 @@ export const ExperienceManager: React.FC<ExperienceManagerProps> = ({
                         value={exp.description || ""}
                         onChange={(e) => updateExperience(idx, { ...exp, description: e.target.value })}
                         placeholder="Describe key responsibilities and impact..."
-                        className="border-2 border-border text-base rounded-3xl p-4 w-full focus:outline-none focus:border-foreground/60 transition-all resize-y"
+                        className="border border-border text-base rounded-3xl p-4 w-full focus:outline-none focus:border-foreground/60 transition-all resize-y"
                       />
                     </div>
 

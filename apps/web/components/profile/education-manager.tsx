@@ -57,12 +57,11 @@ export const EducationManager: React.FC<EducationManagerProps> = ({
       <div className="flex items-center justify-between">
         <div>
           <h3 className="text-base font-medium text-foreground">Education</h3>
-          <p className="text-xs text-muted-foreground">Add your academic background</p>
         </div>
         <button
           type="button"
           onClick={addEducation}
-          className="flex items-center gap-1.5 px-4 py-2 text-sm font-medium border-2 border-border rounded-full hover:bg-muted transition-all cursor-pointer"
+          className="flex items-center gap-1.5 px-4 py-2 text-sm font-medium border border-border rounded-full hover:bg-muted transition-all cursor-pointer"
         >
           <Plus size={16} />
           <span>Add Education</span>
@@ -70,7 +69,7 @@ export const EducationManager: React.FC<EducationManagerProps> = ({
       </div>
 
       {education.length === 0 ? (
-        <div className="border-2 border-dashed border-border rounded-3xl p-6 text-center text-sm text-muted-foreground">
+        <div className="border border-dashed border-border rounded-3xl p-6 text-center text-sm text-muted-foreground">
           No education history added yet. Click "Add Education" to add one.
         </div>
       ) : (
@@ -80,7 +79,7 @@ export const EducationManager: React.FC<EducationManagerProps> = ({
             return (
               <div
                 key={idx}
-                className="border-2 border-border rounded-3xl p-5 bg-card transition-all duration-200"
+                className="border border-border rounded-3xl p-5 bg-card transition-all duration-200"
               >
                 <div
                   className="flex items-center justify-between cursor-pointer select-none"
@@ -125,7 +124,7 @@ export const EducationManager: React.FC<EducationManagerProps> = ({
                         value={edu.institution}
                         onChange={(e) => updateEducation(idx, { ...edu, institution: e.target.value })}
                         placeholder="e.g. Stanford University, MIT"
-                        className="border-2 border-border text-base rounded-full px-6 py-2.5 w-full focus:outline-none focus:border-foreground/60 transition-all"
+                        className="border border-border text-base rounded-full px-6 py-2.5 w-full focus:outline-none focus:border-foreground/60 transition-all"
                       />
                     </div>
 
@@ -136,7 +135,7 @@ export const EducationManager: React.FC<EducationManagerProps> = ({
                         value={edu.degree || ""}
                         onChange={(e) => updateEducation(idx, { ...edu, degree: e.target.value })}
                         placeholder="e.g. Bachelor of Science"
-                        className="border-2 border-border text-base rounded-full px-6 py-2.5 w-full focus:outline-none focus:border-foreground/60 transition-all"
+                        className="border border-border text-base rounded-full px-6 py-2.5 w-full focus:outline-none focus:border-foreground/60 transition-all"
                       />
                     </div>
 
@@ -147,7 +146,7 @@ export const EducationManager: React.FC<EducationManagerProps> = ({
                         value={edu.fieldOfStudy || ""}
                         onChange={(e) => updateEducation(idx, { ...edu, fieldOfStudy: e.target.value })}
                         placeholder="e.g. Computer Science"
-                        className="border-2 border-border text-base rounded-full px-6 py-2.5 w-full focus:outline-none focus:border-foreground/60 transition-all"
+                        className="border border-border text-base rounded-full px-6 py-2.5 w-full focus:outline-none focus:border-foreground/60 transition-all"
                       />
                     </div>
 
@@ -158,7 +157,7 @@ export const EducationManager: React.FC<EducationManagerProps> = ({
                         placeholder="e.g. 2020"
                         value={edu.startDate || ""}
                         onChange={(e) => updateEducation(idx, { ...edu, startDate: e.target.value })}
-                        className="border-2 border-border text-base rounded-full px-6 py-2.5 w-full focus:outline-none focus:border-foreground/60 transition-all"
+                        className="border border-border text-base rounded-full px-6 py-2.5 w-full focus:outline-none focus:border-foreground/60 transition-all"
                       />
                     </div>
 
@@ -183,7 +182,7 @@ export const EducationManager: React.FC<EducationManagerProps> = ({
                         disabled={edu.isCurrent}
                         value={edu.isCurrent ? "" : edu.endDate || ""}
                         onChange={(e) => updateEducation(idx, { ...edu, endDate: e.target.value })}
-                        className="border-2 border-border text-base rounded-full px-6 py-2.5 w-full focus:outline-none focus:border-foreground/60 transition-all disabled:opacity-50"
+                        className="border border-border text-base rounded-full px-6 py-2.5 w-full focus:outline-none focus:border-foreground/60 transition-all disabled:opacity-50"
                       />
                     </div>
 
@@ -194,7 +193,7 @@ export const EducationManager: React.FC<EducationManagerProps> = ({
                         value={edu.achievements || ""}
                         onChange={(e) => updateEducation(idx, { ...edu, achievements: e.target.value })}
                         placeholder="Honors, thesis, activities..."
-                        className="border-2 border-border text-base rounded-3xl p-4 w-full focus:outline-none focus:border-foreground/60 transition-all resize-y"
+                        className="border border-border text-base rounded-3xl p-4 w-full focus:outline-none focus:border-foreground/60 transition-all resize-y"
                       />
                     </div>
                   </div>

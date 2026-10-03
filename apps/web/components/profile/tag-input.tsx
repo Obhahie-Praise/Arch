@@ -68,7 +68,7 @@ export const TagInput: React.FC<TagInputProps> = ({
         </div>
       )}
 
-      <div className="border-2 border-border rounded-full p-3 min-h-[52px] flex flex-wrap items-center gap-2 bg-background focus-within:border-foreground/60 focus-within:ring-1 focus-within:ring-foreground/60 transition-all duration-300">
+      <div className="border border-border rounded-full p-3 min-h-[52px] flex flex-wrap items-center gap-2 bg-background focus-within:border-foreground/60 focus-within:ring-1 focus-within:ring-foreground/60 transition-all duration-300">
         {tags.map((tag, index) => (
           <span
             key={`${tag}-${index}`}

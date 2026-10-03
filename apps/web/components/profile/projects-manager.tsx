@@ -70,12 +70,11 @@ export const ProjectsManager: React.FC<ProjectsManagerProps> = ({
       <div className="flex items-center justify-between">
         <div>
           <h3 className="text-base font-medium text-foreground">Projects</h3>
-          <p className="text-xs text-muted-foreground">Highlight notable work and software builds</p>
         </div>
         <button
           type="button"
           onClick={addProject}
-          className="flex items-center gap-1.5 px-4 py-2 text-sm font-medium border-2 border-border rounded-full hover:bg-muted transition-all cursor-pointer"
+          className="flex items-center gap-1.5 px-4 py-2 text-sm font-medium border border-border rounded-full hover:bg-muted transition-all cursor-pointer"
         >
           <Plus size={16} />
           <span>Add Project</span>
@@ -83,7 +82,7 @@ export const ProjectsManager: React.FC<ProjectsManagerProps> = ({
       </div>
 
       {projects.length === 0 ? (
-        <div className="border-2 border-dashed border-border rounded-3xl p-6 text-center text-sm text-muted-foreground">
+        <div className="border border-dashed border-border rounded-3xl p-6 text-center text-sm text-muted-foreground">
           No projects added yet. Click "Add Project" to showcase your work.
         </div>
       ) : (
@@ -93,7 +92,7 @@ export const ProjectsManager: React.FC<ProjectsManagerProps> = ({
             return (
               <div
                 key={idx}
-                className="border-2 border-border rounded-3xl p-5 bg-card transition-all duration-200"
+                className="border border-border rounded-3xl p-5 bg-card transition-all duration-200"
               >
                 <div
                   className="flex items-center justify-between cursor-pointer select-none"
@@ -137,7 +136,7 @@ export const ProjectsManager: React.FC<ProjectsManagerProps> = ({
                         value={proj.title}
                         onChange={(e) => updateProject(idx, { ...proj, title: e.target.value })}
                         placeholder="e.g. Arch Platform"
-                        className="border-2 border-border text-base rounded-full px-6 py-2.5 w-full focus:outline-none focus:border-foreground/60 transition-all"
+                        className="border border-border text-base rounded-full px-6 py-2.5 w-full focus:outline-none focus:border-foreground/60 transition-all"
                       />
                     </div>
 
@@ -148,7 +147,7 @@ export const ProjectsManager: React.FC<ProjectsManagerProps> = ({
                         value={proj.role || ""}
                         onChange={(e) => updateProject(idx, { ...proj, role: e.target.value })}
                         placeholder="e.g. Lead Engineer / Founder"
-                        className="border-2 border-border text-base rounded-full px-6 py-2.5 w-full focus:outline-none focus:border-foreground/60 transition-all"
+                        className="border border-border text-base rounded-full px-6 py-2.5 w-full focus:outline-none focus:border-foreground/60 transition-all"
                       />
                     </div>
 
@@ -159,7 +158,7 @@ export const ProjectsManager: React.FC<ProjectsManagerProps> = ({
                         value={proj.url || ""}
                         onChange={(e) => updateProject(idx, { ...proj, url: e.target.value })}
                         placeholder="https://myproject.com"
-                        className="border-2 border-border text-base rounded-full px-6 py-2.5 w-full focus:outline-none focus:border-foreground/60 transition-all"
+                        className="border border-border text-base rounded-full px-6 py-2.5 w-full focus:outline-none focus:border-foreground/60 transition-all"
                       />
                     </div>
 
@@ -170,7 +169,7 @@ export const ProjectsManager: React.FC<ProjectsManagerProps> = ({
                         value={proj.repositoryUrl || ""}
                         onChange={(e) => updateProject(idx, { ...proj, repositoryUrl: e.target.value })}
                         placeholder="https://github.com/user/project"
-                        className="border-2 border-border text-base rounded-full px-6 py-2.5 w-full focus:outline-none focus:border-foreground/60 transition-all"
+                        className="border border-border text-base rounded-full px-6 py-2.5 w-full focus:outline-none focus:border-foreground/60 transition-all"
                       />
                     </div>
 
@@ -188,7 +187,7 @@ export const ProjectsManager: React.FC<ProjectsManagerProps> = ({
                         value={proj.year || ""}
                         onChange={(e) => updateProject(idx, { ...proj, year: e.target.value })}
                         placeholder="e.g. 2026"
-                        className="border-2 border-border text-base rounded-full px-6 py-2.5 w-full focus:outline-none focus:border-foreground/60 transition-all"
+                        className="border border-border text-base rounded-full px-6 py-2.5 w-full focus:outline-none focus:border-foreground/60 transition-all"
                       />
                     </div>
 
@@ -199,7 +198,7 @@ export const ProjectsManager: React.FC<ProjectsManagerProps> = ({
                         value={proj.description || ""}
                         onChange={(e) => updateProject(idx, { ...proj, description: e.target.value })}
                         placeholder="What problem does this project solve? What did you build?"
-                        className="border-2 border-border text-base rounded-3xl p-4 w-full focus:outline-none focus:border-foreground/60 transition-all resize-y"
+                        className="border border-border text-base rounded-3xl p-4 w-full focus:outline-none focus:border-foreground/60 transition-all resize-y"
                       />
                     </div>
 

@@ -19,7 +19,7 @@
 
 :root {
   --background: #fdfcf8;
-  --foreground: #000000;
+  --foreground: #0a0a0a;
   --primary: #0a0a0a;
   --primary-foreground: #ffffff;
   --card: #ffffff;
@@ -31,10 +31,10 @@
 
 .dark {
   --background: #0a0a0a;
-  --foreground: #fff;
+  --foreground: #fdfcf8;
   --primary: #fdfcf8;
   --primary-foreground: #000000;
-  --card: #0a0a0a;
+  --card: #000;
   --card-foreground: #ededed;
   --border: #262626;
   --muted: #171717;
