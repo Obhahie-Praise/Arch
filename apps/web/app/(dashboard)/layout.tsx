@@ -107,6 +107,30 @@ export default function DashboardLayout({
   const user = session?.user;
   const displayName = user?.name || "Praise Ose";
   const displayEmail = user?.email || "obhahiepraise@gmail.com";
+  const [profileAvatar, setProfileAvatar] = useState<string | null>(null);
+
+  useEffect(() => {
+    async function fetchProfileAvatar() {
+      try {
+        const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8787";
+        const res = await fetch(`${apiUrl}/api/profile`, { credentials: "include" });
+        if (res.ok) {
+          const data = await res.json();
+          if (data.profile?.avatarUrl) {
+            const url = data.profile.avatarUrl;
+            setProfileAvatar(url.startsWith("/") ? `${apiUrl}${url}` : url);
+          }
+        }
+      } catch {
+        // ignore fallback
+      }
+    }
+    if (session) {
+      fetchProfileAvatar();
+    }
+  }, [session, pathname]);
+
+  const avatarSrc = profileAvatar || user?.image;
 
   return (
     <div className="h-screen max-w-6xl mx-auto">
@@ -162,9 +186,19 @@ export default function DashboardLayout({
               className="flex items-center gap-3 cursor-pointer"
               onClick={() => setIsDropdownOpen((prev) => !prev)}
             >
-              <div className="flex items-center justify-center p-3 bg-foreground rounded-full w-fit text-background transition-colors hover:bg-foreground/80 hover:text-primary-foreground duration-300 shadow-inner shadow-background">
-                <User2 strokeWidth={1.5} size={20} />
-              </div>
+              {avatarSrc ? (
+                <div className="w-10 h-10 rounded-full overflow-hidden border-2 border-border transition-transform hover:scale-105 duration-300">
+                  <img
+                    src={avatarSrc}
+                    alt={displayName}
+                    className="w-full h-full object-cover"
+                  />
+                </div>
+              ) : (
+                <div className="flex items-center justify-center p-3 bg-foreground rounded-full w-fit text-background transition-colors hover:bg-foreground/80 hover:text-primary-foreground duration-300 shadow-inner shadow-background">
+                  <User2 strokeWidth={1.5} size={20} />
+                </div>
+              )}
             </div>
 
             {/* Animated Profile Dropdown */}

@@ -1,0 +1,113 @@
+-- Migration number: 0003 	 Profile tables creation
+
+CREATE TABLE IF NOT EXISTS "profiles" (
+  "id" TEXT PRIMARY KEY NOT NULL,
+  "userId" TEXT NOT NULL UNIQUE REFERENCES "user"("id") ON DELETE CASCADE,
+  "fullName" TEXT,
+  "preferredName" TEXT,
+  "username" TEXT UNIQUE,
+  "avatarUrl" TEXT,
+  "country" TEXT,
+  "state" TEXT,
+  "city" TEXT,
+  "timezone" TEXT,
+  "phone" TEXT,
+  "website" TEXT,
+  "github" TEXT,
+  "linkedin" TEXT,
+  "twitter" TEXT,
+  "portfolioUrl" TEXT,
+  "bio" TEXT,
+  "shortTermGoals" TEXT,
+  "longTermGoals" TEXT,
+  "opportunityTypes" TEXT,
+  "desiredRoles" TEXT,
+  "desiredIndustries" TEXT,
+  "workTypes" TEXT,
+  "workArrangements" TEXT,
+  "technicalSkills" TEXT,
+  "nonTechnicalSkills" TEXT,
+  "tools" TEXT,
+  "languages" TEXT,
+  "areasOfInterest" TEXT,
+  "causes" TEXT,
+  "citizenship" TEXT,
+  "workAuthorization" TEXT,
+  "requiresSponsorship" INTEGER DEFAULT 0,
+  "studentStatus" TEXT,
+  "graduationYear" INTEGER,
+  "availabilityStart" TEXT,
+  "hoursPerWeek" INTEGER,
+  "preferredSchedule" TEXT,
+  "desiredCompensationMin" REAL,
+  "desiredCompensationMax" REAL,
+  "currency" TEXT,
+  "compensationType" TEXT,
+  "equityPreference" TEXT,
+  "keyPriorities" TEXT,
+  "dealBreakers" TEXT,
+  "resumeUrl" TEXT,
+  "resumeFilename" TEXT,
+  "completenessScore" INTEGER DEFAULT 0,
+  "createdAt" TEXT NOT NULL,
+  "updatedAt" TEXT NOT NULL
+);
+
+CREATE TABLE IF NOT EXISTS "profile_experiences" (
+  "id" TEXT PRIMARY KEY NOT NULL,
+  "profileId" TEXT NOT NULL REFERENCES "profiles"("id") ON DELETE CASCADE,
+  "organization" TEXT NOT NULL,
+  "role" TEXT NOT NULL,
+  "employmentType" TEXT,
+  "location" TEXT,
+  "startDate" TEXT,
+  "endDate" TEXT,
+  "isCurrent" INTEGER DEFAULT 0,
+  "description" TEXT,
+  "skillsUsed" TEXT,
+  "displayOrder" INTEGER DEFAULT 0,
+  "createdAt" TEXT NOT NULL
+);
+
+CREATE TABLE IF NOT EXISTS "profile_education" (
+  "id" TEXT PRIMARY KEY NOT NULL,
+  "profileId" TEXT NOT NULL REFERENCES "profiles"("id") ON DELETE CASCADE,
+  "institution" TEXT NOT NULL,
+  "degree" TEXT,
+  "fieldOfStudy" TEXT,
+  "startDate" TEXT,
+  "endDate" TEXT,
+  "isCurrent" INTEGER DEFAULT 0,
+  "achievements" TEXT,
+  "displayOrder" INTEGER DEFAULT 0,
+  "createdAt" TEXT NOT NULL
+);
+
+CREATE TABLE IF NOT EXISTS "profile_projects" (
+  "id" TEXT PRIMARY KEY NOT NULL,
+  "profileId" TEXT NOT NULL REFERENCES "profiles"("id") ON DELETE CASCADE,
+  "title" TEXT NOT NULL,
+  "description" TEXT,
+  "url" TEXT,
+  "repositoryUrl" TEXT,
+  "role" TEXT,
+  "technologies" TEXT,
+  "status" TEXT,
+  "year" TEXT,
+  "achievements" TEXT,
+  "displayOrder" INTEGER DEFAULT 0,
+  "createdAt" TEXT NOT NULL
+);
+
+CREATE TABLE IF NOT EXISTS "profile_achievements" (
+  "id" TEXT PRIMARY KEY NOT NULL,
+  "profileId" TEXT NOT NULL REFERENCES "profiles"("id") ON DELETE CASCADE,
+  "title" TEXT NOT NULL,
+  "category" TEXT,
+  "issuer" TEXT,
+  "date" TEXT,
+  "url" TEXT,
+  "description" TEXT,
+  "displayOrder" INTEGER DEFAULT 0,
+  "createdAt" TEXT NOT NULL
+);

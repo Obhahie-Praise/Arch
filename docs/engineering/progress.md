@@ -23,15 +23,15 @@ Keep it short and current.
 - [x] Hono API initialized
 - [x] Backend environment configuration established
 - [x] Authentication implemented
-- [ ] Database initialized
-- [ ] Core database schema implemented
-- [ ] API foundation implemented
+- [x] Database initialized
+- [x] Core database schema implemented (profiles, profile_experiences, profile_education, profile_projects, profile_achievements)
+- [x] API foundation & profile routes implemented
 
 ### Web
 
 - [x] Existing Next.js application reviewed
 - [x] Authentication flow implemented
-- [ ] Profile flow implemented
+- [x] Profile flow implemented (complete persistent matching-ready profile form)
 - [ ] Home implemented
 - [ ] Opportunities implemented
 - [ ] Opportunity detail implemented

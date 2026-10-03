@@ -22,6 +22,12 @@
 			"database_name": "arch-db",
 			"database_id": "d1673b96-693c-47e0-8122-b2f072ac96cf"
 		}
+	],
+	"r2_buckets": [
+		{
+			"binding": "STORAGE_BUCKET",
+			"bucket_name": "arch-uploads"
+		}
 	]
 	/**
 	 * Smart Placement
