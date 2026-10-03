@@ -27,7 +27,7 @@ export const ProfileCompleteness: React.FC<ProfileCompletenessProps> = ({
       complete: Boolean(hasName && hasUsername),
     },
     {
-      label: "Target Opportunities & Roles",
+      label: "Target Opportunities",
       complete: Boolean(
         (profile.opportunityTypes?.length || 0) > 0 && (profile.desiredRoles?.length || 0) > 0
       ),
@@ -39,7 +39,7 @@ export const ProfileCompleteness: React.FC<ProfileCompletenessProps> = ({
       ),
     },
     {
-      label: "Experience or Education",
+      label: "Experience & Education",
       complete: Boolean(experiences.length > 0 || education.length > 0),
     },
     {
@@ -52,7 +52,7 @@ export const ProfileCompleteness: React.FC<ProfileCompletenessProps> = ({
     <div className="border-2 border-border rounded-3xl p-6 bg-card flex flex-col gap-4 transition-all duration-300">
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
-          <Sparkles className="text-amber-500 shrink-0" size={20} />
+          <Sparkles className="text-foreground shrink-0" size={20} />
           <div>
             <h3 className="font-display text-base text-foreground">Profile Completeness</h3>
             <p className="text-xs text-muted-foreground">
@@ -67,7 +67,7 @@ export const ProfileCompleteness: React.FC<ProfileCompletenessProps> = ({
       </div>
 
       {/* Progress Bar */}
-      <div className="w-full bg-muted h-2.5 rounded-full overflow-hidden">
+      <div className="w-full bg-muted h-1.5 rounded-full overflow-hidden">
         <div
           className="bg-foreground h-full transition-all duration-500 ease-out"
           style={{ width: `${score}%` }}

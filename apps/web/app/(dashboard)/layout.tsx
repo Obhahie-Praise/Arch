@@ -134,7 +134,7 @@ export default function DashboardLayout({
 
   return (
     <div className="h-screen max-w-6xl mx-auto">
-      <nav className="fixed left-1/2 -translate-x-1/2 top-0 z-50 min-w-6xl flex items-center justify-between py-5">
+      <nav className="fixed left-1/2 -translate-x-1/2 top-0 z-50 min-w-6xl flex items-center justify-between py-5 bg-background/1 backdrop-blur-md">
         <Link href={"/"} className="flex items-center gap-2">
           <ThemeImage
             srcLight="/logo-lightmode.jpg"

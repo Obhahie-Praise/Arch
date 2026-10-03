@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef, useCallback } from "react";
 import { authClient } from "../../../lib/auth-client";
 import { LocationSelector } from "../../../components/profile/location-selector";
 import { TagInput } from "../../../components/profile/tag-input";
@@ -27,7 +27,7 @@ import {
   CompensationSkeleton,
   MaterialsSkeleton,
 } from "../../../components/profile/profile-skeletons";
-import { CheckCircle, AlertCircle, Loader2, Sparkles, Lock } from "lucide-react";
+import { CheckCircle, AlertCircle, Loader2, Sparkles, Lock, Smartphone, CheckCircle2 } from "lucide-react";
 
 const OPPORTUNITY_TYPES = [
   "Jobs",
@@ -107,6 +107,7 @@ export default function ProfilePage() {
   const [saveSuccess, setSaveSuccess] = useState(false);
   const [saveError, setSaveError] = useState<string | null>(null);
   const [showEmailNotice, setShowEmailNotice] = useState(false);
+  const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
 
   // Profile Form State
   const [fullName, setFullName] = useState("");
@@ -172,111 +173,349 @@ export default function ProfilePage() {
   const [completenessScore, setCompletenessScore] = useState(0);
 
   const userEmail = session?.user?.email || "";
+  const userId = session?.user?.id;
+  const isInitializedRef = useRef(false);
 
-  // Pre-fill initial identity & completeness from authenticated user data before network completes
+  // Helper to extract full form state object
+  const getFormState = useCallback(() => {
+    return {
+      fullName,
+      preferredName,
+      username,
+      avatarUrl,
+      country,
+      state,
+      city,
+      timezone,
+      phone,
+      website,
+      github,
+      linkedin,
+      twitter,
+      portfolioUrl,
+      bio,
+      shortTermGoals,
+      longTermGoals,
+      opportunityTypes,
+      desiredRoles,
+      desiredIndustries,
+      workTypes,
+      workArrangements,
+      technicalSkills,
+      nonTechnicalSkills,
+      tools,
+      languages,
+      areasOfInterest,
+      causes,
+      citizenship,
+      workAuthorization,
+      requiresSponsorship,
+      studentStatus,
+      graduationYear,
+      availabilityStart,
+      hoursPerWeek,
+      preferredSchedule,
+      desiredCompensationMin,
+      desiredCompensationMax,
+      currency,
+      compensationType,
+      equityPreference,
+      keyPriorities,
+      dealBreakers,
+      resumeUrl,
+      resumeFilename,
+      experiences,
+      education,
+      projects,
+      achievements,
+    };
+  }, [
+    fullName,
+    preferredName,
+    username,
+    avatarUrl,
+    country,
+    state,
+    city,
+    timezone,
+    phone,
+    website,
+    github,
+    linkedin,
+    twitter,
+    portfolioUrl,
+    bio,
+    shortTermGoals,
+    longTermGoals,
+    opportunityTypes,
+    desiredRoles,
+    desiredIndustries,
+    workTypes,
+    workArrangements,
+    technicalSkills,
+    nonTechnicalSkills,
+    tools,
+    languages,
+    areasOfInterest,
+    causes,
+    citizenship,
+    workAuthorization,
+    requiresSponsorship,
+    studentStatus,
+    graduationYear,
+    availabilityStart,
+    hoursPerWeek,
+    preferredSchedule,
+    desiredCompensationMin,
+    desiredCompensationMax,
+    currency,
+    compensationType,
+    equityPreference,
+    keyPriorities,
+    dealBreakers,
+    resumeUrl,
+    resumeFilename,
+    experiences,
+    education,
+    projects,
+    achievements,
+  ]);
+
+  // Helper to populate form state from data
+  const populateFormState = useCallback((p: any, exps: any[] = [], edus: any[] = [], projs: any[] = [], achs: any[] = []) => {
+    if (p.fullName !== undefined) setFullName(p.fullName || "");
+    if (p.preferredName !== undefined) setPreferredName(p.preferredName || "");
+    if (p.username !== undefined) setUsername(p.username || "");
+    if (p.avatarUrl !== undefined) setAvatarUrl(p.avatarUrl || "");
+    if (p.country !== undefined) setCountry(p.country || "");
+    if (p.state !== undefined) setState(p.state || "");
+    if (p.city !== undefined) setCity(p.city || "");
+    if (p.timezone !== undefined) setTimezone(p.timezone || Intl.DateTimeFormat().resolvedOptions().timeZone);
+    if (p.phone !== undefined) setPhone(p.phone || "");
+    if (p.website !== undefined) setWebsite(p.website || "");
+    if (p.github !== undefined) setGithub(p.github || "");
+    if (p.linkedin !== undefined) setLinkedin(p.linkedin || "");
+    if (p.twitter !== undefined) setTwitter(p.twitter || "");
+    if (p.portfolioUrl !== undefined) setPortfolioUrl(p.portfolioUrl || "");
+    if (p.bio !== undefined) setBio(p.bio || "");
+    if (p.shortTermGoals !== undefined) setShortTermGoals(p.shortTermGoals || "");
+    if (p.longTermGoals !== undefined) setLongTermGoals(p.longTermGoals || "");
+
+    if (p.opportunityTypes) setOpportunityTypes(p.opportunityTypes);
+    if (p.desiredRoles) setDesiredRoles(p.desiredRoles);
+    if (p.desiredIndustries) setDesiredIndustries(p.desiredIndustries);
+    if (p.workTypes) setWorkTypes(p.workTypes);
+    if (p.workArrangements) setWorkArrangements(p.workArrangements);
+
+    if (p.technicalSkills) setTechnicalSkills(p.technicalSkills);
+    if (p.nonTechnicalSkills) setNonTechnicalSkills(p.nonTechnicalSkills);
+    if (p.tools) setTools(p.tools);
+    if (p.languages) setLanguages(p.languages);
+
+    if (p.areasOfInterest) setAreasOfInterest(p.areasOfInterest);
+    if (p.causes) setCauses(p.causes);
+
+    if (p.citizenship !== undefined) setCitizenship(p.citizenship || "");
+    if (p.workAuthorization) setWorkAuthorization(p.workAuthorization);
+    if (p.requiresSponsorship !== undefined) setRequiresSponsorship(p.requiresSponsorship ? "1" : "0");
+    if (p.studentStatus !== undefined) setStudentStatus(p.studentStatus || "Not a student");
+    if (p.graduationYear !== undefined) setGraduationYear(p.graduationYear ? p.graduationYear.toString() : "");
+
+    if (p.availabilityStart !== undefined) setAvailabilityStart(p.availabilityStart || "");
+    if (p.hoursPerWeek !== undefined) setHoursPerWeek(p.hoursPerWeek ? p.hoursPerWeek.toString() : "");
+    if (p.preferredSchedule !== undefined) setPreferredSchedule(p.preferredSchedule || "");
+
+    if (p.desiredCompensationMin !== undefined) setDesiredCompensationMin(p.desiredCompensationMin ? p.desiredCompensationMin.toString() : "");
+    if (p.desiredCompensationMax !== undefined) setDesiredCompensationMax(p.desiredCompensationMax ? p.desiredCompensationMax.toString() : "");
+    if (p.currency !== undefined) setCurrency(p.currency || "USD");
+    if (p.compensationType !== undefined) setCompensationType(p.compensationType || "Annual salary");
+    if (p.equityPreference !== undefined) setEquityPreference(p.equityPreference || "Open to equity");
+
+    if (p.keyPriorities) setKeyPriorities(p.keyPriorities);
+    if (p.dealBreakers) setDealBreakers(p.dealBreakers);
+
+    if (p.resumeUrl !== undefined) setResumeUrl(p.resumeUrl || "");
+    if (p.resumeFilename !== undefined) setResumeFilename(p.resumeFilename || "");
+
+    if (exps) setExperiences(exps);
+    if (edus) setEducation(edus);
+    if (projs) setProjects(projs);
+    if (achs) setAchievements(achs);
+  }, []);
+
+  // 1. LOCAL DRAFT PERSISTENCE & CACHING: Immediate synchronous restoration on mount
   useEffect(() => {
-    if (session?.user) {
-      if (!fullName) setFullName(session.user.name || "");
-      if (!username && session.user.email) setUsername(session.user.email.split("@")[0] || "");
-      if (!avatarUrl && session.user.image) setAvatarUrl(session.user.image || "");
+    if (!userId) return;
 
-      // Compute initial non-zero completeness for new authenticated user
+    const storageKey = `arch_profile_draft_${userId}`;
+    let loadedFromDraft = false;
+
+    try {
+      const stored = localStorage.getItem(storageKey);
+      if (stored) {
+        const draft = JSON.parse(stored);
+        if (draft && draft.userId === userId && draft.form) {
+          populateFormState(
+            draft.form,
+            draft.form.experiences,
+            draft.form.education,
+            draft.form.projects,
+            draft.form.achievements
+          );
+          setHasUnsavedChanges(Boolean(draft.isUnsaved));
+          loadedFromDraft = true;
+          setIsLoading(false); // Render immediately without blocking!
+        }
+      }
+    } catch {
+      // ignore JSON error
+    }
+
+    // Pre-fill session user identity defaults if fields empty
+    if (session?.user) {
+      setFullName((prev) => prev || session.user.name || "");
+      setUsername((prev) => prev || (session.user.email ? session.user.email.split("@")[0] || "" : ""));
+      setAvatarUrl((prev) => prev || session.user.image || "");
+
       let initialScore = 0;
       if (session.user.name || fullName) initialScore += 6;
       if (session.user.email || username) initialScore += 5;
       if (session.user.image || avatarUrl) initialScore += 4;
-
       setCompletenessScore((prev) => Math.max(prev, initialScore));
     }
-  }, [session]);
 
-  // Load Profile from Backend API asynchronously
-  useEffect(() => {
-    async function loadProfile() {
+    // Asynchronously fetch server profile and resolve timestamps cleanly
+    async function fetchServerProfile() {
       try {
-        setIsLoading(true);
         const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8787";
-        const res = await fetch(`${apiUrl}/api/profile`, {
-          credentials: "include",
-        });
+        const res = await fetch(`${apiUrl}/api/profile`, { credentials: "include" });
 
         if (res.ok) {
           const data = await res.json();
-          const p = data.profile;
-          if (p) {
-            setFullName(p.fullName || session?.user?.name || "");
-            setPreferredName(p.preferredName || "");
-            setUsername(p.username || (session?.user?.email ? session.user.email.split("@")[0] : ""));
-            setAvatarUrl(p.avatarUrl || session?.user?.image || "");
-            setCountry(p.country || "");
-            setState(p.state || "");
-            setCity(p.city || "");
-            setTimezone(p.timezone || Intl.DateTimeFormat().resolvedOptions().timeZone);
-            setPhone(p.phone || "");
-            setWebsite(p.website || "");
-            setGithub(p.github || "");
-            setLinkedin(p.linkedin || "");
-            setTwitter(p.twitter || "");
-            setPortfolioUrl(p.portfolioUrl || "");
-            setBio(p.bio || "");
-            setShortTermGoals(p.shortTermGoals || "");
-            setLongTermGoals(p.longTermGoals || "");
+          const serverP = data.profile;
 
-            setOpportunityTypes(p.opportunityTypes || []);
-            setDesiredRoles(p.desiredRoles || []);
-            setDesiredIndustries(p.desiredIndustries || []);
-            setWorkTypes(p.workTypes || []);
-            setWorkArrangements(p.workArrangements || []);
+          if (serverP) {
+            const serverUpdated = serverP.updatedAt ? new Date(serverP.updatedAt).getTime() : 0;
+            
+            // Check existing draft timestamp
+            let draftUpdated = 0;
+            let draftIsUnsaved = false;
+            try {
+              const s = localStorage.getItem(storageKey);
+              if (s) {
+                const parsed = JSON.parse(s);
+                draftUpdated = parsed.updatedAt || 0;
+                draftIsUnsaved = Boolean(parsed.isUnsaved);
+              }
+            } catch {}
 
-            setTechnicalSkills(p.technicalSkills || []);
-            setNonTechnicalSkills(p.nonTechnicalSkills || []);
-            setTools(p.tools || []);
-            setLanguages(p.languages || []);
+            // Use server data if there is no unsaved local draft OR if server profile is newer
+            if (!draftIsUnsaved || serverUpdated > draftUpdated) {
+              populateFormState(serverP, data.experiences, data.education, data.projects, data.achievements);
+              setHasUnsavedChanges(false);
 
-            setAreasOfInterest(p.areasOfInterest || []);
-            setCauses(p.causes || []);
+              if (typeof serverP.completenessScore === "number") {
+                setCompletenessScore(serverP.completenessScore);
+              }
 
-            setCitizenship(p.citizenship || "");
-            setWorkAuthorization(p.workAuthorization || []);
-            setRequiresSponsorship(p.requiresSponsorship ? "1" : "0");
-            setStudentStatus(p.studentStatus || "Not a student");
-            setGraduationYear(p.graduationYear ? p.graduationYear.toString() : "");
-
-            setAvailabilityStart(p.availabilityStart || "");
-            setHoursPerWeek(p.hoursPerWeek ? p.hoursPerWeek.toString() : "");
-            setPreferredSchedule(p.preferredSchedule || "");
-
-            setDesiredCompensationMin(p.desiredCompensationMin ? p.desiredCompensationMin.toString() : "");
-            setDesiredCompensationMax(p.desiredCompensationMax ? p.desiredCompensationMax.toString() : "");
-            setCurrency(p.currency || "USD");
-            setCompensationType(p.compensationType || "Annual salary");
-            setEquityPreference(p.equityPreference || "Open to equity");
-
-            setKeyPriorities(p.keyPriorities || []);
-            setDealBreakers(p.dealBreakers || []);
-
-            setResumeUrl(p.resumeUrl || "");
-            setResumeFilename(p.resumeFilename || "");
-
-            if (typeof p.completenessScore === "number") {
-              setCompletenessScore(p.completenessScore);
+              // Save clean server state into localStorage cache
+              localStorage.setItem(
+                storageKey,
+                JSON.stringify({
+                  userId,
+                  updatedAt: serverUpdated || Date.now(),
+                  isUnsaved: false,
+                  form: {
+                    fullName: serverP.fullName || "",
+                    preferredName: serverP.preferredName || "",
+                    username: serverP.username || "",
+                    avatarUrl: serverP.avatarUrl || "",
+                    country: serverP.country || "",
+                    state: serverP.state || "",
+                    city: serverP.city || "",
+                    timezone: serverP.timezone || "",
+                    phone: serverP.phone || "",
+                    website: serverP.website || "",
+                    github: serverP.github || "",
+                    linkedin: serverP.linkedin || "",
+                    twitter: serverP.twitter || "",
+                    portfolioUrl: serverP.portfolioUrl || "",
+                    bio: serverP.bio || "",
+                    shortTermGoals: serverP.shortTermGoals || "",
+                    longTermGoals: serverP.longTermGoals || "",
+                    opportunityTypes: serverP.opportunityTypes || [],
+                    desiredRoles: serverP.desiredRoles || [],
+                    desiredIndustries: serverP.desiredIndustries || [],
+                    workTypes: serverP.workTypes || [],
+                    workArrangements: serverP.workArrangements || [],
+                    technicalSkills: serverP.technicalSkills || [],
+                    nonTechnicalSkills: serverP.nonTechnicalSkills || [],
+                    tools: serverP.tools || [],
+                    languages: serverP.languages || [],
+                    areasOfInterest: serverP.areasOfInterest || [],
+                    causes: serverP.causes || [],
+                    citizenship: serverP.citizenship || "",
+                    workAuthorization: serverP.workAuthorization || [],
+                    requiresSponsorship: serverP.requiresSponsorship ? "1" : "0",
+                    studentStatus: serverP.studentStatus || "Not a student",
+                    graduationYear: serverP.graduationYear ? serverP.graduationYear.toString() : "",
+                    availabilityStart: serverP.availabilityStart || "",
+                    hoursPerWeek: serverP.hoursPerWeek ? serverP.hoursPerWeek.toString() : "",
+                    preferredSchedule: serverP.preferredSchedule || "",
+                    desiredCompensationMin: serverP.desiredCompensationMin ? serverP.desiredCompensationMin.toString() : "",
+                    desiredCompensationMax: serverP.desiredCompensationMax ? serverP.desiredCompensationMax.toString() : "",
+                    currency: serverP.currency || "USD",
+                    compensationType: serverP.compensationType || "Annual salary",
+                    equityPreference: serverP.equityPreference || "Open to equity",
+                    keyPriorities: serverP.keyPriorities || [],
+                    dealBreakers: serverP.dealBreakers || [],
+                    resumeUrl: serverP.resumeUrl || "",
+                    resumeFilename: serverP.resumeFilename || "",
+                    experiences: data.experiences || [],
+                    education: data.education || [],
+                    projects: data.projects || [],
+                    achievements: data.achievements || [],
+                  },
+                })
+              );
             }
           }
-
-          setExperiences(data.experiences || []);
-          setEducation(data.education || []);
-          setProjects(data.projects || []);
-          setAchievements(data.achievements || []);
         }
       } catch (err) {
-        console.error("Error loading profile:", err);
+        console.error("Error fetching server profile:", err);
       } finally {
         setIsLoading(false);
+        setTimeout(() => {
+          isInitializedRef.current = true;
+        }, 100);
       }
     }
 
-    loadProfile();
-  }, [session]);
+    fetchServerProfile();
+  }, [userId, session, populateFormState]);
+
+  // Auto-save form state changes to local draft (scoped to userId)
+  useEffect(() => {
+    if (!userId || !isInitializedRef.current) return;
+
+    const storageKey = `arch_profile_draft_${userId}`;
+    const formState = getFormState();
+
+    try {
+      localStorage.setItem(
+        storageKey,
+        JSON.stringify({
+          userId,
+          updatedAt: Date.now(),
+          isUnsaved: true,
+          form: formState,
+        })
+      );
+      setHasUnsavedChanges(true);
+    } catch (e) {
+      console.warn("Could not save local profile draft:", e);
+    }
+  }, [getFormState, userId]);
 
   const toggleArrayItem = (item: string, current: string[], setter: (val: string[]) => void) => {
     if (current.includes(item)) {
@@ -361,9 +600,26 @@ export default function ProfilePage() {
       const data = await res.json();
       if (res.ok) {
         setSaveSuccess(true);
+        setHasUnsavedChanges(false);
+
         if (typeof data.completenessScore === "number") {
           setCompletenessScore(data.completenessScore);
         }
+
+        // Update local draft in storage as clean & saved
+        if (userId) {
+          const storageKey = `arch_profile_draft_${userId}`;
+          localStorage.setItem(
+            storageKey,
+            JSON.stringify({
+              userId,
+              updatedAt: Date.now(),
+              isUnsaved: false,
+              form: getFormState(),
+            })
+          );
+        }
+
         window.scrollTo({ top: 0, behavior: "smooth" });
         setTimeout(() => setSaveSuccess(false), 5000);
       } else {
@@ -378,12 +634,27 @@ export default function ProfilePage() {
 
   return (
     <div className="max-w-4xl mx-auto space-y-8 pb-16">
-      {/* Header Banner */}
-      <div className="flex flex-col gap-2">
-        <h1 className="font-display text-3xl font-medium text-foreground">Profile</h1>
-        <p className="text-muted-foreground text-sm">
-          Complete your profile intelligence so Arch can match you with relevant opportunities.
-        </p>
+      {/* Header Banner & Subtle Local Storage Status */}
+      <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-3">
+        <div className="flex flex-col gap-1">
+          <h1 className="font-display text-3xl font-medium text-foreground">Profile</h1>
+          <p className="text-muted-foreground text-sm">
+            Complete your profile intelligence so Arch can match you with relevant opportunities.
+          </p>
+        </div>
+
+        {/* 2. SUBTLE LOCAL STORAGE COMMUNICATION NOTICE */}
+        {hasUnsavedChanges ? (
+          <div className="flex items-center gap-1.5 text-xs text-muted-foreground font-normal bg-muted/50 border border-border px-3 py-1.5 rounded-full shrink-0">
+            <Smartphone size={13} className="text-muted-foreground shrink-0" />
+            <span>Your changes are saved on this device till you save your profile.</span>
+          </div>
+        ) : (
+          <div className="flex items-center gap-1.5 text-xs text-muted-foreground font-normal bg-muted/30 border border-border/60 px-3 py-1.5 rounded-full shrink-0">
+            <CheckCircle2 size={13} className="text-emerald-500 shrink-0" />
+            <span>Profile synced with server</span>
+          </div>
+        )}
       </div>
 
       {/* SECTION-LEVEL DYNAMIC LOADING: Completeness Bar */}
