@@ -1,3 +1,9 @@
-export default function HomePage() {
-  return null;
+import React from 'react'
+
+const HomePage = () => {
+  return (
+    <div>HomePage</div>
+  )
 }
+
+export default HomePage
