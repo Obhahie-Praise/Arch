@@ -1,13 +1,53 @@
+"use client";
+
 import Link from "next/link";
 import React from "react";
+import { useRouter } from "next/navigation";
+import { authClient } from "../../../lib/auth-client";
 
-const EmailAuthPage = () => {
+const EmailSigninPage = () => {
+  const router = useRouter();
+  const [error, setError] = React.useState<string | null>(null);
+  const [loading, setLoading] = React.useState(false);
+
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    setError(null);
+    setLoading(true);
+
+    const formData = new FormData(e.currentTarget);
+    const email = formData.get("email") as string;
+    const password = formData.get("password") as string;
+
+    if (!email || !password) {
+      setError("Please fill in all fields.");
+      setLoading(false);
+      return;
+    }
+
+    const { error: authError } = await authClient.signIn.email({
+      email,
+      password,
+    });
+
+    if (authError) {
+      setError(authError.message ?? "Invalid email or password.");
+      setLoading(false);
+      return;
+    }
+
+    router.push("/");
+  };
+
   return (
     <div className="space-y-10">
       <h2 className="text-2xl font-medium text-center">
         Sign in with your email
       </h2>
-      <form className="min-w-md space-y-2">
+      {error && (
+        <p className="text-red-500 text-sm text-center">{error}</p>
+      )}
+      <form onSubmit={handleSubmit} className="min-w-md space-y-2">
         <div className="flex flex-col gap-0.5">
           <label htmlFor="email" className="text-sm ">
             Email
@@ -34,9 +74,10 @@ const EmailAuthPage = () => {
         </div>
         <button
           type="submit"
-          className="w-full py-3 rounded-full bg-foreground text-background font-medium cursor-pointer hover:bg-foreground/80 transition-all duration-300 text-sm"
+          disabled={loading}
+          className="w-full py-3 rounded-full bg-foreground text-background font-medium cursor-pointer hover:bg-foreground/80 transition-all duration-300 text-sm disabled:opacity-50 disabled:cursor-not-allowed"
         >
-          Continue
+          {loading ? "Signing in..." : "Continue"}
         </button>
         <Link href={"/signin"}>
           {" "}
@@ -49,7 +90,7 @@ const EmailAuthPage = () => {
         </Link>
       </form>
       <p className="text-muted-foreground text-sm text-center">
-        Don't have an account?{" "}
+        Don&apos;t have an account?{" "}
         <Link
           href={"/auth/email"}
           className="cursor-pointer hover:underline text-foreground"
@@ -61,4 +102,4 @@ const EmailAuthPage = () => {
   );
 };
 
-export default EmailAuthPage;
+export default EmailSigninPage;

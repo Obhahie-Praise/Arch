@@ -18,6 +18,8 @@ export const createAuth = (env: Env) =>
 
     baseURL: env.BETTER_AUTH_URL,
 
+    trustedOrigins: ["http://localhost:3000", "http://127.0.0.1:3000"],
+
     emailAndPassword: {
       enabled: true,
     },

@@ -1,4 +1,4 @@
--- Migration number: 0001 	 2026-10-03T11:04:31.068Z
+-- Migration number: 0002 	 Better Auth core tables
 
 CREATE TABLE IF NOT EXISTS "user" (
   "id" TEXT PRIMARY KEY NOT NULL,
