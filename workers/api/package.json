@@ -7,11 +7,13 @@
 		"cf-typegen": "wrangler types --env-interface CloudflareBindings"
 	},
 	"dependencies": {
+		"@better-auth/kysely-adapter": "^1.7.7",
 		"better-auth": "^1.7.7",
 		"hono": "^4.13.12"
 	},
 	"devDependencies": {
 		"@types/node": "^26.6.3",
+		"typescript": "^7.0.2",
 		"wrangler": "^4.145.0"
 	}
 }

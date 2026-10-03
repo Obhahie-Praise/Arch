@@ -1,0 +1,36 @@
+import { betterAuth } from "better-auth";
+
+export interface Env {
+  arch_db: D1Database;
+  BETTER_AUTH_SECRET: string;
+  BETTER_AUTH_URL: string;
+  GOOGLE_CLIENT_ID?: string;
+  GOOGLE_CLIENT_SECRET?: string;
+  GITHUB_CLIENT_ID?: string;
+  GITHUB_CLIENT_SECRET?: string;
+}
+
+export const createAuth = (env: Env) =>
+  betterAuth({
+    database: env.arch_db,
+
+    secret: env.BETTER_AUTH_SECRET,
+
+    baseURL: env.BETTER_AUTH_URL,
+
+    emailAndPassword: {
+      enabled: true,
+    },
+
+    socialProviders: {
+      google: {
+        clientId: env.GOOGLE_CLIENT_ID ?? "",
+        clientSecret: env.GOOGLE_CLIENT_SECRET ?? "",
+      },
+
+      github: {
+        clientId: env.GITHUB_CLIENT_ID ?? "",
+        clientSecret: env.GITHUB_CLIENT_SECRET ?? "",
+      },
+    },
+  });
