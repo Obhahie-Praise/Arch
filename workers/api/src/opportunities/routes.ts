@@ -33,19 +33,31 @@ function isInternalAuthorized(c: any): boolean {
   return secret === envSecret;
 }
 
-// GET /api/opportunities - Get 30 weekly recommendations for current user
+// GET /api/opportunities - Get recommendations for current user
 opportunitiesRouter.get("/", async (c) => {
-  const userId = await getAuthUserId(c);
-  if (!userId) {
+  const auth = createAuth(c.env);
+  const session = await auth.api.getSession({
+    headers: c.req.raw.headers,
+  });
+  if (!session || !session.user) {
     return c.json({ error: { code: "UNAUTHORIZED", message: "Authentication required" } }, 401);
   }
+  const userId = session.user.id;
+  const userEmail = session.user.email;
+
+  const isDeveloper = !!c.env.DEVELOPER_ACCESS_EMAIL && userEmail === c.env.DEVELOPER_ACCESS_EMAIL;
 
   try {
     const typeFilter = c.req.query("type") as OpportunityType | undefined;
+    const searchFilter = c.req.query("search")?.toLowerCase();
+    const page = parseInt(c.req.query("page") || "1", 10);
+    const pageSize = parseInt(c.req.query("pageSize") || "30", 10);
+
     const rawRecommendations = await MatchingService.getOrGenerateUserRecommendations(
       c.env.arch_db,
       userId,
-      c.env.AI
+      c.env.AI,
+      isDeveloper
     );
 
     let formatted = rawRecommendations.map((row) => OpportunityService.formatOpportunity(row, row));
@@ -54,11 +66,36 @@ opportunitiesRouter.get("/", async (c) => {
       formatted = formatted.filter((item) => item.type === typeFilter);
     }
 
+    if (searchFilter) {
+      formatted = formatted.filter((opp) => {
+        const matchesTitle = opp.title.toLowerCase().includes(searchFilter);
+        const matchesOrg = opp.organizationName?.toLowerCase().includes(searchFilter) || opp.organization?.toLowerCase().includes(searchFilter);
+        const matchesDesc = opp.description?.toLowerCase().includes(searchFilter);
+        const matchesSkills = opp.skills?.some((s: string) => s.toLowerCase().includes(searchFilter));
+        const matchesType = opp.type?.toLowerCase().includes(searchFilter);
+        return matchesTitle || matchesOrg || matchesDesc || matchesSkills || matchesType;
+      });
+    }
+
+    const total = formatted.length;
+    const totalPages = Math.ceil(total / pageSize);
+    const offset = (page - 1) * pageSize;
+    const paginatedData = formatted.slice(offset, offset + pageSize);
+
     return c.json({
-      data: formatted,
+      data: paginatedData,
       meta: {
-        total: formatted.length,
-        weeklyLimit: 30,
+        total,
+        weeklyLimit: isDeveloper ? "unlimited" : 30,
+        isDeveloper,
+      },
+      pagination: {
+        page,
+        pageSize,
+        total,
+        totalPages,
+        hasNext: page < totalPages,
+        hasPrevious: page > 1,
       },
     });
   } catch (err) {

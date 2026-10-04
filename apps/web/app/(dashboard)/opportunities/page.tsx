@@ -28,6 +28,7 @@ export default function OpportunitiesPage() {
   >(null);
 
   const [searchQuery, setSearchQuery] = useState("");
+  const [debouncedSearch, setDebouncedSearch] = useState("");
   const [activeType, setActiveType] = useState<string>("All");
   const [savedIds, setSavedIds] = useState<Set<string>>(new Set());
 
@@ -35,6 +36,21 @@ export default function OpportunitiesPage() {
   const [opportunities, setOpportunities] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [hasError, setHasError] = useState(false);
+  const [page, setPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+  const [isDeveloper, setIsDeveloper] = useState(false);
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setDebouncedSearch(searchQuery);
+      setPage(1); // Reset to page 1 on new search
+    }, 300);
+    return () => clearTimeout(timer);
+  }, [searchQuery]);
+
+  useEffect(() => {
+    setPage(1);
+  }, [activeType]);
 
   // Fetch actual completeness score from profile backend if mock override is null
   useEffect(() => {
@@ -69,14 +85,33 @@ export default function OpportunitiesPage() {
     }
 
     async function fetchOpportunities() {
+      setIsLoading(true);
       try {
         const apiUrl = API_URL;
-        const json = await cachedFetch<any>(`${apiUrl}/api/opportunities`, {
+        const params = new URLSearchParams({
+          page: page.toString(),
+          pageSize: "30",
+        });
+        
+        if (activeType !== "All") {
+          params.append("type", activeType);
+        }
+        if (debouncedSearch) {
+          params.append("search", debouncedSearch);
+        }
+
+        const json = await cachedFetch<any>(`${apiUrl}/api/opportunities?${params.toString()}`, {
           credentials: "include",
           ttl: 60_000,
         });
         
         setOpportunities(json.data || []);
+        if (json.pagination) {
+          setTotalPages(json.pagination.totalPages);
+        }
+        if (json.meta) {
+          setIsDeveloper(!!json.meta.isDeveloper);
+        }
         
         // Seed the saved status from the backend userStatus
         if (json.data) {
@@ -97,7 +132,7 @@ export default function OpportunitiesPage() {
     }
     
     fetchOpportunities();
-  }, [profileCompletion]);
+  }, [profileCompletion, page, activeType, debouncedSearch]);
 
   // Derived state for available filter pills based on current data
   const availableTypes = useMemo(() => {
@@ -109,36 +144,8 @@ export default function OpportunitiesPage() {
     return ["All", ...Array.from(types)] as string[];
   }, [opportunities]);
 
-  // Filter logic
-  const filteredOpportunities = useMemo(() => {
-    return opportunities.filter((opp) => {
-      // 1. Type filter
-      if (activeType !== "All" && opp.type !== activeType) return false;
-
-      // 2. Search query filter
-      if (searchQuery.trim()) {
-        const query = searchQuery.toLowerCase();
-        const matchesTitle = opp.title.toLowerCase().includes(query);
-        const matchesOrg = opp.organizationName?.toLowerCase().includes(query);
-        const matchesDesc = opp.description?.toLowerCase().includes(query);
-        const matchesSkills = opp.skills?.some((s: string) =>
-          s.toLowerCase().includes(query)
-        );
-        const matchesType = opp.type?.toLowerCase().includes(query);
-
-        if (
-          !matchesTitle &&
-          !matchesOrg &&
-          !matchesDesc &&
-          !matchesSkills &&
-          !matchesType
-        ) {
-          return false;
-        }
-      }
-      return true;
-    });
-  }, [opportunities, searchQuery, activeType]);
+  // Filter logic is now server-side, so we just use opportunities
+  const filteredOpportunities = opportunities;
 
   const toggleSave = async (id: string, e: React.MouseEvent) => {
     e.preventDefault();
@@ -350,12 +357,45 @@ export default function OpportunitiesPage() {
       {/* 30-opportunity limit notice */}
       {filteredOpportunities.length > 0 && (
         <div className="pt-6 pb-2 text-center space-y-1">
-          <p className="text-xs font-medium text-foreground">
-            Arch currently surfaces up to 30 opportunities for you each week.
-          </p>
-          <p className="text-[11px] text-muted-foreground">
-            Upgrade to Pro to unlock a higher weekly limit.
-          </p>
+          {isDeveloper ? (
+            <p className="text-xs font-medium text-green-600">
+              Developer account: Accessing complete matched opportunity set.
+            </p>
+          ) : (
+            <>
+              <p className="text-xs font-medium text-foreground">
+                Arch currently surfaces up to 30 opportunities for you each week.
+              </p>
+              <p className="text-[11px] text-muted-foreground">
+                Upgrade to Pro to unlock a higher weekly limit.
+              </p>
+            </>
+          )}
+        </div>
+      )}
+
+      {/* Pagination Controls */}
+      {totalPages > 1 && (
+        <div className="flex items-center justify-center gap-2 pt-4">
+          <button
+            onClick={() => setPage(p => Math.max(1, p - 1))}
+            disabled={page === 1}
+            className="px-4 py-2 bg-muted text-foreground text-sm font-medium rounded-full disabled:opacity-50 hover:bg-muted/80 transition-colors"
+          >
+            Previous
+          </button>
+          
+          <div className="text-sm text-muted-foreground px-4">
+            Page <span className="font-medium text-foreground">{page}</span> of <span className="font-medium text-foreground">{totalPages}</span>
+          </div>
+          
+          <button
+            onClick={() => setPage(p => Math.min(totalPages, p + 1))}
+            disabled={page === totalPages}
+            className="px-4 py-2 bg-muted text-foreground text-sm font-medium rounded-full disabled:opacity-50 hover:bg-muted/80 transition-colors"
+          >
+            Next
+          </button>
         </div>
       )}
     </div>

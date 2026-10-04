@@ -132,7 +132,8 @@ export class MatchingService {
     db: D1Database,
     userId: string,
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    ai?: any
+    ai?: any,
+    isDeveloper: boolean = false
   ): Promise<JoinedOpportunityMatchRow[]> {
     const now = getNowIso();
     const currentWeekStart = getIsoWeekStart();
@@ -167,20 +168,22 @@ export class MatchingService {
 
     const used = quota?.recommendations_used ?? 0;
 
+    const limitClause = isDeveloper ? "" : `LIMIT ${WEEKLY_QUOTA}`;
+
     // 2. Fetch existing recommendations (all time, non-dismissed)
     const existingMatches = await db
-      .prepare(`${JOINED_MATCH_QUERY} LIMIT ${WEEKLY_QUOTA}`)
+      .prepare(`${JOINED_MATCH_QUERY} ${limitClause}`)
       .bind(userId)
       .all<JoinedOpportunityMatchRow>();
 
     const existingResults = existingMatches.results ?? [];
 
     // Quota full — return cached
-    if (used >= WEEKLY_QUOTA || existingResults.length >= WEEKLY_QUOTA) {
+    if (!isDeveloper && (used >= WEEKLY_QUOTA || existingResults.length >= WEEKLY_QUOTA)) {
       return existingResults.slice(0, WEEKLY_QUOTA);
     }
 
-    const remainingQuota = WEEKLY_QUOTA - used;
+    const remainingQuota = isDeveloper ? 10000 : WEEKLY_QUOTA - used;
 
     // 3. Seed opportunities if table is empty
     const countRes = await db
@@ -224,6 +227,8 @@ export class MatchingService {
       typeBindings.push(...prefTypes);
     }
 
+    const candidatesLimit = isDeveloper ? 10000 : 200;
+
     const candidatesRes = await db
       .prepare(
         `SELECT * FROM opportunities
@@ -231,7 +236,7 @@ export class MatchingService {
            AND (deadline IS NULL OR deadline >= date('now'))
            ${typeClause}
          ORDER BY first_seen_at DESC
-         LIMIT 200`
+         LIMIT ${candidatesLimit}`
       )
       .bind(...typeBindings)
       .all<OpportunityRow>();
@@ -437,8 +442,9 @@ export class MatchingService {
     }
 
     // 11. Return complete set for this week
+    const finalLimitClause = isDeveloper ? "" : `LIMIT ${WEEKLY_QUOTA}`;
     const finalMatches = await db
-      .prepare(`${JOINED_MATCH_QUERY} LIMIT ${WEEKLY_QUOTA}`)
+      .prepare(`${JOINED_MATCH_QUERY} ${finalLimitClause}`)
       .bind(userId)
       .all<JoinedOpportunityMatchRow>();
 
