@@ -1,6 +1,12 @@
 import { ReactNode } from "react";
 import { ThemeImage } from "../../components/theme-image";
 import Link from "next/link";
+import { Metadata } from "next";
+
+export const metadata: Metadata = {
+  title: "Sign In",
+  description: "Sign in to Arch to discover personalized opportunities.",
+};
 
 interface SigninLayoutProps {
   children: ReactNode;

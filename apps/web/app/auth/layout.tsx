@@ -1,6 +1,12 @@
 import { ReactNode } from "react";
 import { ThemeImage } from "../../components/theme-image";
 import Link from "next/link";
+import { Metadata } from "next";
+
+export const metadata: Metadata = {
+  title: "Create Account",
+  description: "Create an account on Arch to discover and match with opportunities.",
+};
 
 interface AuthLayoutProps {
   children: ReactNode;
