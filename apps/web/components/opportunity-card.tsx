@@ -129,7 +129,7 @@ export function OpportunityCard({
         )}
 
         {isMenuOpen && hasMenuActions && (
-          <div className="absolute top-full left-0 sm:left-auto sm:right-0 mt-2 w-48 bg-card border border-border rounded-2xl shadow-lg shadow-black/5 overflow-hidden z-50 animate-in fade-in zoom-in-95 origin-top-left sm:origin-top-right duration-150">
+          <div className="absolute top-full right-0 mt-2 w-48 bg-card border border-border rounded-2xl shadow-lg shadow-black/5 overflow-hidden z-50 animate-in fade-in zoom-in-95 origin-top-right duration-150">
             <div className="p-1.5 flex flex-col gap-0.5">
               
               {onSaveToggle ? (

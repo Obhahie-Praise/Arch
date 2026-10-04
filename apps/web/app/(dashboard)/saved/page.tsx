@@ -245,7 +245,7 @@ export default function SavedPage() {
   }
 
   return (
-    <div className="max-w-4xl mx-auto space-y-6 pb-16">
+    <div className="max-w-4xl mx-auto space-y-6 pb-32">
       <div className="flex flex-col gap-1">
         <h1 className="font-display text-3xl font-medium text-foreground">Saved</h1>
       </div>

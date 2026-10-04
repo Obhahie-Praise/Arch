@@ -63,11 +63,15 @@ Keep it short and current.
 - [x] 30/week global recommendation limit & ISO-week quota management per user
 - [x] Idempotent recommendation persistence via ON CONFLICT
 - [x] Explainable recommendations (match reasons + AI strengths + AI gaps persisted)
+- [x] Source configuration system (`config.ts`) with structured per-source metadata (name, domain, types, priority tier, discovery strategy, queries, directUrls, refreshIntervalHours)
+- [x] Tier-1 high-priority source coverage: LinkedIn Jobs, Indeed, Wellfound, Greenhouse, Lever, Ashby, YC Jobs, Devpost, LabLab, Grants.gov, Techstars
+- [x] Source-specific, high-signal search queries replacing previous generic queries
 
 ### Background Processing
 
 - [x] Discovery run tracking (`discovery_runs`) & provenance recording
-- [x] Scheduled discovery runner
+- [x] Scheduled discovery runner — cron every hour (`0 * * * *`), tier-aware execution
+- [x] Tier-aware scheduling: Tier 1 every 4h, Tier 2 every 12h, Tier 3 every 24h
 - [x] Scheduled refresh & stale opportunity handling
 - [ ] Queue infrastructure
 

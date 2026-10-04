@@ -4,7 +4,19 @@ import type {
   OpportunityCandidate,
 } from "../types";
 import { isSafeUrl } from "../fetcher";
+import { DISCOVERY_SOURCES } from "../config";
 
+/**
+ * Web Search Discovery Provider
+ *
+ * Drives discovery via Tavily web search. Queries are generated from the
+ * structured DISCOVERY_SOURCES config — prioritizing Tier 1 sources (the
+ * highest-value opportunity platforms) and only falling through to lower-tier
+ * broad queries when higher tiers don't have pending work.
+ *
+ * Without a Tavily key, falls back to a curated list of direct URLs from
+ * the source config so the pipeline still produces candidates.
+ */
 export class WebSearchDiscoveryProvider implements OpportunityDiscoveryProvider {
   id = "web-search-provider";
   name = "Web Search Discovery Provider";
@@ -14,10 +26,54 @@ export class WebSearchDiscoveryProvider implements OpportunityDiscoveryProvider 
     const candidates: OpportunityCandidate[] = [];
     const tavilyKey = context.env.TAVILY_API_KEY as string | undefined;
 
-    for (const queryConfig of context.queries) {
-      if (!queryConfig.enabled) continue;
+    // Build an ordered query list from source configs, sorted by priority (1 first)
+    // then supplemented by any DB-level queries from context.queries
+    const sourceQueries = this.buildSourceQueries(context);
 
-      if (tavilyKey) {
+    if (tavilyKey) {
+      for (const { queryStr, sourceId, tier } of sourceQueries) {
+        // Tier 3 (broad discovery) gets fewer results to preserve capacity
+        const maxResults = tier === 1 ? 8 : tier === 2 ? 5 : 3;
+
+        try {
+          const res = await fetch("https://api.tavily.com/search", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              api_key: tavilyKey,
+              query: queryStr,
+              max_results: maxResults,
+              search_depth: "basic",
+            }),
+          });
+
+          if (res.ok) {
+            const data = (await res.json()) as {
+              results?: { url: string; title: string; content?: string }[];
+            };
+            if (data.results) {
+              for (const r of data.results) {
+                if (isSafeUrl(r.url)) {
+                  candidates.push({
+                    url: r.url,
+                    title: r.title,
+                    snippet: r.content,
+                    sourceDomain: sourceId,
+                    discoveryQueryId: `source:${sourceId}`,
+                    sourceType: "search",
+                  });
+                }
+              }
+            }
+          }
+        } catch {
+          // Isolated per-query — failure does not abort remaining queries
+        }
+      }
+
+      // Also run any DB-level queries not covered by source configs
+      for (const queryConfig of context.queries) {
+        if (!queryConfig.enabled) continue;
         try {
           const res = await fetch("https://api.tavily.com/search", {
             method: "POST",
@@ -30,14 +86,16 @@ export class WebSearchDiscoveryProvider implements OpportunityDiscoveryProvider 
             }),
           });
           if (res.ok) {
-            const data = (await res.json()) as { results?: { url: string; title: string; snippet: string }[] };
+            const data = (await res.json()) as {
+              results?: { url: string; title: string; content?: string }[];
+            };
             if (data.results) {
               for (const r of data.results) {
                 if (isSafeUrl(r.url)) {
                   candidates.push({
                     url: r.url,
                     title: r.title,
-                    snippet: r.snippet,
+                    snippet: r.content,
                     discoveryQueryId: queryConfig.id,
                     sourceType: "search",
                   });
@@ -46,11 +104,30 @@ export class WebSearchDiscoveryProvider implements OpportunityDiscoveryProvider 
             }
           }
         } catch {
-          // Failure handling for search API
+          // Isolated per-query failure
         }
-      } else {
-        // Fallback: Default curated discovery endpoints per query type when search key is unconfigured
-        const fallbackCandidates = this.getFallbackCandidatesForQuery(queryConfig);
+      }
+    } else {
+      // No Tavily key — fall back to direct URLs from the source config
+      for (const source of DISCOVERY_SOURCES) {
+        if (!source.enabled) continue;
+        if (source.directUrls) {
+          for (const url of source.directUrls) {
+            if (isSafeUrl(url)) {
+              candidates.push({
+                url,
+                sourceDomain: source.domain || source.id,
+                sourceType: "website",
+              });
+            }
+          }
+        }
+      }
+
+      // Also fall back to legacy curated candidates for backward compat
+      for (const queryConfig of context.queries) {
+        if (!queryConfig.enabled) continue;
+        const fallbackCandidates = this.getLegacyFallbackCandidates(queryConfig);
         for (const fc of fallbackCandidates) {
           if (isSafeUrl(fc.url)) {
             candidates.push(fc);
@@ -62,61 +139,93 @@ export class WebSearchDiscoveryProvider implements OpportunityDiscoveryProvider 
     return candidates;
   }
 
-  private getFallbackCandidatesForQuery(queryConfig: { id: string; type: string; query: string }): OpportunityCandidate[] {
+  /**
+   * Builds a prioritized ordered query list from DISCOVERY_SOURCES config.
+   * Tier 1 sources go first, then Tier 2, then Tier 3.
+   */
+  private buildSourceQueries(
+    _context: DiscoveryContext
+  ): Array<{ queryStr: string; sourceId: string; tier: number }> {
+    const result: Array<{ queryStr: string; sourceId: string; tier: number }> = [];
+
+    const sorted = [...DISCOVERY_SOURCES].sort((a, b) => a.priority - b.priority);
+
+    for (const source of sorted) {
+      if (!source.enabled) continue;
+      if (!source.queries || source.queries.length === 0) continue;
+
+      for (const q of source.queries) {
+        result.push({ queryStr: q, sourceId: source.id, tier: source.priority });
+      }
+    }
+
+    return result;
+  }
+
+  /**
+   * Legacy fallback curated candidates for when no Tavily key is configured.
+   */
+  private getLegacyFallbackCandidates(queryConfig: {
+    id: string;
+    type: string;
+    query: string;
+  }): OpportunityCandidate[] {
     const map: Record<string, OpportunityCandidate[]> = {
       job: [
         {
-          url: "https://vercel.com/careers/senior-full-stack-engineer",
-          title: "Senior Full Stack Engineer at Vercel",
+          url: "https://wellfound.com/jobs",
+          title: "Jobs on Wellfound",
           discoveryQueryId: queryConfig.id,
           sourceType: "search",
         },
         {
-          url: "https://stripe.com/jobs/frontend-architect",
-          title: "Frontend Architect at Stripe",
+          url: "https://boards.greenhouse.io",
+          title: "Jobs on Greenhouse",
           discoveryQueryId: queryConfig.id,
           sourceType: "search",
         },
       ],
       grant: [
         {
-          url: "https://openai.com/grants/2026-agent-research",
-          title: "OpenAI Foundation Agent Research Grant 2026",
-          discoveryQueryId: queryConfig.id,
-          sourceType: "search",
-        },
-        {
-          url: "https://linuxfoundation.org/grants/sec-2026",
-          title: "Linux Foundation Open Source Security Grant",
+          url: "https://grants.gov/search-grants",
+          title: "Grants.gov Search",
           discoveryQueryId: queryConfig.id,
           sourceType: "search",
         },
       ],
       hackathon: [
         {
-          url: "https://cloudflare.devpost.com",
-          title: "Cloudflare Serverless & AI Hackathon",
+          url: "https://devpost.com/hackathons",
+          title: "Devpost Hackathons",
+          discoveryQueryId: queryConfig.id,
+          sourceType: "search",
+        },
+        {
+          url: "https://lablab.ai/event",
+          title: "LabLab Events",
           discoveryQueryId: queryConfig.id,
           sourceType: "search",
         },
       ],
       fellowship: [
         {
-          url: "https://techstars.com/apply",
-          title: "Techstars Founder Fellowship 2026",
+          url: "https://techstars.com/accelerators",
+          title: "Techstars Accelerators",
           discoveryQueryId: queryConfig.id,
           sourceType: "search",
         },
       ],
     };
 
-    return map[queryConfig.type] || [
-      {
-        url: "https://linear.app/careers/product-designer",
-        title: "Product Designer at Linear",
-        discoveryQueryId: queryConfig.id,
-        sourceType: "search",
-      },
-    ];
+    return (
+      map[queryConfig.type] || [
+        {
+          url: "https://wellfound.com/jobs",
+          title: "Jobs on Wellfound",
+          discoveryQueryId: queryConfig.id,
+          sourceType: "search",
+        },
+      ]
+    );
   }
 }

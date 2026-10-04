@@ -321,34 +321,149 @@ function Row({ label, value }: { label: string; value: string }) {
   );
 }
 
-function ProviderBadge({
-  label,
-  icon,
-  connected,
+// ─── Main page ────────────────────────────────────────────────────────────────
+
+function ChangePasswordModal({
+  onCancel,
+  onSuccess,
 }: {
-  provider: string;
-  label: string;
-  icon: React.ReactNode;
-  connected: boolean;
+  onCancel: () => void;
+  onSuccess: () => void;
 }) {
+  const [currentPassword, setCurrentPassword] = useState("");
+  const [newPassword, setNewPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    const handleKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") onCancel();
+    };
+    document.addEventListener("keydown", handleKey);
+    return () => document.removeEventListener("keydown", handleKey);
+  }, [onCancel]);
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (newPassword !== confirmPassword) {
+      setError("New passwords do not match.");
+      return;
+    }
+    if (newPassword.length < 8) {
+      setError("Password must be at least 8 characters.");
+      return;
+    }
+    setIsSubmitting(true);
+    setError(null);
+    try {
+      const res = await authClient.changePassword({
+        newPassword,
+        currentPassword,
+        revokeOtherSessions: true,
+      });
+      if (res.error) {
+        setError(res.error.message || "Failed to change password.");
+        setIsSubmitting(false);
+      } else {
+        onSuccess();
+      }
+    } catch {
+      setError("An unexpected error occurred.");
+      setIsSubmitting(false);
+    }
+  };
+
   return (
-    <span
-      className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs border transition-colors ${
-        connected
-          ? "border-border bg-muted text-foreground"
-          : "border-border/50 bg-transparent text-muted-foreground/60"
-      }`}
+    <div
+      className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm"
+      onClick={(e) => {
+        if (e.target === e.currentTarget) onCancel();
+      }}
     >
-      {icon}
-      {label}
-      {connected && (
-        <Check size={10} strokeWidth={2.5} className="text-green-500 ml-0.5" />
-      )}
-    </span>
+      <div className="bg-background border border-border rounded-4xl p-8 w-full max-w-md shadow-2xl">
+        <div className="flex items-start justify-between gap-4 mb-6">
+          <div className="flex items-center gap-3">
+            <div className="flex items-center justify-center w-10 h-10 rounded-full bg-muted text-foreground shrink-0">
+              <KeyRound size={20} strokeWidth={1.8} />
+            </div>
+            <div>
+              <h2 className="text-lg font-display font-medium text-foreground">
+                Change password
+              </h2>
+            </div>
+          </div>
+        </div>
+
+        <form onSubmit={handleSubmit} className="space-y-4">
+          {error && (
+            <div className="text-sm text-red-500 bg-red-500/10 p-3 rounded-xl border border-red-500/20">
+              {error}
+            </div>
+          )}
+          <div className="space-y-1.5">
+            <label className="text-xs text-muted-foreground" htmlFor="currentPassword">
+              Current password
+            </label>
+            <input
+              id="currentPassword"
+              type="password"
+              value={currentPassword}
+              onChange={(e) => setCurrentPassword(e.target.value)}
+              className="w-full px-4 py-3 text-sm bg-muted/50 border border-border rounded-xl outline-none focus:border-foreground focus:ring-1 focus:ring-foreground transition-all duration-200"
+              required
+            />
+          </div>
+          <div className="space-y-1.5">
+            <label className="text-xs text-muted-foreground" htmlFor="newPassword">
+              New password
+            </label>
+            <input
+              id="newPassword"
+              type="password"
+              value={newPassword}
+              onChange={(e) => setNewPassword(e.target.value)}
+              className="w-full px-4 py-3 text-sm bg-muted/50 border border-border rounded-xl outline-none focus:border-foreground focus:ring-1 focus:ring-foreground transition-all duration-200"
+              required
+            />
+          </div>
+          <div className="space-y-1.5">
+            <label className="text-xs text-muted-foreground" htmlFor="confirmPassword">
+              Confirm new password
+            </label>
+            <input
+              id="confirmPassword"
+              type="password"
+              value={confirmPassword}
+              onChange={(e) => setConfirmPassword(e.target.value)}
+              className="w-full px-4 py-3 text-sm bg-muted/50 border border-border rounded-xl outline-none focus:border-foreground focus:ring-1 focus:ring-foreground transition-all duration-200"
+              required
+            />
+          </div>
+
+          <div className="flex gap-3 pt-2">
+            <button
+              type="button"
+              onClick={onCancel}
+              disabled={isSubmitting}
+              className="flex-1 px-4 py-2.5 text-sm rounded-full border border-border text-foreground hover:bg-muted transition-colors duration-200 disabled:opacity-50"
+            >
+              Cancel
+            </button>
+            <button
+              type="submit"
+              disabled={isSubmitting || !currentPassword || !newPassword || !confirmPassword}
+              className="flex-1 px-4 py-2.5 text-sm rounded-full bg-foreground text-background hover:bg-foreground/90 transition-colors duration-200 disabled:opacity-40 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+            >
+              {isSubmitting && <Loader2 size={14} className="animate-spin" />}
+              {isSubmitting ? "Saving…" : "Save password"}
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
   );
 }
-
-// ─── Main page ────────────────────────────────────────────────────────────────
 
 export default function SettingsPage() {
   const router = useRouter();
@@ -359,6 +474,8 @@ export default function SettingsPage() {
   const [loadError, setLoadError] = useState<string | null>(null);
   const [saveStatus, setSaveStatus] = useState<SaveStatus>("idle");
   const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [showPasswordModal, setShowPasswordModal] = useState(false);
+  const [passwordSuccess, setPasswordSuccess] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
   const [isSigningOut, setIsSigningOut] = useState(false);
   const [mounted, setMounted] = useState(false);
@@ -487,6 +604,10 @@ export default function SettingsPage() {
   const displayName = user?.name || "—";
   const displayEmail = user?.email || "—";
 
+  const hasPasswordCredential =
+    connectedProviders.includes("credential") ||
+    (connectedProviders.length === 0 && !!session);
+
   return (
     <>
       {showDeleteModal && (
@@ -494,6 +615,17 @@ export default function SettingsPage() {
           onCancel={() => setShowDeleteModal(false)}
           onConfirm={handleDeleteAccount}
           isDeleting={isDeleting}
+        />
+      )}
+
+      {showPasswordModal && (
+        <ChangePasswordModal
+          onCancel={() => setShowPasswordModal(false)}
+          onSuccess={() => {
+            setShowPasswordModal(false);
+            setPasswordSuccess(true);
+            setTimeout(() => setPasswordSuccess(false), 3000);
+          }}
         />
       )}
 
@@ -525,45 +657,110 @@ export default function SettingsPage() {
             <Row label="Name" value={displayName} />
             <Row label="Email" value={displayEmail} />
             <div className="px-6 py-4">
-              <p className="text-sm font-medium text-foreground mb-3">
-                Connected accounts
-              </p>
-              <div className="flex flex-wrap gap-2">
-                <ProviderBadge
-                  provider="credential"
-                  label="Email and password"
-                  icon={<Mail size={16} strokeWidth={1.8} />}
-                  connected={
-                    connectedProviders.includes("credential") ||
-                    (connectedProviders.length === 0 && !!session)
-                  }
-                />
-                <ProviderBadge
-                  provider="google"
-                  label="Google"
-                  icon={<GoogleIcon fontSize="16" />}
-                  connected={connectedProviders.includes("google")}
-                />
-                <ProviderBadge
-                  provider="github"
-                  label="GitHub"
-                  icon={<GitHubIcon fontSize="16" />}
-                  connected={connectedProviders.includes("github")}
-                />
+              <div className="flex items-center justify-between mb-3">
+                <p className="text-sm font-medium text-foreground">
+                  Connected accounts
+                </p>
+                {passwordSuccess && (
+                  <span className="text-xs text-green-600 dark:text-green-500 flex items-center gap-1">
+                    <Check size={12} strokeWidth={2.5} />
+                    Password updated successfully
+                  </span>
+                )}
+              </div>
+              <div className="flex flex-col gap-3">
+                {hasPasswordCredential && (
+                  <div className="flex items-center justify-between p-3 rounded-2xl border border-border bg-muted/30">
+                    <div className="flex items-center gap-3">
+                      <div className="flex items-center justify-center w-8 h-8 rounded-full bg-background border border-border text-foreground">
+                        <Mail size={16} strokeWidth={1.8} />
+                      </div>
+                      <span className="text-sm font-medium text-foreground">
+                        Email and password
+                      </span>
+                    </div>
+                    <div className="flex items-center gap-4">
+                      <span className="text-xs font-medium text-green-600 dark:text-green-500 hidden sm:flex items-center gap-1">
+                        <Check size={12} strokeWidth={2.5} />
+                        Connected
+                      </span>
+                      <button
+                        onClick={() => setShowPasswordModal(true)}
+                        className="text-xs font-medium px-3 py-1.5 rounded-full border border-border bg-background hover:bg-muted text-foreground transition-colors"
+                      >
+                        Change password
+                      </button>
+                    </div>
+                  </div>
+                )}
+                <div
+                  className={`flex items-center justify-between p-3 rounded-2xl border transition-colors ${
+                    connectedProviders.includes("google")
+                      ? "border-border bg-muted/30"
+                      : "border-border/40 bg-transparent opacity-60"
+                  }`}
+                >
+                  <div className="flex items-center gap-3">
+                    <div className="flex items-center justify-center w-8 h-8 rounded-full bg-background border border-border text-foreground">
+                      <GoogleIcon fontSize="inherit" className="text-[16px]" />
+                    </div>
+                    <span className="text-sm font-medium text-foreground">
+                      Google
+                    </span>
+                  </div>
+                  <div className="text-xs font-medium">
+                    {connectedProviders.includes("google") ? (
+                      <span className="text-green-600 dark:text-green-500 flex items-center gap-1">
+                        <Check size={12} strokeWidth={2.5} />
+                        Connected
+                      </span>
+                    ) : (
+                      <span className="text-muted-foreground">Not connected</span>
+                    )}
+                  </div>
+                </div>
+                <div
+                  className={`flex items-center justify-between p-3 rounded-2xl border transition-colors ${
+                    connectedProviders.includes("github")
+                      ? "border-border bg-muted/30"
+                      : "border-border/40 bg-transparent opacity-60"
+                  }`}
+                >
+                  <div className="flex items-center gap-3">
+                    <div className="flex items-center justify-center w-8 h-8 rounded-full bg-background border border-border text-foreground">
+                      <GitHubIcon fontSize="inherit" className="text-[16px]" />
+                    </div>
+                    <span className="text-sm font-medium text-foreground">
+                      GitHub
+                    </span>
+                  </div>
+                  <div className="text-xs font-medium">
+                    {connectedProviders.includes("github") ? (
+                      <span className="text-green-600 dark:text-green-500 flex items-center gap-1">
+                        <Check size={12} strokeWidth={2.5} />
+                        Connected
+                      </span>
+                    ) : (
+                      <span className="text-muted-foreground">Not connected</span>
+                    )}
+                  </div>
+                </div>
               </div>
             </div>
-            <div className="px-6 py-4 flex items-start gap-3">
-              <KeyRound
-                size={15}
-                strokeWidth={1.5}
-                className="mt-0.5 text-muted-foreground shrink-0"
-              />
-              <p className="text-sm text-muted-foreground leading-relaxed">
-                Passwords and security are managed through your connected
-                authentication provider. To update your password, visit the
-                provider you signed in with.
-              </p>
-            </div>
+            {!hasPasswordCredential && (
+              <div className="px-6 py-4 flex items-start gap-3">
+                <KeyRound
+                  size={15}
+                  strokeWidth={1.5}
+                  className="mt-0.5 text-muted-foreground shrink-0"
+                />
+                <p className="text-sm text-muted-foreground leading-relaxed">
+                  Passwords and security are managed through your connected
+                  authentication provider. To update your password, visit the
+                  provider you signed in with.
+                </p>
+              </div>
+            )}
           </div>
         </section>
 

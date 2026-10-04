@@ -1,4 +1,8 @@
-import type { DiscoveryRunSummary, OpportunityDiscoveryProvider, OpportunityCandidate } from "./types";
+import type {
+  DiscoveryRunSummary,
+  OpportunityDiscoveryProvider,
+  OpportunityCandidate,
+} from "./types";
 import { getActiveDiscoveryQueries } from "./queries";
 import { WebSearchDiscoveryProvider } from "./providers/webSearch";
 import { WebsiteDiscoveryProvider } from "./providers/website";
@@ -10,6 +14,19 @@ import { IngestionService } from "./service";
 import { normalizeUrl } from "./normalizer";
 import { getNowIso } from "../lib/dates";
 
+/**
+ * Tier refresh intervals (in hours). The pipeline runs every hour via cron,
+ * but each tier is only rediscovered when its interval has elapsed.
+ *
+ * These values mirror the `refreshIntervalHours` in DISCOVERY_SOURCES but are
+ * defined here as the authoritative scheduler thresholds.
+ */
+const TIER_REFRESH_HOURS: Record<1 | 2 | 3, number> = {
+  1: 4,   // Tier 1 (major platforms): every 4 hours
+  2: 12,  // Tier 2 (aggregators, universities): every 12 hours
+  3: 24,  // Tier 3 (broad web): every 24 hours
+};
+
 export class DiscoveryPipeline {
   static async runPipeline(
     db: D1Database,
@@ -19,9 +36,12 @@ export class DiscoveryPipeline {
     const runId = crypto.randomUUID();
     const startedAt = getNowIso();
 
+    // Determine which tiers are due based on last run time
+    const activeTiers = await DiscoveryPipeline.getActiveTiers(db);
+
     const summary: DiscoveryRunSummary = {
       id: runId,
-      providerId: options.providerId || "all-providers",
+      providerId: options.providerId || `tiers:${activeTiers.join(",")}`,
       startedAt,
       status: "running",
       candidatesFound: 0,
@@ -32,7 +52,7 @@ export class DiscoveryPipeline {
       errors: [],
     };
 
-    // 1. Create discovery_runs record in D1
+    // 1. Create discovery_runs record
     try {
       await db
         .prepare(
@@ -44,12 +64,19 @@ export class DiscoveryPipeline {
         .bind(runId, summary.providerId, startedAt, startedAt, startedAt)
         .run();
     } catch {
-      // Table may be pending or skipped in mock test, proceed
+      // Table may be pending or skipped in mock test
     }
 
     try {
       // 2. Load queries and setup providers
       const queries = await getActiveDiscoveryQueries(db);
+
+      // Inject active tiers into context so providers know what's due
+      const context = {
+        queries,
+        env,
+        activeTiers,
+      };
 
       const allProviders: OpportunityDiscoveryProvider[] = [
         new WebSearchDiscoveryProvider(),
@@ -65,10 +92,12 @@ export class DiscoveryPipeline {
       // 3. Discover candidates from providers
       for (const provider of providersToRun) {
         try {
-          const providerCandidates = await provider.discover({ queries, env });
+          const providerCandidates = await provider.discover(context);
           candidates.push(...providerCandidates);
         } catch (err) {
-          const errMsg = `Provider ${provider.id} discovery error: ${err instanceof Error ? err.message : String(err)}`;
+          const errMsg = `Provider ${provider.id} discovery error: ${
+            err instanceof Error ? err.message : String(err)
+          }`;
           summary.errors.push(errMsg);
         }
       }
@@ -93,31 +122,35 @@ export class DiscoveryPipeline {
 
       for (const candidate of uniqueCandidates) {
         try {
-          // Fetch page defensively
           const fetchRes = await PageFetcher.fetchPage(candidate.url);
           if (!fetchRes.success || !fetchRes.html) {
-            summary.errors.push(`Fetch failed for ${candidate.url}: ${fetchRes.error || "No content"}`);
+            summary.errors.push(
+              `Fetch failed for ${candidate.url}: ${fetchRes.error || "No content"}`
+            );
             continue;
           }
 
           summary.pagesFetched++;
 
-          // Extract content
           const extractedContent = ContentExtractor.extractContent(fetchRes);
           if (candidate.title && !extractedContent.title) {
             extractedContent.title = candidate.title;
           }
 
-          // Extract opportunity fields
           const oppInput = await extractor.extract(extractedContent);
           if (!oppInput) {
             summary.opportunitiesRejected++;
-            summary.errors.push(`Extraction produced null input for ${candidate.url}`);
+            summary.errors.push(
+              `Extraction produced null input for ${candidate.url}`
+            );
             continue;
           }
 
-          // Ingest into database with deduplication and provenance
-          const ingestRes = await IngestionService.ingestOpportunity(db, oppInput);
+          const ingestRes = await IngestionService.ingestOpportunity(
+            db,
+            oppInput,
+            candidate.sourceDomain
+          );
 
           if (ingestRes.status === "created") {
             summary.opportunitiesCreated++;
@@ -128,11 +161,15 @@ export class DiscoveryPipeline {
           } else {
             summary.opportunitiesRejected++;
             if (ingestRes.reason) {
-              summary.errors.push(`Ingestion rejected ${candidate.url}: ${ingestRes.reason}`);
+              summary.errors.push(
+                `Ingestion rejected ${candidate.url}: ${ingestRes.reason}`
+              );
             }
           }
         } catch (err) {
-          const errMsg = `Error processing candidate ${candidate.url}: ${err instanceof Error ? err.message : String(err)}`;
+          const errMsg = `Error processing candidate ${candidate.url}: ${
+            err instanceof Error ? err.message : String(err)
+          }`;
           summary.errors.push(errMsg);
         }
       }
@@ -142,10 +179,12 @@ export class DiscoveryPipeline {
     } catch (err) {
       summary.status = "failed";
       summary.completedAt = getNowIso();
-      summary.errors.push(`Pipeline execution failed: ${err instanceof Error ? err.message : String(err)}`);
+      summary.errors.push(
+        `Pipeline execution failed: ${err instanceof Error ? err.message : String(err)}`
+      );
     }
 
-    // 6. Update discovery_runs record in D1
+    // 6. Update discovery_runs record
     try {
       await db
         .prepare(
@@ -173,5 +212,51 @@ export class DiscoveryPipeline {
     }
 
     return summary;
+  }
+
+  /**
+   * Determines which tiers are due for discovery based on the elapsed time
+   * since each tier last ran. Falls back to running all tiers if history
+   * is unavailable.
+   */
+  private static async getActiveTiers(db: D1Database): Promise<(1 | 2 | 3)[]> {
+    const now = Date.now();
+    const activeTiers: (1 | 2 | 3)[] = [];
+
+    for (const [tierStr, intervalHours] of Object.entries(TIER_REFRESH_HOURS)) {
+      const tier = Number(tierStr) as 1 | 2 | 3;
+      const intervalMs = intervalHours * 60 * 60 * 1000;
+
+      try {
+        const row = await db
+          .prepare(
+            `SELECT completed_at FROM discovery_runs
+             WHERE provider_id LIKE ? AND status = 'completed'
+             ORDER BY completed_at DESC LIMIT 1`
+          )
+          .bind(`%tiers:${tier}%`)
+          .first<{ completed_at: string }>();
+
+        if (!row || !row.completed_at) {
+          activeTiers.push(tier);
+          continue;
+        }
+
+        const lastRanAt = new Date(row.completed_at).getTime();
+        if (now - lastRanAt >= intervalMs) {
+          activeTiers.push(tier);
+        }
+      } catch {
+        // On any DB error, include tier to be safe
+        activeTiers.push(tier);
+      }
+    }
+
+    // Always run at least Tier 1
+    if (activeTiers.length === 0) {
+      activeTiers.push(1);
+    }
+
+    return activeTiers;
   }
 }

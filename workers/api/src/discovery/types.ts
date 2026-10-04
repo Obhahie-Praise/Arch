@@ -69,6 +69,19 @@ export interface DiscoveryQuery {
   priority: number;
 }
 
+export interface DiscoverySourceConfig {
+  id: string;
+  name: string;
+  domain: string;
+  types: OpportunityType[];
+  priority: 1 | 2 | 3;
+  enabled: boolean;
+  discoveryStrategy: "search" | "direct" | "both";
+  queries?: string[];
+  directUrls?: string[];
+  refreshIntervalHours: number;
+}
+
 export interface DiscoveryContext {
   queries: DiscoveryQuery[];
   env: Record<string, unknown>;

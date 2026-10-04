@@ -52,7 +52,7 @@ app.get("/", (c) => {
 export default {
   fetch: app.fetch,
   async scheduled(event: ScheduledEvent, env: Env, ctx: ExecutionContext) {
-    ctx.waitUntil(runDiscoveryJob(env.arch_db));
+    ctx.waitUntil(runDiscoveryJob(env.arch_db, env as unknown as Record<string, unknown>));
     ctx.waitUntil(runRefreshJob(env.arch_db));
   },
 };
