@@ -89,15 +89,41 @@ export class DiscoveryPipeline {
       const candidates: OpportunityCandidate[] = [];
 
       // 3. Discover candidates from providers
-      for (const provider of providersToRun) {
+      const providerPromises = providersToRun.map(async (provider) => {
+        console.log(`[discovery] starting provider: ${provider.id}`);
         try {
           const providerCandidates = await provider.discover(context);
-          candidates.push(...providerCandidates);
+          console.log(`[discovery] completed provider: ${provider.id} candidates=${providerCandidates.length}`);
+          
+          if (!summary.sourceMetrics[provider.id]) {
+            summary.sourceMetrics[provider.id] = { discovered: 0, created: 0, rejected: 0, updated: 0, executed: true };
+          } else {
+            (summary.sourceMetrics[provider.id] as any).executed = true;
+          }
+          
+          return providerCandidates;
         } catch (err) {
           const errMsg = `Provider ${provider.id} discovery error: ${
             err instanceof Error ? err.message : String(err)
           }`;
+          console.error(`[discovery] failed provider: ${provider.id} error=${errMsg}`);
           summary.errors.push(errMsg);
+          
+          if (!summary.sourceMetrics[provider.id]) {
+            summary.sourceMetrics[provider.id] = { discovered: 0, created: 0, rejected: 0, updated: 0, executed: true, failed: true };
+          } else {
+            (summary.sourceMetrics[provider.id] as any).executed = true;
+            (summary.sourceMetrics[provider.id] as any).failed = true;
+          }
+          
+          return [];
+        }
+      });
+
+      const results = await Promise.allSettled(providerPromises);
+      for (const res of results) {
+        if (res.status === "fulfilled") {
+          candidates.push(...res.value);
         }
       }
 

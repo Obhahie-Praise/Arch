@@ -45,47 +45,60 @@ export class DevpostAdapter implements OpportunitySourceAdapter {
 
   async discover(_context: DiscoveryContext): Promise<OpportunityCandidate[]> {
     const candidates: OpportunityCandidate[] = [];
+    let page = 1;
+    const maxPages = 10; // Max 200 hackathons per discovery run to avoid timeouts
 
     try {
-      // No status filter — the status=upcoming,open filter returns 0 results.
-      // Fetch open hackathons by ordering by submission deadline descending.
-      const res = await fetch(
-        "https://devpost.com/api/hackathons?order_by=deadline&per_page=20",
-        { headers: { Accept: "application/json" } }
-      );
-      if (!res.ok) throw new Error(`Devpost API returned HTTP ${res.status}`);
-      const data = (await res.json()) as { hackathons?: DevpostHackathon[] };
+      while (page <= maxPages) {
+        const res = await fetch(
+          `https://devpost.com/api/hackathons?order_by=deadline&per_page=20&page=${page}`,
+          { headers: { Accept: "application/json" } }
+        );
+        if (!res.ok) throw new Error(`Devpost API returned HTTP ${res.status}`);
+        
+        const data = (await res.json()) as { hackathons?: DevpostHackathon[]; meta?: { total_count?: number } };
+        
+        if (!data.hackathons || data.hackathons.length === 0) {
+          break; // No more results
+        }
 
-      for (const h of data.hackathons ?? []) {
-        if (!h.url || !h.title) continue;
+        for (const h of data.hackathons) {
+          if (!h.url || !h.title) continue;
 
-        const deadline = parseDevpostDeadline(h.submission_period_dates);
-        const isRemote = h.displayed_location?.icon === "globe" ||
-          h.displayed_location?.location?.toLowerCase().includes("online");
-        const themes = (h.themes ?? []).map((t) => t.name);
+          const deadline = parseDevpostDeadline(h.submission_period_dates);
+          const isRemote = h.displayed_location?.icon === "globe" ||
+            h.displayed_location?.location?.toLowerCase().includes("online");
+          const themes = (h.themes ?? []).map((t) => t.name);
 
-        // Build pre-extracted data from the API response directly
-        const preExtracted: Partial<OpportunityInput> = {
-          title: h.title,
-          organizationName: h.organization_name || "Devpost",
-          type: "hackathon",
-          sourceUrl: h.url,
-          applicationUrl: h.url,
-          isRemote: isRemote ?? true,
-          location: isRemote ? "Online" : (h.displayed_location?.location ?? undefined),
-          deadline,
-          description: `${h.title} — a hackathon${h.organization_name ? ` by ${h.organization_name}` : ""}. ${h.submission_period_dates ? `Submissions: ${h.submission_period_dates}.` : ""} ${h.time_left_to_submission ? `Time left: ${h.time_left_to_submission}.` : ""}`.trim(),
-          skills: themes.length > 0 ? themes : undefined,
-          externalId: String(h.id),
-        };
+          // Build pre-extracted data from the API response directly
+          const preExtracted: Partial<OpportunityInput> = {
+            title: h.title,
+            organizationName: h.organization_name || "Devpost",
+            type: "hackathon",
+            sourceUrl: h.url,
+            applicationUrl: h.url,
+            isRemote: isRemote ?? true,
+            location: isRemote ? "Online" : (h.displayed_location?.location ?? undefined),
+            deadline,
+            description: `${h.title} — a hackathon${h.organization_name ? ` by ${h.organization_name}` : ""}. ${h.submission_period_dates ? `Submissions: ${h.submission_period_dates}.` : ""} ${h.time_left_to_submission ? `Time left: ${h.time_left_to_submission}.` : ""}`.trim(),
+            skills: themes.length > 0 ? themes : undefined,
+            externalId: String(h.id),
+          };
 
-        candidates.push({
-          url: h.url,
-          title: h.title,
-          sourceDomain: "devpost.com",
-          sourceType: "api",
-          preExtracted,
-        });
+          candidates.push({
+            url: h.url,
+            title: h.title,
+            sourceDomain: "devpost.com",
+            sourceType: "api",
+            preExtracted,
+          });
+        }
+
+        if (data.hackathons.length < 20) {
+          break; // Last page
+        }
+
+        page++;
       }
 
       console.log(`[devpost] discover: fetched ${candidates.length} candidates from API`);

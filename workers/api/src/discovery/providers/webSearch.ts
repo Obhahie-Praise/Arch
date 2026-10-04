@@ -30,109 +30,85 @@ export class WebSearchDiscoveryProvider implements OpportunityDiscoveryProvider 
     // then supplemented by any DB-level queries from context.queries
     const sourceQueries = this.buildSourceQueries(context);
 
-    if (tavilyKey) {
-      for (const { queryStr, sourceId, tier } of sourceQueries) {
-        // Tier 3 (broad discovery) gets fewer results to preserve capacity
-        const maxResults = tier === 1 ? 8 : tier === 2 ? 5 : 3;
+    if (!tavilyKey) {
+      console.warn("[web-search-provider] TAVILY_API_KEY is not set — skipping web search.");
+      return [];
+    }
 
-        try {
-          const res = await fetch("https://api.tavily.com/search", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({
-              api_key: tavilyKey,
-              query: queryStr,
-              max_results: maxResults,
-              search_depth: "basic",
-            }),
-          });
+    for (const { queryStr, sourceId, tier } of sourceQueries) {
+      // Tier 3 (broad discovery) gets fewer results to preserve capacity
+      const maxResults = tier === 1 ? 8 : tier === 2 ? 5 : 3;
 
-          if (res.ok) {
-            const data = (await res.json()) as {
-              results?: { url: string; title: string; content?: string }[];
-            };
-            if (data.results) {
-              for (const r of data.results) {
-                if (isSafeUrl(r.url)) {
-                  candidates.push({
-                    url: r.url,
-                    title: r.title,
-                    snippet: r.content,
-                    sourceDomain: sourceId,
-                    discoveryQueryId: `source:${sourceId}`,
-                    sourceType: "search",
-                  });
-                }
+      try {
+        const res = await fetch("https://api.tavily.com/search", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            api_key: tavilyKey,
+            query: queryStr,
+            max_results: maxResults,
+            search_depth: "basic",
+          }),
+        });
+
+        if (res.ok) {
+          const data = (await res.json()) as {
+            results?: { url: string; title: string; content?: string }[];
+          };
+          if (data.results) {
+            for (const r of data.results) {
+              if (isSafeUrl(r.url)) {
+                candidates.push({
+                  url: r.url,
+                  title: r.title,
+                  snippet: r.content,
+                  sourceDomain: sourceId,
+                  discoveryQueryId: `source:${sourceId}`,
+                  sourceType: "search",
+                });
               }
             }
           }
-        } catch {
-          // Isolated per-query — failure does not abort remaining queries
         }
+      } catch {
+        // Isolated per-query — failure does not abort remaining queries
       }
+    }
 
-      // Also run any DB-level queries not covered by source configs
-      for (const queryConfig of context.queries) {
-        if (!queryConfig.enabled) continue;
-        try {
-          const res = await fetch("https://api.tavily.com/search", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({
-              api_key: tavilyKey,
-              query: queryConfig.query,
-              max_results: 5,
-              search_depth: "basic",
-            }),
-          });
-          if (res.ok) {
-            const data = (await res.json()) as {
-              results?: { url: string; title: string; content?: string }[];
-            };
-            if (data.results) {
-              for (const r of data.results) {
-                if (isSafeUrl(r.url)) {
-                  candidates.push({
-                    url: r.url,
-                    title: r.title,
-                    snippet: r.content,
-                    discoveryQueryId: queryConfig.id,
-                    sourceType: "search",
-                  });
-                }
+    // Also run any DB-level queries not covered by source configs
+    for (const queryConfig of context.queries) {
+      if (!queryConfig.enabled) continue;
+      try {
+        const res = await fetch("https://api.tavily.com/search", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            api_key: tavilyKey,
+            query: queryConfig.query,
+            max_results: 5,
+            search_depth: "basic",
+          }),
+        });
+        if (res.ok) {
+          const data = (await res.json()) as {
+            results?: { url: string; title: string; content?: string }[];
+          };
+          if (data.results) {
+            for (const r of data.results) {
+              if (isSafeUrl(r.url)) {
+                candidates.push({
+                  url: r.url,
+                  title: r.title,
+                  snippet: r.content,
+                  discoveryQueryId: queryConfig.id,
+                  sourceType: "search",
+                });
               }
             }
           }
-        } catch {
-          // Isolated per-query failure
         }
-      }
-    } else {
-      // No Tavily key — fall back to direct URLs from the source config
-      for (const source of DISCOVERY_SOURCES) {
-        if (!source.enabled) continue;
-        if (source.directUrls) {
-          for (const url of source.directUrls) {
-            if (isSafeUrl(url)) {
-              candidates.push({
-                url,
-                sourceDomain: source.domain || source.id,
-                sourceType: "website",
-              });
-            }
-          }
-        }
-      }
-
-      // Also fall back to legacy curated candidates for backward compat
-      for (const queryConfig of context.queries) {
-        if (!queryConfig.enabled) continue;
-        const fallbackCandidates = this.getLegacyFallbackCandidates(queryConfig);
-        for (const fc of fallbackCandidates) {
-          if (isSafeUrl(fc.url)) {
-            candidates.push(fc);
-          }
-        }
+      } catch {
+        // Isolated per-query failure
       }
     }
 

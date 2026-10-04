@@ -17,7 +17,7 @@ export default function OpportunityChatPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [opportunity, setOpportunity] = useState<any>(null);
   const [messages, setMessages] = useState<any[]>([]);
-  
+
   const [input, setInput] = useState("");
   const [isSending, setIsSending] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -36,10 +36,13 @@ export default function OpportunityChatPage() {
     async function loadChat() {
       try {
         const apiUrl = API_URL;
-        const json = await cachedFetch<any>(`${apiUrl}/api/opportunities/${opportunityId}/chat`, {
-          credentials: "include",
-          ttl: 0, // Always fetch fresh
-        });
+        const json = await cachedFetch<any>(
+          `${apiUrl}/api/opportunities/${opportunityId}/chat`,
+          {
+            credentials: "include",
+            ttl: 0, // Always fetch fresh
+          },
+        );
 
         if (json.error) {
           setError(json.error.message || "Failed to load chat.");
@@ -67,23 +70,34 @@ export default function OpportunityChatPage() {
     setInput("");
     setIsSending(true);
 
-    const tempUserMsg = { id: Date.now().toString(), role: "user", content: userContent };
+    const tempUserMsg = {
+      id: Date.now().toString(),
+      role: "user",
+      content: userContent,
+    };
     setMessages((prev) => [...prev, tempUserMsg]);
 
     try {
       const apiUrl = API_URL;
-      const response = await fetch(`${apiUrl}/api/opportunities/${opportunityId}/chat/messages`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        credentials: "include",
-        body: JSON.stringify({ content: userContent }),
-      });
+      const response = await fetch(
+        `${apiUrl}/api/opportunities/${opportunityId}/chat/messages`,
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          credentials: "include",
+          body: JSON.stringify({ content: userContent }),
+        },
+      );
 
       if (!response.ok) {
         throw new Error("Failed to send message");
       }
 
-      const tempAssistantMsg = { id: (Date.now() + 1).toString(), role: "assistant", content: "" };
+      const tempAssistantMsg = {
+        id: (Date.now() + 1).toString(),
+        role: "assistant",
+        content: "",
+      };
       setMessages((prev) => [...prev, tempAssistantMsg]);
 
       // Stream the response
@@ -97,10 +111,13 @@ export default function OpportunityChatPage() {
           if (done) break;
           const chunk = decoder.decode(value, { stream: true });
           aiContent += chunk;
-          
+
           setMessages((prev) => {
             const newMsgs = [...prev];
-            newMsgs[newMsgs.length - 1] = { ...newMsgs[newMsgs.length - 1], content: aiContent };
+            newMsgs[newMsgs.length - 1] = {
+              ...newMsgs[newMsgs.length - 1],
+              content: aiContent,
+            };
             return newMsgs;
           });
         }
@@ -109,7 +126,10 @@ export default function OpportunityChatPage() {
         if (json.data?.message) {
           setMessages((prev) => {
             const newMsgs = [...prev];
-            newMsgs[newMsgs.length - 1] = { ...newMsgs[newMsgs.length - 1], content: json.data.message };
+            newMsgs[newMsgs.length - 1] = {
+              ...newMsgs[newMsgs.length - 1],
+              content: json.data.message,
+            };
             return newMsgs;
           });
         }
@@ -145,7 +165,9 @@ export default function OpportunityChatPage() {
         <div className="border border-red-500/20 bg-red-500/5 rounded-3xl p-8 text-center flex flex-col items-center justify-center gap-4">
           <AlertCircle className="text-red-500" size={32} />
           <div className="space-y-1">
-            <h2 className="text-lg font-medium text-foreground">Access Denied</h2>
+            <h2 className="text-lg font-medium text-foreground">
+              Access Denied
+            </h2>
             <p className="text-sm text-muted-foreground max-w-sm mx-auto">
               {error || "You can only chat about opportunities you have saved."}
             </p>
@@ -162,8 +184,8 @@ export default function OpportunityChatPage() {
   }
 
   return (
-    <div className="max-w-3xl mx-auto flex flex-col h-[calc(100vh-80px)] -mt-6">
-      <div className="sticky top-0 z-10 bg-background/80 backdrop-blur-md border-b border-border py-4 mb-4 flex items-center justify-between">
+    <div className="max-w-4xl mx-auto flex flex-col pb-32 pt-20">
+      <div className="fixed left-1/2 -translate-x-1/2 top-[80px] z-40 w-full max-w-4xl bg-background/90 backdrop-blur-md border-b border-border py-4 px-4 sm:px-0 flex items-center justify-between">
         <div className="flex items-center gap-4">
           <Link
             href="/saved"
@@ -171,24 +193,23 @@ export default function OpportunityChatPage() {
           >
             <ArrowLeft size={18} />
           </Link>
-          <div>
+          <div className="flex items-center gap-2">
             <h1 className="font-display text-base font-medium text-foreground leading-tight">
               {opportunity.title}
             </h1>
-            <p className="text-xs text-muted-foreground flex items-center gap-2">
-              <span className="font-medium">{opportunity.organization}</span>
-              <span>•</span>
+            <p className="text-xs text-muted-foreground flex items-center gap-2 py-0.5 px-2 bg-muted rounded-full">
               <span className="capitalize">{opportunity.type}</span>
             </p>
           </div>
         </div>
         <div className="hidden sm:flex items-center gap-2">
-           <Sparkles size={14} className="text-muted-foreground" />
-           <span className="text-[11px] font-medium text-muted-foreground uppercase tracking-wider">Arch AI</span>
+          <span className="text-[11px] font-medium text-muted-foreground">
+            <span className="capitalize">{opportunity.organization}</span>
+          </span>
         </div>
       </div>
 
-      <div className="flex-1 overflow-y-auto pb-32 space-y-6 px-2 sm:px-4 scrollbar-hide">
+      <div className="flex-1 space-y-6 px-2 sm:px-4">
         {messages.length === 0 ? (
           <div className="h-full flex flex-col items-center justify-center text-center space-y-4 text-muted-foreground pt-12 pb-24">
             <div className="p-4 bg-muted rounded-full">
@@ -197,7 +218,8 @@ export default function OpportunityChatPage() {
             <div className="max-w-xs space-y-1">
               <h3 className="font-medium text-foreground">How can I help?</h3>
               <p className="text-sm leading-relaxed">
-                Ask me about requirements, fit, or how to prepare your application for this opportunity.
+                Ask me about requirements, fit, or how to prepare your
+                application for this opportunity.
               </p>
             </div>
           </div>
@@ -227,21 +249,21 @@ export default function OpportunityChatPage() {
             </div>
           ))
         )}
-        
+
         {isSending && messages[messages.length - 1]?.role === "user" && (
-           <div className="flex justify-start">
-             <div className="max-w-[85%] rounded-3xl px-5 py-3.5 bg-muted flex items-center gap-2 text-muted-foreground">
-               <div className="w-1.5 h-1.5 rounded-full bg-foreground/40 animate-pulse" />
-               <div className="w-1.5 h-1.5 rounded-full bg-foreground/40 animate-pulse delay-150" />
-               <div className="w-1.5 h-1.5 rounded-full bg-foreground/40 animate-pulse delay-300" />
-             </div>
-           </div>
+          <div className="flex justify-start">
+            <div className="max-w-[85%] rounded-3xl px-5 py-3.5 bg-muted flex items-center gap-2 text-muted-foreground">
+              <div className="w-1.5 h-1.5 rounded-full bg-foreground/40 animate-pulse" />
+              <div className="w-1.5 h-1.5 rounded-full bg-foreground/40 animate-pulse delay-150" />
+              <div className="w-1.5 h-1.5 rounded-full bg-foreground/40 animate-pulse delay-300" />
+            </div>
+          </div>
         )}
         <div ref={messagesEndRef} />
       </div>
 
-      <div className="fixed bottom-0 left-0 right-0 p-4 bg-gradient-to-t from-background via-background to-transparent z-20 sm:left-[240px]">
-        <div className="max-w-3xl mx-auto">
+      <div className="fixed bottom-0 left-1/2 -translate-x-1/2 w-full max-w-3xl p-4 bg-gradient-to-t from-background via-background to-transparent z-20">
+        <div className="w-full">
           <form
             onSubmit={handleSend}
             className="relative flex items-end gap-2 bg-card border border-border rounded-full p-1.5 shadow-sm focus-within:border-foreground/40 focus-within:ring-1 focus-within:ring-foreground/40 transition-all"
@@ -253,7 +275,7 @@ export default function OpportunityChatPage() {
               value={input}
               onChange={(e) => {
                 setInput(e.target.value);
-                e.target.style.height = 'auto';
+                e.target.style.height = "auto";
                 e.target.style.height = `${Math.min(e.target.scrollHeight, 128)}px`;
               }}
               onKeyDown={handleKeyDown}

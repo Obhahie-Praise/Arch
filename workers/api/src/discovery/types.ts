@@ -118,6 +118,6 @@ export interface DiscoveryRunSummary {
   opportunitiesCreated: number;
   opportunitiesUpdated: number;
   opportunitiesRejected: number;
-  sourceMetrics: Record<string, { discovered: number; created: number; rejected: number; updated: number }>;
+  sourceMetrics: Record<string, { discovered: number; created: number; rejected: number; updated: number; executed?: boolean; failed?: boolean }>;
   errors: string[];
 }

@@ -2,6 +2,7 @@ import type { OpportunityDiscoveryProvider, OpportunitySourceAdapter } from "./t
 import { WebSearchDiscoveryProvider } from "./providers/webSearch";
 import { WebsiteDiscoveryProvider } from "./providers/website";
 import { DevpostAdapter } from "./providers/devpost";
+import { SeedDiscoverySource } from "./sources";
 
 export class SourceRegistry {
   private static adapters: OpportunitySourceAdapter[] = [
@@ -14,6 +15,7 @@ export class SourceRegistry {
 
   static getProviders(): OpportunityDiscoveryProvider[] {
     const providers: OpportunityDiscoveryProvider[] = [
+      new SeedDiscoverySource(),
       new WebSearchDiscoveryProvider(),
       new WebsiteDiscoveryProvider(),
     ];
