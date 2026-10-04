@@ -10,7 +10,7 @@ import { authClient } from "../../lib/auth-client";
 
 const NAV_ITEMS = [
   { label: "Home", href: "/home" },
-  { label: "Oppurtunitites", href: "/opportunities" },
+  { label: "Opportunities", href: "/opportunities" },
   { label: "Saved", href: "/saved" },
   { label: "Profile", href: "/profile" },
 ];
@@ -43,7 +43,6 @@ export default function DashboardLayout({
     return pathname.startsWith(item.href);
   });
 
-  // Update animated indicator position
   const updatePillPosition = () => {
     if (activeIndex !== -1 && navRefs.current[activeIndex]) {
       const activeEl = navRefs.current[activeIndex];
@@ -53,6 +52,8 @@ export default function DashboardLayout({
           width: activeEl.offsetWidth,
         });
       }
+    } else {
+      setPillStyle({ left: 0, width: 0 });
     }
   };
 

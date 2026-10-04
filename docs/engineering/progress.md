@@ -36,8 +36,12 @@ Keep it short and current.
 - [x] Authentication flow implemented
 - [x] Profile flow implemented (complete persistent matching-ready profile form)
 - [x] Home implemented (Arch home dashboard with completion gate, metrics, charts & mock sections)
-- [ ] Opportunities UI implemented
-- [ ] Opportunity detail UI implemented
+- [x] Opportunities UI implemented
+- [x] Opportunity detail UI implemented
+- [x] Progressive loading skeletons implemented (Home, Opportunities, Detail)
+- [x] Opportunities page connected to real backend (`/api/opportunities`, save, filter, search)
+- [x] Opportunity detail page connected to real backend (`/api/opportunities/:id`, optimistic save)
+- [x] Discovery pipeline verified end-to-end (ran locally, 2 opportunities created)
 - [ ] Saved UI implemented
 - [ ] Applications UI implemented
 
@@ -67,16 +71,13 @@ Keep it short and current.
 
 ## Current Focus
 
-The next implementation step should be establishing the backend foundation without prematurely implementing product features.
+Opportunities page and Opportunity detail page are now fully connected to the real backend discovery + recommendation engine.
 
-Before coding:
+Next steps:
 
-1. Inspect the generated repository.
-2. Read the relevant product, design, and engineering documentation.
-3. Understand the existing Next.js structure.
-4. Establish the Worker/API foundation.
-5. Verify the development workflow.
-6. Only then begin implementing product behavior.
+1. Implement the Saved page (consuming `/api/opportunities/saved`).
+2. Implement the Applications page.
+3. Connect the Home dashboard mock data to the same real backend opportunity system.
 
 ## Progress Rules
 

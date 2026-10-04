@@ -17,6 +17,14 @@ import {
   CheckCircle2,
   AlertCircle,
 } from "lucide-react";
+import { OpportunityCard } from "../../../components/opportunity-card";
+import {
+  MetricCardSkeleton,
+  ChartSkeleton,
+  OpportunityCardSkeleton,
+  SavedItemSkeleton,
+  TimelineItemSkeleton,
+} from "../../../components/skeletons";
 
 // ============================================================================
 // 8. EMPTY-STATE DEVELOPMENT TOGGLES
@@ -115,6 +123,40 @@ const MOCK_TIMELINE_DATA = [
 export default function HomePage() {
   const { data: session } = authClient.useSession();
   const [realProfileCompletion, setRealProfileCompletion] = useState<number | null>(null);
+  const [savedIds, setSavedIds] = useState<Set<string>>(new Set());
+
+  const toggleSave = (id: string, e: React.MouseEvent) => {
+    e.preventDefault();
+    setSavedIds((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+  };
+
+  // Mock loading states
+  const [loadingMetrics, setLoadingMetrics] = useState(true);
+  const [loadingCharts, setLoadingCharts] = useState(true);
+  const [loadingMatches, setLoadingMatches] = useState(true);
+  const [loadingSaved, setLoadingSaved] = useState(true);
+  const [loadingTimeline, setLoadingTimeline] = useState(true);
+
+  useEffect(() => {
+    const t1 = setTimeout(() => setLoadingMetrics(false), 300);
+    const t2 = setTimeout(() => setLoadingMatches(false), 500);
+    const t3 = setTimeout(() => setLoadingSaved(false), 600);
+    const t4 = setTimeout(() => setLoadingTimeline(false), 800);
+    const t5 = setTimeout(() => setLoadingCharts(false), 1200);
+
+    return () => {
+      clearTimeout(t1);
+      clearTimeout(t2);
+      clearTimeout(t3);
+      clearTimeout(t4);
+      clearTimeout(t5);
+    };
+  }, []);
 
   // Fetch actual completeness score from profile backend if mock override is null
   useEffect(() => {
@@ -187,53 +229,70 @@ export default function HomePage() {
 
       {/* 2. METRIC CARDS */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-        <div className="border border-border rounded-3xl p-5 bg-card flex flex-col justify-between gap-3 transition-all hover:border-foreground/30">
-          <div className="flex items-center justify-between">
-            <span className="text-sm text-muted-foreground">
-              Matches
-            </span>
-            <div className="p-2 bg-muted rounded-full text-foreground">
-              <Sparkles size={16} strokeWidth={1.5} />
+        {loadingMetrics ? (
+          <>
+            <MetricCardSkeleton />
+            <MetricCardSkeleton />
+            <MetricCardSkeleton />
+          </>
+        ) : (
+          <>
+            <div className="border border-border rounded-3xl p-5 bg-card flex flex-col justify-between gap-3 transition-all hover:border-foreground/30">
+              <div className="flex items-center justify-between">
+                <span className="text-sm text-muted-foreground">
+                  Matches
+                </span>
+                <div className="p-2 bg-muted rounded-full text-foreground">
+                  <Sparkles size={16} strokeWidth={1.5} />
+                </div>
+              </div>
+              <div>
+                <div className="font-display text-3xl font-medium text-foreground">24</div>
+              </div>
             </div>
-          </div>
-          <div>
-            <div className="font-display text-3xl font-medium text-foreground">24</div>
-          </div>
-        </div>
 
-        <div className="border border-border rounded-3xl p-5 bg-card flex flex-col justify-between gap-3 transition-all hover:border-foreground/30">
-          <div className="flex items-center justify-between">
-            <span className="text-sm text-muted-foreground">
-              Saved
-            </span>
-            <div className="p-2 bg-muted rounded-full text-foreground">
-              <Bookmark size={16} strokeWidth={1.5} />
+            <div className="border border-border rounded-3xl p-5 bg-card flex flex-col justify-between gap-3 transition-all hover:border-foreground/30">
+              <div className="flex items-center justify-between">
+                <span className="text-sm text-muted-foreground">
+                  Saved
+                </span>
+                <div className="p-2 bg-muted rounded-full text-foreground">
+                  <Bookmark size={16} strokeWidth={1.5} />
+                </div>
+              </div>
+              <div>
+                <div className="font-display text-3xl font-medium text-foreground">8</div>
+              </div>
             </div>
-          </div>
-          <div>
-            <div className="font-display text-3xl font-medium text-foreground">8</div>
-          </div>
-        </div>
 
-        <div className="border border-border rounded-3xl p-5 bg-card flex flex-col justify-between gap-3 transition-all hover:border-foreground/30">
-          <div className="flex items-center justify-between">
-            <span className="text-sm text-muted-foreground">
-              Pursuing
-            </span>
-            <div className="p-2 bg-muted rounded-full text-foreground">
-              <Briefcase size={16} strokeWidth={1.5} />
+            <div className="border border-border rounded-3xl p-5 bg-card flex flex-col justify-between gap-3 transition-all hover:border-foreground/30">
+              <div className="flex items-center justify-between">
+                <span className="text-sm text-muted-foreground">
+                  Pursuing
+                </span>
+                <div className="p-2 bg-muted rounded-full text-foreground">
+                  <Briefcase size={16} strokeWidth={1.5} />
+                </div>
+              </div>
+              <div>
+                <div className="font-display text-3xl font-medium text-foreground">3</div>
+              </div>
             </div>
-          </div>
-          <div>
-            <div className="font-display text-3xl font-medium text-foreground">3</div>
-          </div>
-        </div>
+          </>
+        )}
       </div>
 
       {/* 3. TWO CHARTS */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-        {/* Chart 1: Opportunities Discovered Over Time */}
-        <div className="border border-border rounded-3xl p-6 bg-card flex flex-col justify-between gap-4">
+        {loadingCharts ? (
+          <>
+            <ChartSkeleton />
+            <ChartSkeleton />
+          </>
+        ) : (
+          <>
+            {/* Chart 1: Opportunities Discovered Over Time */}
+            <div className="border border-border rounded-3xl p-6 bg-card flex flex-col justify-between gap-4">
           <div className="flex items-center justify-between">
             <div>
               <h3 className="font-display text-base font-medium text-foreground">
@@ -350,6 +409,8 @@ export default function HomePage() {
             <span className="font-medium text-foreground font-mono">12.5% Pursued</span>
           </div>
         </div>
+          </>
+        )}
       </div>
 
       {/* 4. RECENT MATCHES */}
@@ -367,57 +428,28 @@ export default function HomePage() {
           </Link>
         </div>
 
-        {SHOW_MOCK_MATCHES ? (
+        {loadingMatches ? (
+          <div className="space-y-3">
+            <OpportunityCardSkeleton />
+            <OpportunityCardSkeleton />
+            <OpportunityCardSkeleton />
+          </div>
+        ) : SHOW_MOCK_MATCHES ? (
           <div className="space-y-3">
             {MOCK_MATCHES_DATA.map((opp) => (
-              <div
+              <OpportunityCard
                 key={opp.id}
-                className="border border-border rounded-3xl p-5 bg-card flex flex-col sm:flex-row sm:items-center justify-between gap-4 transition-all hover:border-foreground/40"
-              >
-                <div className="space-y-1.5">
-                  <div className="flex items-center gap-2 flex-wrap">
-                    <h3 className="font-display text-base font-medium text-foreground">
-                      {opp.title}
-                    </h3>
-                    <span className="text-xs bg-muted px-2.5 py-0.5 rounded-full text-foreground font-medium">
-                      {opp.type}
-                    </span>
-                    {/* 7. AI SCORE PLACEHOLDER */}
-                    <span className="text-xs bg-emerald-500/10 text-emerald-700 dark:text-emerald-300 border border-emerald-500/30 px-2.5 py-0.5 rounded-full font-medium flex items-center gap-1">
-                      <Sparkles size={11} /> {opp.matchScore}% Match
-                    </span>
-                  </div>
-
-                  <p className="text-xs text-muted-foreground flex items-center gap-3 flex-wrap">
-                    <span className="font-medium text-foreground">{opp.organization}</span>
-                    <span className="flex items-center gap-1"><MapPin size={12} /> {opp.location}</span>
-                    <span className="flex items-center gap-1"><Clock size={12} /> {opp.deadline}</span>
-                  </p>
-
-                  <div className="flex items-center gap-1.5 flex-wrap pt-1">
-                    {opp.tags.map((t, idx) => (
-                      <span key={idx} className="text-[11px] bg-muted/60 text-muted-foreground px-2 py-0.5 rounded-md">
-                        {t}
-                      </span>
-                    ))}
-                  </div>
-                </div>
-
-                <div className="flex items-center gap-2 shrink-0 pt-2 sm:pt-0">
-                  <Link
-                    href={`/opportunities`}
-                    className="px-4 py-2 border border-border rounded-full text-xs font-medium hover:bg-muted transition-colors"
-                  >
-                    Details
-                  </Link>
-                  <Link
-                    href="/saved"
-                    className="p-2 bg-foreground text-background rounded-full text-xs font-medium hover:bg-foreground/90 transition-colors"
-                  >
-                    <Bookmark size={16} strokeWidth={1.5} />
-                  </Link>
-                </div>
-              </div>
+                id={opp.id}
+                title={opp.title}
+                organization={opp.organization}
+                type={opp.type}
+                matchScore={opp.matchScore}
+                location={opp.location}
+                deadline={opp.deadline}
+                tags={opp.tags}
+                isSaved={savedIds.has(opp.id)}
+                onSaveToggle={toggleSave}
+              />
             ))}
           </div>
         ) : (
@@ -446,7 +478,13 @@ export default function HomePage() {
             </Link>
           </div>
 
-          {SHOW_MOCK_SAVED ? (
+          {loadingSaved ? (
+            <div className="space-y-3">
+              <SavedItemSkeleton />
+              <SavedItemSkeleton />
+              <SavedItemSkeleton />
+            </div>
+          ) : SHOW_MOCK_SAVED ? (
             <div className="space-y-3">
               {MOCK_SAVED_DATA.map((saved) => (
                 <div
@@ -481,7 +519,15 @@ export default function HomePage() {
             <span className="text-xs text-muted-foreground">Urgency overview</span>
           </div>
 
-          {SHOW_MOCK_TIMELINE ? (
+          {loadingTimeline ? (
+            <div className="border border-border rounded-3xl p-6 bg-card">
+              <div className="space-y-6">
+                <TimelineItemSkeleton />
+                <TimelineItemSkeleton />
+                <TimelineItemSkeleton />
+              </div>
+            </div>
+          ) : SHOW_MOCK_TIMELINE ? (
             <div className="border border-border rounded-3xl p-5 bg-card space-y-4">
               {MOCK_TIMELINE_DATA.map((item) => (
                 <div key={item.id} className="space-y-1.5">
