@@ -44,6 +44,7 @@ Keep it short and current.
 - [x] Discovery pipeline verified end-to-end (ran locally, 2 opportunities created)
 - [x] Home dashboard connected to real backend (`/api/opportunities/home` — metrics, discovery chart, journey chart, recent matches, recent saved, deadline timeline)
 - [x] Saved UI implemented (with Mark as Pursuing functionality)
+- [x] AI Chat for saved opportunities implemented (`/saved/[id]/chat`)
 - [ ] Applications UI implemented
 
 ### Intelligence

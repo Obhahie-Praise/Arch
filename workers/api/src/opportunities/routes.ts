@@ -1,9 +1,12 @@
 import { Hono } from "hono";
+import { streamText } from "hono/streaming";
 import { createAuth, type Env } from "../auth";
 import { MatchingService } from "../matching/service";
 import { OpportunityService } from "./service";
 import { OpportunityRepository } from "./repository";
+import { ChatRepository } from "./chat-repository";
 import { DiscoveryPipeline } from "../discovery/pipeline";
+import { createAIProvider } from "../ai/provider";
 import type { OpportunityType } from "./types";
 
 export const opportunitiesRouter = new Hono<{ Bindings: Env }>();
@@ -324,6 +327,129 @@ opportunitiesRouter.post("/:id/dismiss", async (c) => {
   }
 
   return c.json({ success: true, status: "dismissed" });
+});
+
+// GET /api/opportunities/:id/chat - Get conversation and messages
+opportunitiesRouter.get("/:id/chat", async (c) => {
+  const userId = await getAuthUserId(c);
+  if (!userId) return c.json({ error: { code: "UNAUTHORIZED", message: "Authentication required" } }, 401);
+
+  const id = c.req.param("id");
+  const details = await OpportunityService.getDetails(c.env.arch_db, userId, id);
+  
+  if (!details || (details.userStatus !== "saved" && details.userStatus !== "pursuing")) {
+    return c.json({ error: { code: "FORBIDDEN", message: "Opportunity not saved" } }, 403);
+  }
+
+  let conversation = await ChatRepository.getConversation(c.env.arch_db, userId, id);
+  if (!conversation) {
+    conversation = await ChatRepository.createConversation(c.env.arch_db, userId, id);
+  }
+
+  const messages = await ChatRepository.getMessages(c.env.arch_db, conversation.id);
+  
+  return c.json({ data: { conversation, messages, opportunity: details } });
+});
+
+// POST /api/opportunities/:id/chat/messages - Send message
+opportunitiesRouter.post("/:id/chat/messages", async (c) => {
+  const userId = await getAuthUserId(c);
+  if (!userId) return c.json({ error: { code: "UNAUTHORIZED", message: "Authentication required" } }, 401);
+
+  const id = c.req.param("id");
+  const { content } = await c.req.json();
+  if (!content) return c.json({ error: { code: "BAD_REQUEST", message: "Message content required" } }, 400);
+
+  const details = await OpportunityService.getDetails(c.env.arch_db, userId, id);
+  if (!details || (details.userStatus !== "saved" && details.userStatus !== "pursuing")) {
+    return c.json({ error: { code: "FORBIDDEN", message: "Opportunity not saved" } }, 403);
+  }
+
+  let conversation = await ChatRepository.getConversation(c.env.arch_db, userId, id);
+  if (!conversation) {
+    conversation = await ChatRepository.createConversation(c.env.arch_db, userId, id);
+  }
+
+  // Save user message
+  await ChatRepository.addMessage(c.env.arch_db, conversation.id, "user", content);
+
+  const dbMessages = await ChatRepository.getMessages(c.env.arch_db, conversation.id);
+  
+  const profileStmt = c.env.arch_db.prepare(`SELECT * FROM "profiles" WHERE "userId" = ?`);
+  const userProfile = await profileStmt.bind(userId).first<any>();
+  let userSkills = [];
+  try { userSkills = JSON.parse(userProfile?.technicalSkills || "[]"); } catch {}
+
+  const systemContext = `You are an AI assistant helping a user pursue an opportunity. 
+Only provide information related to this opportunity. Do not hallucinate.
+
+OPPORTUNITY DETAILS:
+Title: ${details.title}
+Organization: ${details.organizationName}
+Type: ${details.type}
+Description: ${details.description || "N/A"}
+Requirements: ${details.requirements?.join(", ") || "N/A"}
+Eligibility: ${details.eligibility?.join(", ") || "N/A"}
+Skills: ${details.skills?.join(", ") || "N/A"}
+Location: ${details.location || "N/A"}
+
+USER PROFILE:
+Name: ${userProfile?.fullName || "N/A"}
+Bio: ${userProfile?.bio || "N/A"}
+Skills: ${userSkills.length > 0 ? userSkills.join(", ") : "N/A"}
+`;
+
+  const aiMessages = [
+    { role: "system", content: systemContext },
+    ...dbMessages.map(m => ({ role: m.role, content: m.content }))
+  ];
+
+  const aiProvider = createAIProvider(c.env.AI);
+  const stream = await aiProvider.streamChat(aiMessages);
+
+  if (typeof stream === "string") {
+    await ChatRepository.addMessage(c.env.arch_db, conversation.id, "assistant", stream);
+    return c.json({ data: { message: stream } });
+  }
+
+  // Handle streaming response using Hono's streamText
+  return streamText(c, async (streamWriter) => {
+    let fullResponse = "";
+    const reader = stream.getReader();
+    const decoder = new TextDecoder("utf-8");
+
+    try {
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+        
+        // The Cloudflare AI streaming usually returns Server-Sent Events (SSE).
+        // Each event looks like `data: {"response":"..."}\n\n`
+        const chunk = decoder.decode(value, { stream: true });
+        
+        // Parse the SSE chunks (simplified parsing for CF AI)
+        const lines = chunk.split("\n");
+        for (const line of lines) {
+          if (line.startsWith("data: ") && line !== "data: [DONE]") {
+            try {
+              const data = JSON.parse(line.slice(6));
+              if (data.response) {
+                fullResponse += data.response;
+                await streamWriter.write(data.response);
+              }
+            } catch (e) {
+              // Ignore parse errors on partial chunks
+            }
+          }
+        }
+      }
+    } finally {
+      reader.releaseLock();
+      if (fullResponse) {
+        await ChatRepository.addMessage(c.env.arch_db, conversation.id, "assistant", fullResponse);
+      }
+    }
+  });
 });
 
 // INTERNAL / ENGINE ENDPOINTS

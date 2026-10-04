@@ -3,6 +3,7 @@ import { SYSTEM_EXTRACTION_PROMPT, EXTRACTION_JSON_SCHEMA } from "./schemas";
 
 export interface AIProvider {
   extractOpportunity(pageContent: string): Promise<AIExtractionOutput | null>;
+  streamChat(messages: any[]): Promise<ReadableStream | string>;
 }
 
 const AI_MODEL = "@cf/meta/llama-3.3-70b-instruct-fp8-fast";
@@ -46,6 +47,21 @@ export class WorkersAIProvider implements AIProvider {
       return null;
     }
   }
+
+  async streamChat(messages: any[]): Promise<ReadableStream | string> {
+    try {
+      const response = await this.ai.run(
+        AI_MODEL,
+        {
+          messages,
+          stream: true,
+        }
+      );
+      return response as ReadableStream;
+    } catch {
+      return "I'm sorry, I encountered an error while trying to generate a response.";
+    }
+  }
 }
 
 /**
@@ -54,6 +70,10 @@ export class WorkersAIProvider implements AIProvider {
 export class NullAIProvider implements AIProvider {
   async extractOpportunity(_pageContent: string): Promise<AIExtractionOutput | null> {
     return null;
+  }
+
+  async streamChat(_messages: any[]): Promise<ReadableStream | string> {
+    return "AI chat is currently unavailable.";
   }
 }
 

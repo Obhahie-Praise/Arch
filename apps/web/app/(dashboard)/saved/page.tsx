@@ -310,6 +310,7 @@ export default function SavedPage() {
               onSaveToggle={toggleSave}
               isPursuing={pursuingIds.has(opp.id)}
               onPursueToggle={togglePursue}
+              chatHref={`/saved/${opp.id}/chat`}
             />
           ))
         ) : (
