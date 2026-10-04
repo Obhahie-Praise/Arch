@@ -3,6 +3,7 @@
 import React, { useState, useEffect, useMemo } from "react";
 import Link from "next/link";
 import { authClient } from "../../../lib/auth-client";
+import { cachedFetch } from "../../../lib/cache";
 import {
   Sparkles,
   Bookmark,
@@ -38,16 +39,13 @@ export default function OpportunitiesPage() {
     if (MOCK_PROFILE_COMPLETION !== null) return;
     async function checkCompleteness() {
       try {
-        const apiUrl =
-          process.env.NEXT_PUBLIC_API_URL || "http://localhost:8787";
-        const res = await fetch(`${apiUrl}/api/profile`, {
+        const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8787";
+        const data = await cachedFetch<any>(`${apiUrl}/api/profile`, {
           credentials: "include",
+          ttl: 120_000,
         });
-        if (res.ok) {
-          const data = await res.json();
-          if (typeof data.profile?.completenessScore === "number") {
-            setRealProfileCompletion(data.profile.completenessScore);
-          }
+        if (typeof data.profile?.completenessScore === "number") {
+          setRealProfileCompletion(data.profile.completenessScore);
         }
       } catch {
         // Fall back
@@ -71,23 +69,22 @@ export default function OpportunitiesPage() {
     async function fetchOpportunities() {
       try {
         const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8787";
-        const res = await fetch(`${apiUrl}/api/opportunities`, {
+        const json = await cachedFetch<any>(`${apiUrl}/api/opportunities`, {
           credentials: "include",
+          ttl: 60_000,
         });
-        if (res.ok) {
-          const json = await res.json();
-          setOpportunities(json.data || []);
-          
-          // Seed the saved status from the backend userStatus
-          if (json.data) {
-            const saved = new Set<string>();
-            json.data.forEach((opp: any) => {
-              if (opp.userStatus === "saved" || opp.userStatus === "pursuing") {
-                saved.add(opp.id);
-              }
-            });
-            setSavedIds(saved);
-          }
+        
+        setOpportunities(json.data || []);
+        
+        // Seed the saved status from the backend userStatus
+        if (json.data) {
+          const saved = new Set<string>();
+          json.data.forEach((opp: any) => {
+            if (opp.userStatus === "saved" || opp.userStatus === "pursuing") {
+              saved.add(opp.id);
+            }
+          });
+          setSavedIds(saved);
         }
       } catch (err) {
         console.error("Failed to fetch opportunities:", err);
@@ -170,6 +167,11 @@ export default function OpportunitiesPage() {
           else next.delete(id);
           return next;
         });
+      } else {
+        // Invalidate caches
+        cachedFetch.invalidate(`${apiUrl}/api/opportunities/home`);
+        cachedFetch.invalidatePrefix(`${apiUrl}/api/opportunities?`);
+        cachedFetch.invalidate(`${apiUrl}/api/opportunities`);
       }
     } catch (err) {
       // Revert on error

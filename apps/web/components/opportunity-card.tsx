@@ -14,6 +14,8 @@ export interface OpportunityCardProps {
   isSaved?: boolean;
   onSaveToggle?: (id: string, e: React.MouseEvent) => void;
   saveHref?: string;
+  isPursuing?: boolean;
+  onPursueToggle?: (id: string, e: React.MouseEvent) => void;
 }
 
 export function OpportunityCard({
@@ -28,6 +30,8 @@ export function OpportunityCard({
   isSaved,
   onSaveToggle,
   saveHref,
+  isPursuing,
+  onPursueToggle,
 }: OpportunityCardProps) {
   return (
     <div className="border border-border rounded-3xl p-5 bg-card flex flex-col sm:flex-row sm:items-center justify-between gap-4 transition-all hover:border-foreground/40">
@@ -105,6 +109,19 @@ export function OpportunityCard({
             <Bookmark size={16} strokeWidth={1.5} />
           </Link>
         ) : null}
+
+        {onPursueToggle && (
+          <button
+            onClick={(e) => onPursueToggle(id, e)}
+            className={`px-4 py-2 rounded-full text-xs font-medium transition-colors ${
+              isPursuing
+                ? "bg-foreground text-background"
+                : "bg-muted text-foreground hover:bg-foreground hover:text-background"
+            }`}
+          >
+            {isPursuing ? "Pursuing" : "Mark as Pursuing"}
+          </button>
+        )}
       </div>
     </div>
   );

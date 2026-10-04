@@ -42,7 +42,8 @@ Keep it short and current.
 - [x] Opportunities page connected to real backend (`/api/opportunities`, save, filter, search)
 - [x] Opportunity detail page connected to real backend (`/api/opportunities/:id`, optimistic save)
 - [x] Discovery pipeline verified end-to-end (ran locally, 2 opportunities created)
-- [ ] Saved UI implemented
+- [x] Home dashboard connected to real backend (`/api/opportunities/home` — metrics, discovery chart, journey chart, recent matches, recent saved, deadline timeline)
+- [x] Saved UI implemented (with Mark as Pursuing functionality)
 - [ ] Applications UI implemented
 
 ### Intelligence
@@ -71,13 +72,13 @@ Keep it short and current.
 
 ## Current Focus
 
-Opportunities page and Opportunity detail page are now fully connected to the real backend discovery + recommendation engine.
+Home dashboard, Opportunities page, Saved page, and Opportunity detail page are fully connected to the real backend engine.
+
+All mock data removed from production rendering paths. Home metrics, charts, and recent activity all come from real D1 queries. Saved page provides full Save and Mark as Pursuing capabilities.
 
 Next steps:
 
-1. Implement the Saved page (consuming `/api/opportunities/saved`).
-2. Implement the Applications page.
-3. Connect the Home dashboard mock data to the same real backend opportunity system.
+1. Implement the Applications page.
 
 ## Progress Rules
 

@@ -129,7 +129,7 @@ export default function DashboardLayout({
     if (session) {
       fetchProfileAvatar();
     }
-  }, [session, pathname]);
+  }, [session]);
 
   const avatarSrc = profileAvatar || user?.image;
 
