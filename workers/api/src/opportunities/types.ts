@@ -128,6 +128,14 @@ export interface JoinedOpportunityMatchRow {
   preference_score: number;
   match_reasons: string | null;
   potential_mismatches: string | null;
+  ai_match_score: number | null;
+  ai_match_reasons: string | null; // JSON array
+  ai_match_gaps: string | null;    // JSON array
+  ai_confidence: number | null;
+  ai_ran: number;                  // 0 | 1
+  eligibility_status: number;      // -1 | 0 | 1
+  week_key: string | null;
+  final_score: number;
   first_seen_at: string;
   last_seen_at: string;
   last_verified_at: string;
@@ -181,6 +189,13 @@ export interface OpportunityFormatted {
   // User-specific match properties when returned in user context
   userStatus?: UserOpportunityStatus;
   matchScore?: number;
+  finalScore?: number;
+  eligibilityStatus?: number;
   matchReasons?: string[];
   potentialMismatches?: string[];
+  aiMatchScore?: number | null;
+  aiStrengths?: string[];
+  aiGaps?: string[];
+  aiConfidence?: number | null;
+  aiRan?: boolean;
 }

@@ -8,14 +8,64 @@ export const MATCH_WEIGHTS = {
   preference: 0.05,
 } as const;
 
+/**
+ * Weight split between deterministic and AI semantic scoring.
+ * Deterministic: 70%, AI: 30%
+ */
+export const SCORE_BLEND = {
+  deterministic: 0.70,
+  ai: 0.30,
+} as const;
+
+/**
+ * Maximum candidates passed to AI to control cost.
+ * After deterministic filtering, at most this many are AI-evaluated.
+ */
+export const AI_CANDIDATE_LIMIT = 50;
+
+/**
+ * Weekly recommendation limit per user (across all opportunity types).
+ */
+export const WEEKLY_QUOTA = 30;
+
+/**
+ * Eligibility status: deterministic hard-check outcome.
+ *  1  = eligible
+ * -1  = ineligible
+ *  0  = unknown (insufficient information)
+ */
+export type EligibilityStatus = 1 | -1 | 0;
+
 export interface ScoreBreakdown {
   eligibilityScore: number;
   skillsScore: number;
   interestScore: number;
+  goalsScore: number;
   experienceScore: number;
   locationScore: number;
   preferenceScore: number;
-  totalScore: number;
+  deterministicTotal: number;
   matchReasons: string[];
   potentialMismatches: string[];
+}
+
+export interface AIMatchResult {
+  score: number;        // 0–1
+  strengths: string[];
+  gaps: string[];
+  reason: string;
+  confidence: number;   // 0–1
+}
+
+export interface FinalScoreInput {
+  deterministicScore: number;   // 0–100
+  aiScore: number | null;       // 0–100, null if AI did not run
+  eligibilityStatus: EligibilityStatus;
+  deadlineUrgency: number;      // 0–100, higher = more urgent
+  freshness: number;            // 0–100, higher = more recently discovered
+}
+
+export interface FinalScore {
+  score: number;    // 0–100, final blended+adjusted
+  aiRan: boolean;
 }

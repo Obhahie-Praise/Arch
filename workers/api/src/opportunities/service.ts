@@ -15,12 +15,26 @@ export class OpportunityService {
     opp: OpportunityRow | JoinedOpportunityMatchRow,
     match?: UserOpportunityMatchRow | JoinedOpportunityMatchRow | null
   ): OpportunityFormatted {
-    const userStatus = "user_status" in opp ? opp.user_status : match ? ("user_status" in match ? match.user_status : match.status) : "matched";
-    const matchScore = "match_score" in opp ? opp.match_score : match ? match.match_score : undefined;
-    const matchReasonsStr = "match_reasons" in opp ? opp.match_reasons : match ? match.match_reasons : null;
-    const potentialMismatchesStr = "potential_mismatches" in opp ? opp.potential_mismatches : match ? match.potential_mismatches : null;
+    const userStatus =
+      "user_status" in opp
+        ? opp.user_status
+        : match
+        ? "user_status" in match
+          ? match.user_status
+          : match.status
+        : "matched";
+    const matchScore =
+      "match_score" in opp ? opp.match_score : match ? match.match_score : undefined;
+    const matchReasonsStr =
+      "match_reasons" in opp ? opp.match_reasons : match ? match.match_reasons : null;
+    const potentialMismatchesStr =
+      "potential_mismatches" in opp
+        ? opp.potential_mismatches
+        : match
+        ? match.potential_mismatches
+        : null;
 
-    return {
+    const formatted: OpportunityFormatted = {
       id: opp.id,
       title: opp.title,
       slug: opp.slug,
@@ -51,12 +65,25 @@ export class OpportunityService {
       expiresAt: opp.expires_at,
       createdAt: opp.created_at,
       updatedAt: opp.updated_at,
-
       userStatus,
       matchScore,
       matchReasons: parseJsonField<string[]>(matchReasonsStr, []),
       potentialMismatches: parseJsonField<string[]>(potentialMismatchesStr, []),
     };
+
+    // Attach AI matching fields when present in joined recommendation rows
+    if ("ai_match_score" in opp) {
+      const joined = opp as JoinedOpportunityMatchRow;
+      formatted.finalScore = joined.final_score ?? matchScore;
+      formatted.eligibilityStatus = joined.eligibility_status;
+      formatted.aiMatchScore = joined.ai_match_score;
+      formatted.aiStrengths = parseJsonField<string[]>(joined.ai_match_reasons, []);
+      formatted.aiGaps = parseJsonField<string[]>(joined.ai_match_gaps, []);
+      formatted.aiConfidence = joined.ai_confidence;
+      formatted.aiRan = joined.ai_ran === 1;
+    }
+
+    return formatted;
   }
 
   static async getDetails(db: D1Database, userId: string, idOrSlug: string) {

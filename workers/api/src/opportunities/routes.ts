@@ -36,7 +36,8 @@ opportunitiesRouter.get("/", async (c) => {
     const typeFilter = c.req.query("type") as OpportunityType | undefined;
     const rawRecommendations = await MatchingService.getOrGenerateUserRecommendations(
       c.env.arch_db,
-      userId
+      userId,
+      c.env.AI
     );
 
     let formatted = rawRecommendations.map((row) => OpportunityService.formatOpportunity(row, row));
@@ -247,7 +248,8 @@ opportunitiesRouter.post("/internal/matching/run", async (c) => {
 
   const recommendations = await MatchingService.getOrGenerateUserRecommendations(
     c.env.arch_db,
-    userId
+    userId,
+    c.env.AI
   );
 
   return c.json({

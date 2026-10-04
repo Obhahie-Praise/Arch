@@ -48,10 +48,15 @@ Keep it short and current.
 - [x] Defensive page fetching (SSRF protection, timeout, size cap, URL normalization)
 - [x] Page content extraction & heuristic opportunity extraction
 - [x] Requirement extraction & content hash deduplication
-- [x] Deterministic matching pipeline & ranking engine
-- [x] 30 weekly recommendations limit & quota management per user per week
-- [ ] Match explanations (LLM enrichment)
-- [ ] AI integration
+- [x] AI opportunity extraction layer (Workers AI, JSON schema mode, heuristic fallback)
+- [x] Deterministic matching pipeline & ranking engine (7 dimensions: eligibility, skills, interest, goals, experience, location, preference)
+- [x] Hard eligibility evaluation (eligible / ineligible / unknown — three-state, never overridden by AI)
+- [x] AI semantic matching layer (Workers AI structured JSON, deterministic fallback on failure)
+- [x] Final blended scoring (deterministic 70% + AI 30%, with deadline urgency + freshness bonuses)
+- [x] Diversity-aware ranking (max 8 per type, max 3 per org)
+- [x] 30/week global recommendation limit & ISO-week quota management per user
+- [x] Idempotent recommendation persistence via ON CONFLICT
+- [x] Explainable recommendations (match reasons + AI strengths + AI gaps persisted)
 
 ### Background Processing
 
