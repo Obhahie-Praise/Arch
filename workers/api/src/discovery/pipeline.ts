@@ -50,6 +50,7 @@ export class DiscoveryPipeline {
       opportunitiesCreated: 0,
       opportunitiesUpdated: 0,
       opportunitiesRejected: 0,
+      sourceMetrics: {},
       errors: [],
     };
 
@@ -59,8 +60,8 @@ export class DiscoveryPipeline {
         .prepare(
           `INSERT INTO discovery_runs (
             id, provider_id, started_at, status, candidates_found, pages_fetched,
-            opportunities_created, opportunities_updated, opportunities_rejected, errors, created_at, updated_at
-          ) VALUES (?, ?, ?, 'running', 0, 0, 0, 0, 0, '[]', ?, ?)`
+            opportunities_created, opportunities_updated, opportunities_rejected, errors, source_metrics, created_at, updated_at
+          ) VALUES (?, ?, ?, 'running', 0, 0, 0, 0, 0, '[]', '{}', ?, ?)`
         )
         .bind(runId, summary.providerId, startedAt, startedAt, startedAt)
         .run();
@@ -147,6 +148,12 @@ export class DiscoveryPipeline {
         if (norm && !seenUrls.has(norm)) {
           seenUrls.add(norm);
           uniqueCandidates.push(c);
+          
+          const srcDomain = c.sourceDomain || new URL(c.url).hostname;
+          if (!summary.sourceMetrics[srcDomain]) {
+            summary.sourceMetrics[srcDomain] = { discovered: 0, created: 0, rejected: 0, updated: 0 };
+          }
+          summary.sourceMetrics[srcDomain].discovered++;
         }
       }
 
@@ -204,8 +211,11 @@ export class DiscoveryPipeline {
           }
 
           // Validate completeness
+          const srcDomain = candidate.sourceDomain || new URL(candidate.url).hostname;
+          
           if (!oppInput || !oppInput.title || !oppInput.organizationName || !oppInput.description) {
             summary.opportunitiesRejected++;
+            summary.sourceMetrics[srcDomain].rejected++;
             summary.errors.push(
               `Rejected (incomplete): ${candidate.url} — title=${oppInput?.title ?? "missing"} org=${oppInput?.organizationName ?? "missing"} desc=${oppInput?.description ? "ok" : "missing"}`
             );
@@ -220,11 +230,14 @@ export class DiscoveryPipeline {
 
           if (ingestRes.status === "created") {
             summary.opportunitiesCreated++;
+            summary.sourceMetrics[srcDomain].created++;
             console.log(`[pipeline] created: ${oppInput.title}`);
           } else if (ingestRes.status === "updated" || ingestRes.status === "unchanged") {
             summary.opportunitiesUpdated++;
+            summary.sourceMetrics[srcDomain].updated++;
           } else {
             summary.opportunitiesRejected++;
+            summary.sourceMetrics[srcDomain].rejected++;
             if (ingestRes.reason) {
               summary.errors.push(
                 `Ingestion rejected ${candidate.url}: ${ingestRes.reason}`
@@ -256,7 +269,7 @@ export class DiscoveryPipeline {
           `UPDATE discovery_runs
            SET completed_at = ?, status = ?, candidates_found = ?, pages_fetched = ?,
                opportunities_created = ?, opportunities_updated = ?, opportunities_rejected = ?,
-               errors = ?, updated_at = ?
+               errors = ?, source_metrics = ?, updated_at = ?
            WHERE id = ?`
         )
         .bind(
@@ -268,6 +281,7 @@ export class DiscoveryPipeline {
           summary.opportunitiesUpdated,
           summary.opportunitiesRejected,
           JSON.stringify(summary.errors.slice(0, 20)),
+          JSON.stringify(summary.sourceMetrics),
           getNowIso(),
           runId
         )
