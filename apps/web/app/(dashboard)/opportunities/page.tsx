@@ -34,6 +34,7 @@ export default function OpportunitiesPage() {
   // Real backend integration states
   const [opportunities, setOpportunities] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [hasError, setHasError] = useState(false);
 
   // Fetch actual completeness score from profile backend if mock override is null
   useEffect(() => {
@@ -89,6 +90,7 @@ export default function OpportunitiesPage() {
         }
       } catch (err) {
         console.error("Failed to fetch opportunities:", err);
+        setHasError(true);
       } finally {
         setIsLoading(false);
       }
@@ -222,6 +224,28 @@ export default function OpportunitiesPage() {
     );
   }
 
+  // 1.5 DATA EMPTY STATE
+  if (!isLoading && !hasError && opportunities.length === 0) {
+    return (
+      <div className="max-w-4xl mx-auto space-y-8 pb-16">
+        <div className="flex flex-col gap-1">
+          <h1 className="font-display text-3xl font-medium text-foreground">
+            Opportunities
+          </h1>
+        </div>
+        <div className="rounded-3xl p-12 text-center flex flex-col items-center justify-center gap-3">
+          <Sparkles size={24} className="text-muted-foreground" />
+          <p className="text-sm font-medium text-foreground">
+            No opportunities available
+          </p>
+          <p className="text-xs text-muted-foreground max-w-sm">
+            We are currently sourcing new opportunities. Check back later.
+          </p>
+        </div>
+      </div>
+    );
+  }
+
   // 2. FULL DASHBOARD (>= 20%)
   return (
     <div className="max-w-4xl mx-auto space-y-6 pb-16">
@@ -279,15 +303,10 @@ export default function OpportunitiesPage() {
               <OpportunityCardSkeleton key={i} />
             ))}
           </div>
-        ) : opportunities.length === 0 ? (
-          // Empty state: No data at all
+        ) : hasError ? (
           <div className="rounded-3xl p-12 text-center flex flex-col items-center justify-center gap-3">
-            <Sparkles size={24} className="text-muted-foreground" />
-            <p className="text-sm font-medium text-foreground">
-              No opportunities available
-            </p>
-            <p className="text-xs text-muted-foreground max-w-sm">
-              We are currently sourcing new opportunities. Check back later.
+            <p className="text-sm font-medium text-red-500">
+              Failed to load opportunities. Please try again.
             </p>
           </div>
         ) : filteredOpportunities.length === 0 ? (

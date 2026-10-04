@@ -191,6 +191,7 @@ export default function HomePage() {
   // Real data
   const [summary, setSummary] = useState<HomeSummary | null>(null);
   const [savedIds, setSavedIds] = useState<Set<string>>(new Set());
+  const [hasError, setHasError] = useState(false);
 
   // Progressive loading states
   const [loadingProfile, setLoadingProfile] = useState(MOCK_PROFILE_COMPLETION === null);
@@ -252,7 +253,8 @@ export default function HomePage() {
       data.recentSaved.forEach((opp: any) => saved.add(opp.id));
       setSavedIds(saved);
     } catch {
-      // leave summary as null — empty states will show
+      // leave summary as null
+      setHasError(true);
     }
 
     // Progressively reveal sections staggered
@@ -345,6 +347,33 @@ export default function HomePage() {
   const recentSaved = summary?.recentSaved ?? [];
   const timeline = summary?.timeline ?? [];
   const chart = summary?.discoveryChart ?? [];
+
+  const isDataEmpty =
+    !loadingMetrics &&
+    !hasError &&
+    metrics.matches === 0 &&
+    metrics.saved === 0 &&
+    metrics.pursuing === 0 &&
+    recentMatches.length === 0 &&
+    recentSaved.length === 0 &&
+    timeline.length === 0;
+
+  if (isDataEmpty) {
+    return (
+      <div className="max-w-4xl mx-auto space-y-8 pb-16">
+        <div className="flex flex-col gap-1">
+          <h1 className="font-display text-3xl font-medium text-foreground">Home</h1>
+        </div>
+        <div className="border border-dashed border-border rounded-3xl p-8 text-center flex flex-col items-center justify-center gap-3 mt-8">
+          <Sparkles size={24} className="text-muted-foreground" />
+          <p className="text-sm font-medium text-foreground">No matches found yet</p>
+          <p className="text-xs text-muted-foreground max-w-sm">
+            As new opportunities are discovered, your matched recommendations will appear here.
+          </p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="max-w-4xl mx-auto space-y-8 pb-16">
@@ -466,6 +495,10 @@ export default function HomePage() {
             <OpportunityCardSkeleton />
             <OpportunityCardSkeleton />
           </div>
+        ) : hasError ? (
+          <div className="border border-dashed border-border rounded-3xl p-8 text-center flex flex-col items-center justify-center gap-3">
+            <p className="text-sm font-medium text-red-500">Failed to load recent matches. Please try again.</p>
+          </div>
         ) : recentMatches.length > 0 ? (
           <div className="space-y-3">
             {recentMatches.map((opp: any) => (
@@ -484,15 +517,7 @@ export default function HomePage() {
               />
             ))}
           </div>
-        ) : (
-          <div className="border border-dashed border-border rounded-3xl p-8 text-center flex flex-col items-center justify-center gap-3">
-            <Sparkles size={24} className="text-muted-foreground" />
-            <p className="text-sm font-medium text-foreground">No matches found yet</p>
-            <p className="text-xs text-muted-foreground max-w-sm">
-              As new opportunities are discovered, your matched recommendations will appear here.
-            </p>
-          </div>
-        )}
+        ) : null}
       </section>
 
       {/* Recent Saved & Timeline */}

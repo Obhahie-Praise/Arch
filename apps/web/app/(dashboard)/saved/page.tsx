@@ -29,6 +29,7 @@ export default function SavedPage() {
 
   const [opportunities, setOpportunities] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [hasError, setHasError] = useState(false);
 
   // Profile completion
   useEffect(() => {
@@ -86,6 +87,7 @@ export default function SavedPage() {
         }
       } catch (err) {
         console.error("Failed to fetch saved opportunities:", err);
+        setHasError(true);
       } finally {
         setIsLoading(false);
       }
@@ -245,6 +247,28 @@ export default function SavedPage() {
     );
   }
 
+  // 1.5 DATA EMPTY STATE
+  if (!isLoading && !hasError && opportunities.length === 0) {
+    return (
+      <div className="max-w-4xl mx-auto space-y-8 pb-16">
+        <div className="flex flex-col gap-1">
+          <h1 className="font-display text-3xl font-medium text-foreground">Saved</h1>
+        </div>
+        <div className="border border-dashed border-border rounded-3xl p-12 text-center flex flex-col items-center justify-center gap-4">
+          <Bookmark size={32} className="text-muted-foreground" />
+          <div className="space-y-1">
+            <p className="text-base font-medium text-foreground">
+              No saved opportunities found
+            </p>
+            <p className="text-sm text-muted-foreground max-w-sm mx-auto">
+              Opportunities you save will appear here. Start exploring your recommendations!
+            </p>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="max-w-4xl mx-auto space-y-6 pb-32">
       <div className="flex flex-col gap-1">
@@ -314,6 +338,12 @@ export default function SavedPage() {
               chatHref={`/saved/${opp.id}/chat`}
             />
           ))
+        ) : hasError ? (
+          <div className="border border-dashed border-border rounded-3xl p-12 text-center flex flex-col items-center justify-center gap-4">
+            <p className="text-sm font-medium text-red-500">
+              Failed to load saved opportunities. Please try again.
+            </p>
+          </div>
         ) : (
           <div className="border border-dashed border-border rounded-3xl p-12 text-center flex flex-col items-center justify-center gap-4">
             <Bookmark size={32} className="text-muted-foreground" />
@@ -322,9 +352,7 @@ export default function SavedPage() {
                 No saved opportunities found
               </p>
               <p className="text-sm text-muted-foreground max-w-sm mx-auto">
-                {searchQuery || activeType !== "All"
-                  ? "Try adjusting your search or filters to see more results."
-                  : "Opportunities you save will appear here. Start exploring your recommendations!"}
+                Try adjusting your search or filters to see more results.
               </p>
             </div>
           </div>
