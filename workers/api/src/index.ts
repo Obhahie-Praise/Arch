@@ -2,9 +2,11 @@ import { Hono } from "hono";
 import { cors } from "hono/cors";
 import { createAuth, type Env } from "./auth";
 import { profileRouter } from "./routes/profile";
+import { settingsRouter } from "./routes/settings";
 import { opportunitiesRouter } from "./opportunities/routes";
 import { runDiscoveryJob } from "./workers/discovery";
 import { runRefreshJob } from "./workers/refresh";
+
 
 const app = new Hono<{ Bindings: Env }>();
 
@@ -24,7 +26,9 @@ app.all("/api/auth/*", (c) => {
 });
 
 app.route("/api/profile", profileRouter);
+app.route("/api/settings", settingsRouter);
 app.route("/api/opportunities", opportunitiesRouter);
+
 
 app.get("/api/uploads/:key{.+$}", async (c) => {
   const key = decodeURIComponent(c.req.param("key"));

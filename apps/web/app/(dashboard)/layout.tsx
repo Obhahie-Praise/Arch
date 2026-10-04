@@ -237,7 +237,7 @@ export default function DashboardLayout({
           </div>
         </div>
       </nav>
-      <main className="flex-1 overflow-y-auto pt-20 pb-10">{children}</main>
+      <main className="flex-1 overflow-y-auto pt-30 pb-10">{children}</main>
     </div>
   );
 }
