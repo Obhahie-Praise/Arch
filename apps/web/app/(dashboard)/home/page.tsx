@@ -364,7 +364,7 @@ export default function HomePage() {
         <div className="flex flex-col gap-1">
           <h1 className="font-display text-3xl font-medium text-foreground">Home</h1>
         </div>
-        <div className="border border-dashed border-border rounded-3xl p-8 text-center flex flex-col items-center justify-center gap-3 mt-8">
+        <div className="rounded-3xl p-8 text-center flex flex-col items-center justify-center gap-3 mt-8">
           <Sparkles size={24} className="text-muted-foreground" />
           <p className="text-sm font-medium text-foreground">No matches found yet</p>
           <p className="text-xs text-muted-foreground max-w-sm">

@@ -244,7 +244,7 @@ export default function OpportunityChatPage() {
         <div className="max-w-3xl mx-auto">
           <form
             onSubmit={handleSend}
-            className="relative flex items-end gap-2 bg-card border border-border rounded-[32px] p-1.5 shadow-sm focus-within:border-foreground/40 focus-within:ring-1 focus-within:ring-foreground/40 transition-all"
+            className="relative flex items-end gap-2 bg-card border border-border rounded-full p-1.5 shadow-sm focus-within:border-foreground/40 focus-within:ring-1 focus-within:ring-foreground/40 transition-all"
           >
             <textarea
               className="flex-1 max-h-32 w-full resize-none bg-transparent px-4 py-3 text-sm focus:outline-none scrollbar-hide text-foreground placeholder:text-muted-foreground leading-relaxed"

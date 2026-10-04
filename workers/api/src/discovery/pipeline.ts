@@ -102,11 +102,47 @@ export class DiscoveryPipeline {
 
       summary.candidatesFound = candidates.length;
 
-      // 4. Deduplicate candidate URLs
+      // 4. Deduplicate candidate URLs and filter out known listing pages
+      const LISTING_PAGE_PATTERNS = [
+        /\/jobs\/?$/i,
+        /\/jobs\/search/i,
+        /\/hackathons\/?$/i,
+        /\/search[-_]grants/i,
+        /\/accelerators\/?$/i,
+        /\/events?\/?$/i,
+        /\/ai-hackathons\/?$/i,
+        /\/search\/?$/i,
+        /\/opportunities\/?$/i,
+        /\/careers\/?$/i,
+        /\/find[-_]jobs/i,
+        // Exact platform homepage / listing URLs
+        /^https?:\/\/(www\.)?greenhouse\.com\/?$/i,
+        /^https?:\/\/(www\.)?greenhouse\.io\/?$/i,
+        /^https?:\/\/boards\.greenhouse\.io\/?$/i,
+        /^https?:\/\/(www\.)?wellfound\.com\/jobs\/?$/i,
+        /^https?:\/\/(www\.)?devpost\.com\/hackathons\/?$/i,
+        /^https?:\/\/(www\.)?lablab\.ai\/(ai-)?hackathons?\/?$/i,
+        /^https?:\/\/(www\.)?lablab\.ai\/event\/?$/i,
+        /^https?:\/\/(www\.)?techstars\.com\/accelerators\/?$/i,
+        /^https?:\/\/grants\.gov\/search/i,
+        /^https?:\/\/apply\.techstars\.com\/?$/i,
+        /^https?:\/\/(www\.)?linkedin\.com\/jobs\/?$/i,
+        /^https?:\/\/(www\.)?indeed\.com\/?$/i,
+      ];
+
+      function isListingPage(url: string): boolean {
+        return LISTING_PAGE_PATTERNS.some((p) => p.test(url));
+      }
+
       const seenUrls = new Set<string>();
       const uniqueCandidates: OpportunityCandidate[] = [];
 
       for (const c of candidates) {
+        if (isListingPage(c.url)) {
+          // Skip platform listing/index pages — they are not individual opportunities
+          summary.errors.push(`Skipped listing page: ${c.url}`);
+          continue;
+        }
         const norm = normalizeUrl(c.url);
         if (norm && !seenUrls.has(norm)) {
           seenUrls.add(norm);
@@ -120,38 +156,58 @@ export class DiscoveryPipeline {
 
       for (const candidate of uniqueCandidates) {
         try {
-          const fetchRes = await PageFetcher.fetchPage(candidate.url);
-          if (!fetchRes.success || !fetchRes.html) {
-            summary.errors.push(
-              `Fetch failed for ${candidate.url}: ${fetchRes.error || "No content"}`
-            );
-            continue;
+          let oppInput: import("./types").OpportunityInput | null = null;
+
+          if (candidate.preExtracted) {
+            // Fast path: API adapter already extracted structured data.
+            // Build a minimal OpportunityInput directly without fetching the page.
+            const p = candidate.preExtracted;
+            if (p.title && p.organizationName && p.description && p.sourceUrl) {
+              oppInput = p as import("./types").OpportunityInput;
+              console.log(`[pipeline] pre-extracted: ${p.title} (${p.sourceUrl})`);
+            } else {
+              // Pre-extracted but incomplete — fall through to page fetch
+              console.log(`[pipeline] pre-extracted incomplete for ${candidate.url}, fetching page`);
+            }
           }
 
-          summary.pagesFetched++;
+          if (!oppInput) {
+            // Standard path: fetch page, run adapter extract + AI extractor
+            const fetchRes = await PageFetcher.fetchPage(candidate.url);
+            if (!fetchRes.success || !fetchRes.html) {
+              summary.errors.push(
+                `Fetch failed for ${candidate.url}: ${fetchRes.error || "No content"}`
+              );
+              continue;
+            }
 
-          const extractedContent = ContentExtractor.extractContent(fetchRes);
-          if (candidate.title && !extractedContent.title) {
-            extractedContent.title = candidate.title;
-          }
+            summary.pagesFetched++;
 
-          let adapterInput: any = null;
-          const adapter = SourceRegistry.getAdapter(candidate.sourceDomain || new URL(candidate.url).hostname);
-          if (adapter && adapter.extract) {
-             try {
-                adapterInput = await adapter.extract(fetchRes, extractedContent);
-             } catch(e) {
+            const extractedContent = ContentExtractor.extractContent(fetchRes);
+            if (candidate.title && !extractedContent.title) {
+              extractedContent.title = candidate.title;
+            }
+
+            let adapterInput: Partial<import("./types").OpportunityInput> | null = candidate.preExtracted ?? null;
+            const adapter = SourceRegistry.getAdapter(candidate.sourceDomain || new URL(candidate.url).hostname);
+            if (adapter && adapter.extract) {
+              try {
+                const fromAdapter = await adapter.extract(fetchRes, extractedContent);
+                // Merge: page adapter overrides pre-extracted for page-specific fields
+                adapterInput = fromAdapter ? { ...adapterInput, ...fromAdapter } : adapterInput;
+              } catch (e) {
                 summary.errors.push(`Adapter extraction failed for ${candidate.url}: ${e}`);
-             }
+              }
+            }
+
+            oppInput = await extractor.extract(extractedContent, adapterInput);
           }
 
-          const oppInput = await extractor.extract(extractedContent, adapterInput);
-          
           // Validate completeness
           if (!oppInput || !oppInput.title || !oppInput.organizationName || !oppInput.description) {
             summary.opportunitiesRejected++;
             summary.errors.push(
-              `Extraction produced incomplete input for ${candidate.url}`
+              `Rejected (incomplete): ${candidate.url} — title=${oppInput?.title ?? "missing"} org=${oppInput?.organizationName ?? "missing"} desc=${oppInput?.description ? "ok" : "missing"}`
             );
             continue;
           }
@@ -159,14 +215,13 @@ export class DiscoveryPipeline {
           const ingestRes = await IngestionService.ingestOpportunity(
             db,
             oppInput,
-            candidate.sourceDomain
+            undefined // source_id FK — opportunity_sources table not yet populated
           );
 
           if (ingestRes.status === "created") {
             summary.opportunitiesCreated++;
-          } else if (ingestRes.status === "updated") {
-            summary.opportunitiesUpdated++;
-          } else if (ingestRes.status === "unchanged") {
+            console.log(`[pipeline] created: ${oppInput.title}`);
+          } else if (ingestRes.status === "updated" || ingestRes.status === "unchanged") {
             summary.opportunitiesUpdated++;
           } else {
             summary.opportunitiesRejected++;

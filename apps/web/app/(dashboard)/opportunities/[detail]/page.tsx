@@ -1,5 +1,6 @@
 "use client";
 import { API_URL } from "../../../../lib/api";
+import { formatDeadline } from "../../../../lib/date";
 
 import React, { useState, useEffect } from "react";
 import Link from "next/link";
@@ -247,7 +248,7 @@ export default function OpportunityDetailPage() {
                 <Clock size={16} className="text-muted-foreground" />
                 <span>
                   <span className="text-muted-foreground">Deadline:</span>{" "}
-                  <span className="font-medium text-foreground">{opportunity.deadline}</span>
+                  <span className="font-medium text-foreground">{formatDeadline(opportunity.deadline) ?? opportunity.deadline}</span>
                 </span>
               </div>
             )}
@@ -371,7 +372,7 @@ export default function OpportunityDetailPage() {
                 <div className="flex justify-between py-2 border-b border-border/50">
                   <span className="text-muted-foreground">Deadline</span>
                   <span className="font-medium text-foreground">
-                    {opportunity.deadline || "Ongoing"}
+                    {opportunity.deadline ? (formatDeadline(opportunity.deadline) ?? opportunity.deadline) : "Ongoing"}
                   </span>
                 </div>
               </div>

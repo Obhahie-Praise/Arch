@@ -1,6 +1,7 @@
 import React, { useState, useRef, useEffect } from "react";
 import Link from "next/link";
 import { Sparkles, MapPin, Clock, Bookmark, MessageSquare, MoreHorizontal, Check } from "lucide-react";
+import { formatDeadline } from "../lib/date";
 
 export interface OpportunityCardProps {
   id: string;
@@ -90,7 +91,7 @@ export function OpportunityCard({
           )}
           {deadline && (
             <span className="flex items-center gap-1">
-              <Clock size={12} /> {deadline}
+              <Clock size={12} /> {formatDeadline(deadline) ?? deadline}
             </span>
           )}
         </p>

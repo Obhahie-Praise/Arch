@@ -50,6 +50,8 @@ export interface OpportunityCandidate {
   sourceDomain?: string;
   discoveryQueryId?: string;
   sourceType?: SourceType;
+  /** Pre-extracted structured data from an API adapter — skips page fetch if complete enough */
+  preExtracted?: Partial<OpportunityInput>;
 }
 
 export interface ExtractedOpportunityContent {
@@ -85,6 +87,7 @@ export interface DiscoverySourceConfig {
 export interface DiscoveryContext {
   queries: DiscoveryQuery[];
   env: Record<string, unknown>;
+  activeTiers?: (1 | 2 | 3)[];
 }
 
 export interface OpportunityDiscoveryProvider {

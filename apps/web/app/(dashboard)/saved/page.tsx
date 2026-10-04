@@ -254,8 +254,8 @@ export default function SavedPage() {
         <div className="flex flex-col gap-1">
           <h1 className="font-display text-3xl font-medium text-foreground">Saved</h1>
         </div>
-        <div className="border border-dashed border-border rounded-3xl p-12 text-center flex flex-col items-center justify-center gap-4">
-          <Bookmark size={32} className="text-muted-foreground" />
+        <div className="rounded-3xl p-12 text-center flex flex-col items-center justify-center gap-4">
+          <Bookmark size={32} strokeWidth={1.5} className="text-muted-foreground" />
           <div className="space-y-1">
             <p className="text-base font-medium text-foreground">
               No saved opportunities found

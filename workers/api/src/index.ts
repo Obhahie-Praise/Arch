@@ -31,6 +31,11 @@ app.route("/api/profile", profileRouter);
 app.route("/api/settings", settingsRouter);
 app.route("/api/opportunities", opportunitiesRouter);
 
+app.get("/api/test-discovery", async (c) => {
+  const summary = await runDiscoveryJob(c.env.arch_db, c.env as unknown as Record<string, unknown>);
+  return c.json(summary);
+});
+
 
 app.get("/api/uploads/:key{.+$}", async (c) => {
   const key = decodeURIComponent(c.req.param("key"));
