@@ -10,15 +10,17 @@ import { runRefreshJob } from "./workers/refresh";
 
 const app = new Hono<{ Bindings: Env }>();
 
-app.use(
-  "/api/*",
-  cors({
-    origin: ["http://localhost:3000", "http://127.0.0.1:3000"],
+app.use("/api/*", async (c, next) => {
+  const allowedOrigins = ["http://localhost:3000", "http://127.0.0.1:3000"];
+  if (c.env.APP_URL) allowedOrigins.push(c.env.APP_URL);
+
+  return cors({
+    origin: allowedOrigins,
     credentials: true,
     allowHeaders: ["Content-Type", "Authorization", "X-Internal-Secret"],
     allowMethods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
-  })
-);
+  })(c, next);
+});
 
 app.all("/api/auth/*", (c) => {
   const auth = createAuth(c.env);

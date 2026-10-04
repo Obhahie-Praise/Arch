@@ -76,8 +76,8 @@ settingsRouter.get("/", async (c) => {
     }
 
     return c.json({ settings: settingsToResponse(row) });
-  } catch (err: any) {
-    return c.json({ error: "Failed to fetch settings", details: err.message }, 500);
+  } catch {
+    return c.json({ error: "Failed to fetch settings" }, 500);
   }
 });
 
@@ -164,8 +164,8 @@ settingsRouter.put("/", async (c) => {
     }
 
     return c.json({ success: true });
-  } catch (err: any) {
-    return c.json({ error: "Failed to save settings", details: err.message }, 500);
+  } catch {
+    return c.json({ error: "Failed to save settings" }, 500);
   }
 });
 
@@ -199,7 +199,7 @@ settingsRouter.delete("/account", async (c) => {
     ]);
 
     return c.json({ success: true });
-  } catch (err: any) {
-    return c.json({ error: "Failed to delete account", details: err.message }, 500);
+  } catch {
+    return c.json({ error: "Failed to delete account" }, 500);
   }
 });

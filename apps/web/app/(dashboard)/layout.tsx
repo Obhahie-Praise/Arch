@@ -1,4 +1,5 @@
 "use client";
+import { API_URL } from "../../lib/api";
 
 import React, { useState, useEffect, useRef, useLayoutEffect } from "react";
 import Link from "next/link";
@@ -113,7 +114,7 @@ export default function DashboardLayout({
   useEffect(() => {
     async function fetchProfileAvatar() {
       try {
-        const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8787";
+        const apiUrl = API_URL;
         const res = await fetch(`${apiUrl}/api/profile`, { credentials: "include" });
         if (res.ok) {
           const data = await res.json();

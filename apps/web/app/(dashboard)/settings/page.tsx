@@ -1,4 +1,5 @@
 "use client";
+import { API_URL } from "../../../lib/api";
 
 import React, { useState, useEffect, useCallback, useRef } from "react";
 import { useRouter } from "next/navigation";
@@ -48,7 +49,6 @@ type SaveStatus = "idle" | "saving" | "saved" | "error";
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8787";
 const SETTINGS_URL = `${API_URL}/api/settings`;
 
 const BREADTH_OPTIONS: {

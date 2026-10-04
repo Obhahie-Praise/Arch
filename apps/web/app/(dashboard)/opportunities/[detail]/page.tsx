@@ -1,4 +1,5 @@
 "use client";
+import { API_URL } from "../../../../lib/api";
 
 import React, { useState, useEffect } from "react";
 import Link from "next/link";
@@ -72,7 +73,7 @@ export default function OpportunityDetailPage() {
 
     async function fetchDetail() {
       try {
-        const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8787";
+        const apiUrl = API_URL;
         const res = await fetch(`${apiUrl}/api/opportunities/${detailId}`, {
           credentials: "include",
         });
@@ -123,7 +124,7 @@ export default function OpportunityDetailPage() {
     setIsSaved((prev) => !prev);
 
     try {
-      const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8787";
+      const apiUrl = API_URL;
       const method = wasAlreadySaved ? "DELETE" : "POST";
       const res = await fetch(`${apiUrl}/api/opportunities/${detailId}/save`, {
         method,

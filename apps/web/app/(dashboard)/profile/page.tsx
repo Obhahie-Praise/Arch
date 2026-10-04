@@ -1,4 +1,5 @@
 "use client";
+import { API_URL } from "../../../lib/api";
 
 import React, { useState, useEffect, useRef, useCallback } from "react";
 import { authClient } from "../../../lib/auth-client";
@@ -387,7 +388,7 @@ export default function ProfilePage() {
     // Asynchronously fetch server profile and resolve timestamps cleanly
     async function fetchServerProfile() {
       try {
-        const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8787";
+        const apiUrl = API_URL;
         const res = await fetch(`${apiUrl}/api/profile`, { credentials: "include" });
 
         if (res.ok) {
@@ -589,7 +590,7 @@ export default function ProfilePage() {
     };
 
     try {
-      const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8787";
+      const apiUrl = API_URL;
       const res = await fetch(`${apiUrl}/api/profile`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
