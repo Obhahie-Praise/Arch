@@ -24,8 +24,13 @@ async function getAuthUserId(c: any): Promise<string | null> {
 // Security helper for internal engine endpoints
 function isInternalAuthorized(c: any): boolean {
   const secret = c.req.header("X-Internal-Secret");
-  const envSecret = c.env.INTERNAL_ENGINE_SECRET || "arch-internal-local-secret";
-  return secret === envSecret || c.env.ENVIRONMENT === "development" || !c.env.INTERNAL_ENGINE_SECRET;
+  const envSecret = c.env.INTERNAL_ENGINE_SECRET;
+  // In local dev without a secret configured, allow localhost callers only
+  if (!envSecret) {
+    const origin = c.req.header("origin") || c.req.header("referer") || "";
+    return origin.startsWith("http://localhost") || origin.startsWith("http://127.0.0.1");
+  }
+  return secret === envSecret;
 }
 
 // GET /api/opportunities - Get 30 weekly recommendations for current user

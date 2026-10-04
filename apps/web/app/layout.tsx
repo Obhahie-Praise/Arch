@@ -18,7 +18,7 @@ const atypMediumDisplay = localFont({
   variable: "--font-atyp-medium-display",
 });
 const atypSemiBoldDisplay = localFont({
-  src: "./fonts/AtypDisplay-SemiBold.woff",
+  src: "./fonts/AtypDisplay-Semibold.woff",
   variable: "--font-atyp-semibold-display",
 });
 const poppins = Poppins({

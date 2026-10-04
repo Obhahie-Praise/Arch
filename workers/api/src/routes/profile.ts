@@ -207,8 +207,8 @@ profileRouter.get("/", async (c) => {
       projects,
       achievements,
     });
-  } catch (err: any) {
-    return c.json({ error: "Failed to fetch profile", details: err.message }, 500);
+  } catch {
+    return c.json({ error: "Failed to fetch profile" }, 500);
   }
 });
 
@@ -453,8 +453,8 @@ profileRouter.put("/", async (c) => {
       message: "Profile saved successfully",
       completenessScore,
     });
-  } catch (err: any) {
-    return c.json({ error: "Failed to save profile", details: err.message }, 500);
+  } catch {
+    return c.json({ error: "Failed to save profile" }, 500);
   }
 });
 
@@ -499,7 +499,7 @@ profileRouter.post("/upload", async (c) => {
       mimeType,
       size: file.size,
     });
-  } catch (err: any) {
-    return c.json({ error: "Upload failed", details: err.message }, 500);
+  } catch {
+    return c.json({ error: "Upload failed" }, 500);
   }
 });

@@ -1,4 +1,5 @@
 "use client";
+import { API_URL } from "../../../lib/api";
 
 import React, { useState, useEffect, useMemo } from "react";
 import Link from "next/link";
@@ -18,7 +19,7 @@ import { OpportunityCard } from "../../../components/opportunity-card";
 import { OpportunityCardSkeleton } from "../../../components/skeletons";
 
 // Reuse the mock profile completion for consistency with Home
-const MOCK_PROFILE_COMPLETION: number | null = 20; // Set < 20 to test completion gate
+const MOCK_PROFILE_COMPLETION: number | null = null;
 
 export default function OpportunitiesPage() {
   const { data: session } = authClient.useSession();
@@ -39,7 +40,7 @@ export default function OpportunitiesPage() {
     if (MOCK_PROFILE_COMPLETION !== null) return;
     async function checkCompleteness() {
       try {
-        const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8787";
+        const apiUrl = API_URL;
         const data = await cachedFetch<any>(`${apiUrl}/api/profile`, {
           credentials: "include",
           ttl: 120_000,
@@ -68,7 +69,7 @@ export default function OpportunitiesPage() {
 
     async function fetchOpportunities() {
       try {
-        const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8787";
+        const apiUrl = API_URL;
         const json = await cachedFetch<any>(`${apiUrl}/api/opportunities`, {
           credentials: "include",
           ttl: 60_000,
@@ -152,7 +153,7 @@ export default function OpportunitiesPage() {
     
     // Persist via backend API
     try {
-      const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8787";
+      const apiUrl = API_URL;
       const method = isCurrentlySaved ? "DELETE" : "POST";
       const res = await fetch(`${apiUrl}/api/opportunities/${id}/save`, {
         method,

@@ -81,6 +81,13 @@ Home dashboard, Opportunities page, Saved page, and Opportunity detail page are 
 
 All mock data removed from production rendering paths. Home metrics, charts, and recent activity all come from real D1 queries. Saved page provides full Save and Mark as Pursuing capabilities.
 
+**Production Audit Complete:**
+- Added robust environment/URL configuration.
+- Fixed internal engine bypass logic and CORS.
+- Removed internal error details from API responses.
+- Removed unused/obsolete boilerplate, dead code, and development constants.
+- Passed full TS type checks for both Web and API.
+
 Next steps:
 
 1. Implement the Applications page.

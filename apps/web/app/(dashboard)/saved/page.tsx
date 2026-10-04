@@ -1,4 +1,5 @@
 "use client";
+import { API_URL } from "../../../lib/api";
 
 import React, { useState, useEffect, useMemo } from "react";
 import Link from "next/link";
@@ -14,7 +15,7 @@ import {
 import { OpportunityCard } from "../../../components/opportunity-card";
 import { OpportunityCardSkeleton } from "../../../components/skeletons";
 
-const MOCK_PROFILE_COMPLETION: number | null = 20;
+const MOCK_PROFILE_COMPLETION: number | null = null;
 
 export default function SavedPage() {
   const { data: session } = authClient.useSession();
@@ -34,7 +35,7 @@ export default function SavedPage() {
     if (MOCK_PROFILE_COMPLETION !== null) return;
     async function checkCompleteness() {
       try {
-        const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8787";
+        const apiUrl = API_URL;
         const data = await cachedFetch<any>(`${apiUrl}/api/profile`, {
           credentials: "include",
           ttl: 120_000,
@@ -63,7 +64,7 @@ export default function SavedPage() {
 
     async function fetchSavedOpportunities() {
       try {
-        const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8787";
+        const apiUrl = API_URL;
         const json = await cachedFetch<any>(`${apiUrl}/api/opportunities/saved`, {
           credentials: "include",
           ttl: 60_000,
@@ -139,7 +140,7 @@ export default function SavedPage() {
     });
 
     try {
-      const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8787";
+      const apiUrl = API_URL;
       const method = isCurrentlySaved ? "DELETE" : "POST";
       const res = await fetch(`${apiUrl}/api/opportunities/${id}/save`, {
         method,
@@ -180,7 +181,7 @@ export default function SavedPage() {
     });
 
     try {
-      const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8787";
+      const apiUrl = API_URL;
       const method = isCurrentlyPursuing ? "DELETE" : "POST";
       const res = await fetch(`${apiUrl}/api/opportunities/${id}/pursue`, {
         method,

@@ -1,4 +1,5 @@
 "use client";
+import { API_URL } from "../../lib/api";
 
 import React, { useState, useRef, DragEvent, ChangeEvent } from "react";
 import { UploadCloud, FileText, Image as ImageIcon, CheckCircle, RefreshCw, X } from "lucide-react";
@@ -49,7 +50,7 @@ export const FileUpload: React.FC<FileUploadProps> = ({
         setProgress((prev) => (prev < 85 ? prev + 15 : prev));
       }, 150);
 
-      const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8787";
+      const apiUrl = API_URL;
       const res = await fetch(`${apiUrl}/api/profile/upload`, {
         method: "POST",
         body: formData,
@@ -122,7 +123,7 @@ export const FileUpload: React.FC<FileUploadProps> = ({
             {type === "image" ? (
               <div className="w-12 h-12 rounded-full overflow-hidden border border-border shrink-0 bg-muted">
                 <img
-                  src={valueUrl.startsWith("/") ? `${process.env.NEXT_PUBLIC_API_URL || "http://localhost:8787"}${valueUrl}` : valueUrl}
+                  src={valueUrl.startsWith("/") ? `${API_URL}${valueUrl}` : valueUrl}
                   alt="Profile Avatar"
                   className="w-full h-full object-cover"
                 />

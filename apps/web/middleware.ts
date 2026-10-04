@@ -1,8 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 
-const PROTECTED_ROUTES = ["/home", "/opportunities", "/saved", "/profile", "/settings"];
+import { API_URL } from "./lib/api";
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8787";
+const PROTECTED_ROUTES = ["/home", "/opportunities", "/saved", "/profile", "/settings"];
 
 export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;

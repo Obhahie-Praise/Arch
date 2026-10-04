@@ -1,4 +1,5 @@
 "use client";
+import { API_URL } from "../../../lib/api";
 
 import React, { useState, useEffect, useCallback } from "react";
 import Link from "next/link";
@@ -23,9 +24,8 @@ import {
 // Development override: set to null to use real profile API, or a number
 // (< 20 to test the completion gate, >= 20 for the full dashboard).
 // ============================================================================
-const MOCK_PROFILE_COMPLETION: number | null = 20;
+const MOCK_PROFILE_COMPLETION: number | null = null;
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8787";
 
 // ─── Data shapes ────────────────────────────────────────────────────────────
 

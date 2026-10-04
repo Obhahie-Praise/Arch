@@ -1,4 +1,5 @@
 "use client";
+import { API_URL } from "../../../../../lib/api";
 
 import React, { useState, useEffect, useRef } from "react";
 import Link from "next/link";
@@ -34,7 +35,7 @@ export default function OpportunityChatPage() {
   useEffect(() => {
     async function loadChat() {
       try {
-        const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8787";
+        const apiUrl = API_URL;
         const json = await cachedFetch<any>(`${apiUrl}/api/opportunities/${opportunityId}/chat`, {
           credentials: "include",
           ttl: 0, // Always fetch fresh
@@ -70,7 +71,7 @@ export default function OpportunityChatPage() {
     setMessages((prev) => [...prev, tempUserMsg]);
 
     try {
-      const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8787";
+      const apiUrl = API_URL;
       const response = await fetch(`${apiUrl}/api/opportunities/${opportunityId}/chat/messages`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
