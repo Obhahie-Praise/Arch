@@ -3,6 +3,7 @@ import { betterAuth } from "better-auth";
 export interface Env {
   arch_db: D1Database;
   STORAGE_BUCKET?: R2Bucket;
+  AI?: any;
   BETTER_AUTH_SECRET: string;
   BETTER_AUTH_URL: string;
   GOOGLE_CLIENT_ID?: string;

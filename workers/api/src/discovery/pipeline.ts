@@ -4,7 +4,8 @@ import { WebSearchDiscoveryProvider } from "./providers/webSearch";
 import { WebsiteDiscoveryProvider } from "./providers/website";
 import { PageFetcher } from "./fetcher";
 import { ContentExtractor } from "./extractor";
-import { HeuristicOpportunityExtractor } from "./opportunityExtractor";
+import { AIOpportunityExtractor } from "./opportunityExtractor";
+import { createAIProvider } from "../ai/provider";
 import { IngestionService } from "./service";
 import { normalizeUrl } from "./normalizer";
 import { getNowIso } from "../lib/dates";
@@ -87,7 +88,8 @@ export class DiscoveryPipeline {
       }
 
       // 5. Fetch, extract, and ingest each candidate
-      const extractor = new HeuristicOpportunityExtractor();
+      const aiProvider = createAIProvider(env.AI);
+      const extractor = new AIOpportunityExtractor(aiProvider);
 
       for (const candidate of uniqueCandidates) {
         try {
