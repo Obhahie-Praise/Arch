@@ -26,6 +26,9 @@ Keep it short and current.
 - [x] Database initialized
 - [x] Core database schema implemented (profiles, profile_experiences, profile_education, profile_projects, profile_achievements)
 - [x] API foundation & profile routes implemented
+- [x] Opportunity Engine schema & D1 migration implemented (`opportunities`, `opportunity_sources`, `opportunity_sources_map`, `user_opportunity_matches`, `user_opportunity_quota`)
+- [x] Opportunity Discovery Pipeline schema & D1 migration implemented (`discovery_runs`, `discovery_queries`)
+- [x] Opportunities API routes implemented (`/api/opportunities`, `/api/opportunities/:id`, `/api/opportunities/:id/match`, `/api/opportunities/:id/save`, `/api/opportunities/:id/pursue`, `/api/opportunities/:id/dismiss`, `/api/internal/discovery/run`, `/api/internal/...`)
 
 ### Web
 
@@ -33,26 +36,29 @@ Keep it short and current.
 - [x] Authentication flow implemented
 - [x] Profile flow implemented (complete persistent matching-ready profile form)
 - [x] Home implemented (Arch home dashboard with completion gate, metrics, charts & mock sections)
-- [ ] Opportunities implemented
-- [ ] Opportunity detail implemented
-- [ ] Saved implemented
-- [ ] Applications implemented
+- [ ] Opportunities UI implemented
+- [ ] Opportunity detail UI implemented
+- [ ] Saved UI implemented
+- [ ] Applications UI implemented
 
 ### Intelligence
 
-- [ ] Opportunity discovery foundation
-- [ ] Opportunity normalization
-- [ ] Requirement extraction
-- [ ] Matching
-- [ ] Match explanations
+- [x] Opportunity discovery foundation & pipeline orchestrator
+- [x] Web discovery providers (Web Search & Direct Website Providers)
+- [x] Defensive page fetching (SSRF protection, timeout, size cap, URL normalization)
+- [x] Page content extraction & heuristic opportunity extraction
+- [x] Requirement extraction & content hash deduplication
+- [x] Deterministic matching pipeline & ranking engine
+- [x] 30 weekly recommendations limit & quota management per user per week
+- [ ] Match explanations (LLM enrichment)
 - [ ] AI integration
 
 ### Background Processing
 
+- [x] Discovery run tracking (`discovery_runs`) & provenance recording
+- [x] Scheduled discovery runner
+- [x] Scheduled refresh & stale opportunity handling
 - [ ] Queue infrastructure
-- [ ] Scheduled discovery
-- [ ] Opportunity processing
-- [ ] Stale opportunity handling
 
 ## Current Focus
 

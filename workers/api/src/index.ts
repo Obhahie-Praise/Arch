@@ -2,6 +2,9 @@ import { Hono } from "hono";
 import { cors } from "hono/cors";
 import { createAuth, type Env } from "./auth";
 import { profileRouter } from "./routes/profile";
+import { opportunitiesRouter } from "./opportunities/routes";
+import { runDiscoveryJob } from "./workers/discovery";
+import { runRefreshJob } from "./workers/refresh";
 
 const app = new Hono<{ Bindings: Env }>();
 
@@ -10,7 +13,7 @@ app.use(
   cors({
     origin: ["http://localhost:3000", "http://127.0.0.1:3000"],
     credentials: true,
-    allowHeaders: ["Content-Type", "Authorization"],
+    allowHeaders: ["Content-Type", "Authorization", "X-Internal-Secret"],
     allowMethods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
   })
 );
@@ -21,6 +24,7 @@ app.all("/api/auth/*", (c) => {
 });
 
 app.route("/api/profile", profileRouter);
+app.route("/api/opportunities", opportunitiesRouter);
 
 app.get("/api/uploads/:key{.+$}", async (c) => {
   const key = decodeURIComponent(c.req.param("key"));
@@ -41,4 +45,10 @@ app.get("/", (c) => {
   return c.text("Arch API");
 });
 
-export default app;
+export default {
+  fetch: app.fetch,
+  async scheduled(event: ScheduledEvent, env: Env, ctx: ExecutionContext) {
+    ctx.waitUntil(runDiscoveryJob(env.arch_db));
+    ctx.waitUntil(runRefreshJob(env.arch_db));
+  },
+};

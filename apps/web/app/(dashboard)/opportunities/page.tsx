@@ -9,9 +9,6 @@ const OpportuntiesPage = () => {
           <h1 className="font-display text-3xl font-medium text-foreground">
             Opportunities
           </h1>
-          <p className="text-muted-foreground text-sm">
-            Discover jobs, grants, hackathons, fellowships, and more, matched to what you’re looking for.
-          </p>
         </div>
       </div>
     </div>
