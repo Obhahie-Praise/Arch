@@ -94,6 +94,16 @@ export interface OpportunityDiscoveryProvider {
   discover(context: DiscoveryContext): Promise<OpportunityCandidate[]>;
 }
 
+export interface OpportunitySourceAdapter {
+  id: string;
+  name: string;
+  domain: string;
+  type?: SourceType;
+  
+  discover?(context: DiscoveryContext): Promise<OpportunityCandidate[]>;
+  extract?(fetchRes: import("./fetcher").FetchResult, content: import("./types").ExtractedOpportunityContent): Promise<Partial<OpportunityInput> | null>;
+}
+
 export interface DiscoveryRunSummary {
   id: string;
   providerId: string;

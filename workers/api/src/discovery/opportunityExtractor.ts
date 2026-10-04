@@ -16,7 +16,7 @@ const VALID_TYPES: OpportunityType[] = [
 const MIN_CONTENT_CHARS = 200;
 
 export interface OpportunityExtractor {
-  extract(content: ExtractedOpportunityContent): Promise<OpportunityInput | null>;
+  extract(content: ExtractedOpportunityContent, adapterInput?: Partial<OpportunityInput> | null): Promise<OpportunityInput | null>;
 }
 
 // Shared URL validator
@@ -218,13 +218,28 @@ export class AIOpportunityExtractor implements OpportunityExtractor {
 
   constructor(private readonly aiProvider: AIProvider) {}
 
-  async extract(content: ExtractedOpportunityContent): Promise<OpportunityInput | null> {
+  async extract(content: ExtractedOpportunityContent, adapterInput?: Partial<OpportunityInput> | null): Promise<OpportunityInput | null> {
     // Run heuristic as baseline
     const heuristicResult = await this.heuristic.extract(content);
+    
+    // Merge adapter input with heuristic if provided
+    let mergedBase = heuristicResult;
+    if (adapterInput && mergedBase) {
+      mergedBase = {
+        ...mergedBase,
+        ...adapterInput,
+        // Arrays shouldn't just be blindly overwritten if adapter doesn't have them
+        eligibility: adapterInput.eligibility || mergedBase.eligibility,
+        requirements: adapterInput.requirements || mergedBase.requirements,
+        skills: adapterInput.skills || mergedBase.skills,
+      };
+    } else if (adapterInput) {
+      mergedBase = adapterInput as OpportunityInput; // fallback
+    }
 
     // Skip AI on clearly invalid pages
-    if (!hasMinimumContent(content)) {
-      return heuristicResult;
+    if (!hasMinimumContent(content) && !adapterInput) {
+      return mergedBase;
     }
 
     // Prepare compact context for AI
@@ -235,12 +250,12 @@ export class AIOpportunityExtractor implements OpportunityExtractor {
     try {
       aiOutput = await this.aiProvider.extractOpportunity(pageContext);
     } catch {
-      // AI failed, fall back to heuristic
-      return heuristicResult;
+      // AI failed, fall back to base
+      return mergedBase;
     }
 
     if (!aiOutput) {
-      return heuristicResult;
+      return mergedBase;
     }
 
     // Non-opportunity page detected by AI
@@ -250,22 +265,26 @@ export class AIOpportunityExtractor implements OpportunityExtractor {
 
     // Validate AI output
     if (!validateAIOutput(aiOutput)) {
-      return heuristicResult;
+      return mergedBase;
     }
 
     const sourceUrl = content.canonicalUrl || content.url || "https://arch.inc";
     const aiInput = aiOutputToInput(aiOutput, sourceUrl);
 
-    // Merge: prefer AI-extracted values but fill gaps from heuristic
+    // Merge: prefer AI-extracted values but fill gaps from base, except where adapter is more reliable
     return {
-      ...heuristicResult,
+      ...mergedBase,
       ...aiInput,
+      // Adapter input values should override AI for strict fields if adapter provided them
+      title: adapterInput?.title || aiInput.title,
+      organizationName: adapterInput?.organizationName || aiInput.organizationName,
+      type: adapterInput?.type || aiInput.type,
+      deadline: adapterInput?.deadline || aiInput.deadline || mergedBase?.deadline,
+      applicationUrl: adapterInput?.applicationUrl || aiInput.applicationUrl || mergedBase?.applicationUrl,
       // Always keep the actual source URL
-      sourceUrl,
-      // Prefer AI application URL only if it's a real URL
-      applicationUrl: aiInput.applicationUrl || heuristicResult?.applicationUrl,
+      sourceUrl: adapterInput?.sourceUrl || sourceUrl,
       // Preserve raw content from heuristic for dedup hashing
-      rawContent: heuristicResult?.rawContent,
+      rawContent: mergedBase?.rawContent,
     };
   }
 }

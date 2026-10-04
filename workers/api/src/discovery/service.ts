@@ -67,15 +67,16 @@ export class IngestionService {
 
       if (existing.status !== newStatus) hasChanges = true;
       if (input.deadline && existing.deadline !== input.deadline) hasChanges = true;
+      if (input.description && existing.description !== input.description) hasChanges = true;
 
       // Update existing record timestamps and fields
       await db
         .prepare(
           `UPDATE opportunities
-           SET last_seen_at = ?, last_verified_at = ?, status = ?, updated_at = ?
+           SET last_seen_at = ?, last_verified_at = ?, status = ?, deadline = COALESCE(?, deadline), description = COALESCE(?, description), updated_at = ?
            WHERE id = ?`
         )
-        .bind(now, now, newStatus, now, oppId)
+        .bind(now, now, newStatus, input.deadline || null, input.description || null, now, oppId)
         .run();
 
       return {

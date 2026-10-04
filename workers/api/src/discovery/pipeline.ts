@@ -13,6 +13,7 @@ import { createAIProvider } from "../ai/provider";
 import { IngestionService } from "./service";
 import { normalizeUrl } from "./normalizer";
 import { getNowIso } from "../lib/dates";
+import { SourceRegistry } from "./registry";
 
 /**
  * Tier refresh intervals (in hours). The pipeline runs every hour via cron,
@@ -78,10 +79,7 @@ export class DiscoveryPipeline {
         activeTiers,
       };
 
-      const allProviders: OpportunityDiscoveryProvider[] = [
-        new WebSearchDiscoveryProvider(),
-        new WebsiteDiscoveryProvider(),
-      ];
+      const allProviders: OpportunityDiscoveryProvider[] = SourceRegistry.getProviders();
 
       const providersToRun = options.providerId
         ? allProviders.filter((p) => p.id === options.providerId)
@@ -137,11 +135,23 @@ export class DiscoveryPipeline {
             extractedContent.title = candidate.title;
           }
 
-          const oppInput = await extractor.extract(extractedContent);
-          if (!oppInput) {
+          let adapterInput: any = null;
+          const adapter = SourceRegistry.getAdapter(candidate.sourceDomain || new URL(candidate.url).hostname);
+          if (adapter && adapter.extract) {
+             try {
+                adapterInput = await adapter.extract(fetchRes, extractedContent);
+             } catch(e) {
+                summary.errors.push(`Adapter extraction failed for ${candidate.url}: ${e}`);
+             }
+          }
+
+          const oppInput = await extractor.extract(extractedContent, adapterInput);
+          
+          // Validate completeness
+          if (!oppInput || !oppInput.title || !oppInput.organizationName || !oppInput.description) {
             summary.opportunitiesRejected++;
             summary.errors.push(
-              `Extraction produced null input for ${candidate.url}`
+              `Extraction produced incomplete input for ${candidate.url}`
             );
             continue;
           }
