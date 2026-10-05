@@ -40,8 +40,8 @@ const EmailAuthPage = () => {
       setLoading(false);
       return;
     }
-
-    router.push("/");
+    /* 
+    router.push("/home"); */
   };
 
   return (
@@ -49,9 +49,7 @@ const EmailAuthPage = () => {
       <h2 className="text-2xl font-medium text-center">
         Create an account with email
       </h2>
-      {error && (
-        <p className="text-red-500 text-sm text-center">{error}</p>
-      )}
+      {error && <p className="text-red-500 text-sm text-center">{error}</p>}
       <form onSubmit={handleSubmit} className="min-w-md space-y-2">
         <div className="flex flex-col gap-0.5">
           <label htmlFor="fullname" className="text-sm ">
@@ -95,7 +93,11 @@ const EmailAuthPage = () => {
               aria-label={showPassword ? "Hide password" : "Show password"}
               className="absolute right-6 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
             >
-              {showPassword ? <EyeOff size={20} strokeWidth={1.5} /> : <Eye size={20} strokeWidth={1.5} />}
+              {showPassword ? (
+                <EyeOff size={20} strokeWidth={1.5} />
+              ) : (
+                <Eye size={20} strokeWidth={1.5} />
+              )}
             </button>
           </div>
         </div>

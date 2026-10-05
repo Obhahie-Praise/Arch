@@ -6,7 +6,7 @@ import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { ThemeImage } from "../../components/theme-image";
 import { ThemeSwitcher } from "../../components/theme-switcher";
-import { Cog, User2 } from "lucide-react";
+import { Cog, User2, LogOut } from "lucide-react";
 import { authClient } from "../../lib/auth-client";
 
 const NAV_ITEMS = [
@@ -231,7 +231,7 @@ export default function DashboardLayout({
                 disabled={isSigningOut}
                 className="text-sm flex w-full cursor-pointer items-center gap-2 px-3 py-1.5 rounded-full duration-300 transition-colors hover:bg-muted disabled:opacity-50"
               >
-                <Cog size={16} strokeWidth={1.3} className="text-red-500" />
+                <LogOut size={16} strokeWidth={1.3} className="text-red-500" />
                 <p className="">{isSigningOut ? "Signing out..." : "Sign out"}</p>
               </button>
             </div>

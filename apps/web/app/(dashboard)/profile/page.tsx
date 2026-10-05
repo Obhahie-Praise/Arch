@@ -674,23 +674,6 @@ export default function ProfilePage() {
         />
       )}
 
-      {/* Notifications */}
-      {saveSuccess && (
-        <div className="flex items-center gap-3 p-4 bg-emerald-500/10 border border-emerald-500/30 rounded-3xl text-emerald-700 dark:text-emerald-300 text-sm">
-          <CheckCircle size={20} className="shrink-0 text-emerald-500" />
-          <div>
-            <p className="font-medium">Profile saved successfully!</p>
-          </div>
-        </div>
-      )}
-
-      {saveError && (
-        <div className="flex items-center gap-3 p-4 bg-red-500/10 border border-red-500/30 rounded-3xl text-red-600 dark:text-red-400 text-sm">
-          <AlertCircle size={20} className="shrink-0 text-red-500" />
-          <p className="font-medium">{saveError}</p>
-        </div>
-      )}
-
       <form onSubmit={handleSubmit} className="space-y-10">
         {/* 1. IDENTITY SECTION */}
         {isLoading ? (
@@ -1397,6 +1380,23 @@ export default function ProfilePage() {
           </div>
         </div>
       </form>
+
+      {/* Notifications */}
+      {saveSuccess && (
+        <div className="flex items-center gap-3 p-4 bg-emerald-500/10 border border-emerald-500/30 rounded-3xl text-emerald-700 dark:text-emerald-300 text-sm">
+          <CheckCircle size={20} className="shrink-0 text-emerald-500" />
+          <div>
+            <p className="font-medium">Profile saved successfully!</p>
+          </div>
+        </div>
+      )}
+
+      {saveError && (
+        <div className="flex items-center gap-3 p-4 bg-red-500/10 border border-red-500/30 rounded-3xl text-red-600 dark:text-red-400 text-sm">
+          <AlertCircle size={20} className="shrink-0 text-red-500" />
+          <p className="font-medium">{saveError}</p>
+        </div>
+      )}
     </div>
   );
 }

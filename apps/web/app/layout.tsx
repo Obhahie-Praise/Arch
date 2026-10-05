@@ -29,7 +29,7 @@ const poppins = Poppins({
 });
 
 export const metadata: Metadata = {
-  metadataBase: new URL(process.env.NEXT_PUBLIC_APP_URL || "https://arch.vercel.app"),
+  metadataBase: new URL(process.env.NEXT_PUBLIC_APP_URL || "https://arch.obhahiepraise.workers.dev"),
   title: {
     template: "%s | Arch",
     default: "Arch | Opportunity Intelligence Platform",
@@ -42,7 +42,7 @@ export const metadata: Metadata = {
   openGraph: {
     title: "Arch | Opportunity Intelligence Platform",
     description: "Discover opportunities worth pursuing and get the context and tools to pursue them.",
-    url: "https://arch.vercel.app", // Adjust if there's a production URL
+    url: process.env.NEXT_PUBLIC_APP_URL || "https://arch.obhahiepraise.workers.dev",
     siteName: "Arch",
     type: "website",
   },

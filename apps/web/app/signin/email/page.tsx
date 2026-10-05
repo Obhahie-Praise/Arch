@@ -39,7 +39,7 @@ const EmailSigninPage = () => {
       return;
     }
 
-    router.push("/");
+   /*  router.push("/"); */
   };
 
   return (

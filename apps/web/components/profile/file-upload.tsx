@@ -59,18 +59,45 @@ export const FileUpload: React.FC<FileUploadProps> = ({
       clearInterval(interval);
 
       if (!res.ok) {
-        throw new Error("Upload failed. Please try again.");
+        // Read the structured error body before throwing so we can surface a
+        // meaningful message to the user instead of a generic fallback.
+        let userMessage = "Upload failed. Please try again.";
+        try {
+          const errBody = await res.json() as { error?: string };
+          if (errBody?.error) {
+            if (res.status === 413 || errBody.error.toLowerCase().includes("too large")) {
+              const isImg = type === "image";
+              userMessage = `File too large. Please choose a ${isImg ? "smaller image (max 5 MB)" : "smaller file (max 10 MB)"}.`;
+            } else if (res.status === 400 && errBody.error.toLowerCase().includes("file")) {
+              userMessage = errBody.error;
+            } else if (res.status === 415 || errBody.error.toLowerCase().includes("type") || errBody.error.toLowerCase().includes("unsupported")) {
+              userMessage = "Unsupported file type. Please upload a supported format.";
+            } else if (res.status === 401 || res.status === 403) {
+              userMessage = "Authentication error. Please sign in and try again.";
+            } else if (res.status === 503) {
+              userMessage = "Storage is not configured. Please contact support.";
+            } else {
+              userMessage = errBody.error;
+            }
+          }
+        } catch {
+          // Body was not JSON — keep the generic message.
+        }
+        throw new Error(userMessage);
       }
 
-      const data = await res.json();
+      const data = await res.json() as { url?: string };
+      if (!data?.url) {
+        throw new Error("Upload succeeded but no file URL was returned. Please try again.");
+      }
       setProgress(100);
       setTimeout(() => {
         setIsUploading(false);
-        onUploadSuccess(data.url, file.name);
+        onUploadSuccess(data.url as string, file.name);
       }, 300);
-    } catch (err: any) {
+    } catch (err: unknown) {
       setIsUploading(false);
-      setError(err.message || "Failed to upload file");
+      setError(err instanceof Error ? err.message : "Failed to upload file");
     }
   };
 
