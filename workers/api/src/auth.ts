@@ -2,7 +2,6 @@ import { betterAuth } from "better-auth";
 
 export interface Env {
   arch_db: D1Database;
-  STORAGE_BUCKET?: R2Bucket;
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   AI?: any;
   BETTER_AUTH_SECRET: string;
@@ -19,6 +18,8 @@ export interface Env {
   DEVELOPER_ACCESS_EMAIL?: string;
   /** Required for web-search discovery via Tavily. */
   TAVILY_API_KEY?: string;
+  /** UploadThing API token — used for profile avatar and resume uploads. Never expose to the client. */
+  UPLOADTHING_TOKEN?: string;
   /** Set to 'production' in deployed environment. */
   ENVIRONMENT?: string;
 }

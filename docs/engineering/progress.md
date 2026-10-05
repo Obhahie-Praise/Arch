@@ -26,6 +26,7 @@ Keep it short and current.
 - [x] Database initialized
 - [x] Core database schema implemented (profiles, profile_experiences, profile_education, profile_projects, profile_achievements)
 - [x] API foundation & profile routes implemented
+- [x] File/object storage migrated from Cloudflare R2 to UploadThing (`uploadthing` SDK, `UTApi`, `UPLOADTHING_TOKEN`)
 - [x] Opportunity Engine schema & D1 migration implemented (`opportunities`, `opportunity_sources`, `opportunity_sources_map`, `user_opportunity_matches`, `user_opportunity_quota`)
 - [x] Opportunity Discovery Pipeline schema & D1 migration implemented (`discovery_runs`, `discovery_queries`)
 - [x] Opportunities API routes implemented (`/api/opportunities`, `/api/opportunities/:id`, `/api/opportunities/:id/match`, `/api/opportunities/:id/save`, `/api/opportunities/:id/pursue`, `/api/opportunities/:id/dismiss`, `/api/internal/discovery/run`, `/api/internal/...`)

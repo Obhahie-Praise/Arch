@@ -1,5 +1,6 @@
 import { Hono } from "hono";
 import { createAuth, type Env } from "../auth";
+import { uploadFile } from "../lib/storage";
 
 export const profileRouter = new Hono<{ Bindings: Env }>();
 
@@ -458,7 +459,7 @@ profileRouter.put("/", async (c) => {
   }
 });
 
-// POST /api/upload - Handle profile assets upload (Avatar, Resume, Portfolio)
+// POST /api/profile/upload - Handle profile assets upload (Avatar, Resume)
 profileRouter.post("/upload", async (c) => {
   const auth = createAuth(c.env);
   const session = await auth.api.getSession({
@@ -469,6 +470,10 @@ profileRouter.post("/upload", async (c) => {
     return c.json({ error: "Unauthorized" }, 401);
   }
 
+  if (!c.env.UPLOADTHING_TOKEN) {
+    return c.json({ error: "Storage not configured" }, 503);
+  }
+
   try {
     const formData = await c.req.parseBody();
     const file = formData.file;
@@ -477,27 +482,15 @@ profileRouter.post("/upload", async (c) => {
       return c.json({ error: "No file provided" }, 400);
     }
 
-    const filename = file.name;
-    const mimeType = file.type;
-    const fileExt = filename.split(".").pop() || "bin";
-    const uniqueKey = `${session.user.id}/${Date.now()}-${crypto.randomUUID().slice(0, 8)}.${fileExt}`;
-    const arrayBuffer = await file.arrayBuffer();
-
-    if (c.env.STORAGE_BUCKET) {
-      await c.env.STORAGE_BUCKET.put(uniqueKey, arrayBuffer, {
-        httpMetadata: { contentType: mimeType },
-      });
-    }
-
-    // Served via worker endpoint /api/uploads/:key
-    const fileUrl = `/api/uploads/${encodeURIComponent(uniqueKey)}`;
+    const result = await uploadFile(c.env.UPLOADTHING_TOKEN, file);
 
     return c.json({
       success: true,
-      url: fileUrl,
-      filename,
-      mimeType,
-      size: file.size,
+      url: result.url,
+      key: result.key,
+      filename: result.name,
+      mimeType: file.type,
+      size: result.size,
     });
   } catch {
     return c.json({ error: "Upload failed" }, 500);

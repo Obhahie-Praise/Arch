@@ -1,8 +1,7 @@
 "use client";
-import { API_URL } from "../../lib/api";
-
 import React, { useState, useRef, DragEvent, ChangeEvent } from "react";
 import { UploadCloud, FileText, Image as ImageIcon, CheckCircle, RefreshCw, X } from "lucide-react";
+import { API_URL } from "../../lib/api";
 
 interface FileUploadProps {
   label: string;
@@ -123,7 +122,7 @@ export const FileUpload: React.FC<FileUploadProps> = ({
             {type === "image" ? (
               <div className="w-12 h-12 rounded-full overflow-hidden border border-border shrink-0 bg-muted">
                 <img
-                  src={valueUrl.startsWith("/") ? `${API_URL}${valueUrl}` : valueUrl}
+                  src={valueUrl}
                   alt="Profile Avatar"
                   className="w-full h-full object-cover"
                 />

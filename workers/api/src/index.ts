@@ -1,12 +1,13 @@
 import { Hono } from "hono";
 import { cors } from "hono/cors";
+import { createRouteHandler } from "uploadthing/server";
 import { createAuth, type Env } from "./auth";
 import { profileRouter } from "./routes/profile";
 import { settingsRouter } from "./routes/settings";
 import { opportunitiesRouter } from "./opportunities/routes";
+import { buildFileRouter } from "./lib/uploadthing";
 import { runDiscoveryJob } from "./workers/discovery";
 import { runRefreshJob } from "./workers/refresh";
-
 
 const app = new Hono<{ Bindings: Env }>();
 
@@ -36,20 +37,36 @@ app.get("/api/test-discovery", async (c) => {
   return c.json(summary);
 });
 
+/**
+ * UploadThing route handler — GET and POST to /api/uploadthing.
+ *
+ * The route handler is built per-request so it has access to the
+ * Cloudflare Worker env (UPLOADTHING_TOKEN is not on process.env).
+ *
+ * Docs: https://docs.uploadthing.com/backend-adapters/fetch#cloudflare-workers
+ */
+app.all("/api/uploadthing", async (c) => {
+  const handlers = createRouteHandler({
+    router: buildFileRouter(c.env),
+    config: {
+      token: c.env.UPLOADTHING_TOKEN,
+      isDev: c.env.ENVIRONMENT !== "production",
+      // CF Workers don't support the `cache` property on fetch init.
+      fetch: (url, init) => {
+        if (init && "cache" in init) {
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          delete (init as any).cache;
+        }
+        return fetch(url, init);
+      },
+    },
+  });
 
-app.get("/api/uploads/:key{.+$}", async (c) => {
-  const key = decodeURIComponent(c.req.param("key"));
-  if (c.env.STORAGE_BUCKET) {
-    const object = await c.env.STORAGE_BUCKET.get(key);
-    if (!object) {
-      return c.text("File not found", 404);
-    }
-    const headers = new Headers();
-    object.writeHttpMetadata(headers);
-    headers.set("etag", object.httpEtag);
-    return new Response(object.body, { headers });
+  const method = c.req.method.toUpperCase();
+  if (method !== "GET" && method !== "POST") {
+    return c.text("Method not allowed", 405);
   }
-  return c.text("Storage not configured", 404);
+  return handlers(c.req.raw);
 });
 
 app.get("/", (c) => {

@@ -139,6 +139,19 @@ export default function SavedPage() {
     });
   }, [opportunities, searchQuery, activeType, savedIds, matchedFilter]);
 
+  // True when the user has narrowed the result set via search/filters.
+  // Used to distinguish "no results for this query" from "no saved items at all".
+  const hasActiveFilters =
+    searchQuery.trim() !== "" ||
+    activeType !== "All" ||
+    matchedFilter;
+
+  // The true saved count — items still tracked as saved in local state.
+  const totalSaved = useMemo(
+    () => opportunities.filter((opp) => savedIds.has(opp.id)).length,
+    [opportunities, savedIds]
+  );
+
   const toggleSave = async (id: string, e: React.MouseEvent) => {
     e.preventDefault();
     const isCurrentlySaved = savedIds.has(id);
@@ -256,8 +269,10 @@ export default function SavedPage() {
     );
   }
 
-  // 1.5 DATA EMPTY STATE
-  if (!isLoading && !hasError && opportunities.length === 0) {
+  // TRUE EMPTY STATE — user has genuinely saved nothing and no filters are active.
+  // When filters/search are active and return 0 results we stay in the full
+  // dashboard layout and show the inline list-level empty state instead.
+  if (!isLoading && !hasError && totalSaved === 0 && !hasActiveFilters) {
     return (
       <div className="max-w-4xl mx-auto space-y-8 pb-16">
         <div className="flex flex-col gap-1">
@@ -267,7 +282,7 @@ export default function SavedPage() {
           <Bookmark size={32} strokeWidth={1.5} className="text-muted-foreground" />
           <div className="space-y-1">
             <p className="text-base font-medium text-foreground">
-              No saved opportunities found
+              No saved opportunities
             </p>
             <p className="text-sm text-muted-foreground max-w-sm mx-auto">
               Opportunities you save will appear here. Start exploring your recommendations!
@@ -368,15 +383,57 @@ export default function SavedPage() {
             </p>
           </div>
         ) : (
-          <div className="border border-dashed border-border rounded-3xl p-12 text-center flex flex-col items-center justify-center gap-4">
-            <Bookmark size={32} className="text-muted-foreground" />
-            <div className="space-y-1">
-              <p className="text-base font-medium text-foreground">
-                No saved opportunities found
-              </p>
-              <p className="text-sm text-muted-foreground max-w-sm mx-auto">
-                Try adjusting your search or filters to see more results.
-              </p>
+          // Filtered/search empty state — saved items exist but the current
+          // query/filters return nothing. The full page layout stays intact.
+          <div className="border border-dashed border-border rounded-3xl p-12 text-center flex flex-col items-center justify-center gap-3">
+            <Search size={24} className="text-muted-foreground" />
+            <p className="text-sm font-medium text-foreground">
+              No saved opportunities found
+            </p>
+            <p className="text-xs text-muted-foreground max-w-xs">
+              No saved opportunities match your current{" "}
+              {searchQuery.trim() && activeType !== "All"
+                ? "search or filters"
+                : searchQuery.trim()
+                ? "search"
+                : "filters"}
+              .
+            </p>
+            <div className="flex items-center gap-2 mt-1">
+              {searchQuery.trim() && activeType !== "All" ? (
+                <button
+                  onClick={() => {
+                    setSearchQuery("");
+                    setActiveType("All");
+                    setMatchedFilter(false);
+                  }}
+                  className="text-xs font-medium bg-muted px-4 py-2 rounded-full hover:bg-muted/80 transition-colors"
+                >
+                  Clear search &amp; filters
+                </button>
+              ) : (
+                <>
+                  {searchQuery.trim() && (
+                    <button
+                      onClick={() => setSearchQuery("")}
+                      className="text-xs font-medium bg-muted px-4 py-2 rounded-full hover:bg-muted/80 transition-colors"
+                    >
+                      Clear search
+                    </button>
+                  )}
+                  {(activeType !== "All" || matchedFilter) && (
+                    <button
+                      onClick={() => {
+                        setActiveType("All");
+                        setMatchedFilter(false);
+                      }}
+                      className="text-xs font-medium bg-muted px-4 py-2 rounded-full hover:bg-muted/80 transition-colors"
+                    >
+                      Clear filters
+                    </button>
+                  )}
+                </>
+              )}
             </div>
           </div>
         )}

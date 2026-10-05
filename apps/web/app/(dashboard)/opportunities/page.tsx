@@ -170,6 +170,14 @@ export default function OpportunitiesPage() {
   // Filter logic is now server-side, so we just use opportunities
   const filteredOpportunities = opportunities;
 
+  // True when the user has narrowed the result set via search/filters.
+  // Used to distinguish a "no results for this query" state from a genuine
+  // "no opportunities exist for this user" state.
+  const hasActiveFilters =
+    debouncedSearch.trim() !== "" ||
+    activeType !== "All" ||
+    matchedFilter;
+
   const toggleSave = async (id: string, e: React.MouseEvent) => {
     e.preventDefault();
     
@@ -254,8 +262,10 @@ export default function OpportunitiesPage() {
     );
   }
 
-  // 1.5 DATA EMPTY STATE
-  if (!isLoading && !hasError && opportunities.length === 0) {
+  // 1.5 TRUE EMPTY STATE — no opportunities available at all, no active filters.
+  // When filters/search are active and return 0 results, we stay in the full
+  // dashboard layout and show the inline list-level empty state instead.
+  if (!isLoading && !hasError && opportunities.length === 0 && !hasActiveFilters) {
     return (
       <div className="max-w-4xl mx-auto space-y-8 pb-16">
         <div className="flex flex-col gap-1">
@@ -357,21 +367,58 @@ export default function OpportunitiesPage() {
             </p>
           </div>
         ) : filteredOpportunities.length === 0 ? (
-          // Empty state: No search/filter results
+          // Filtered/search empty state — opportunities exist but the current
+          // query/filters return nothing. Keep the full page layout intact.
           <div className="rounded-3xl p-12 text-center flex flex-col items-center justify-center gap-3">
             <Search size={24} className="text-muted-foreground" />
             <p className="text-sm font-medium text-foreground">
-              No opportunities match your search.
+              No opportunities found
             </p>
-            <button
-              onClick={() => {
-                setSearchQuery("");
-                setActiveType("All");
-              }}
-              className="text-xs font-medium bg-muted px-4 py-2 rounded-full hover:bg-muted/80 transition-colors mt-2"
-            >
-              Clear filters
-            </button>
+            <p className="text-xs text-muted-foreground max-w-xs">
+              We couldn&apos;t find any opportunities matching your current{" "}
+              {debouncedSearch && activeType !== "All"
+                ? "search or filters"
+                : debouncedSearch
+                ? "search"
+                : "filters"}
+              .
+            </p>
+            <div className="flex items-center gap-2 mt-1">
+              {debouncedSearch && activeType !== "All" ? (
+                <button
+                  onClick={() => {
+                    setSearchQuery("");
+                    setActiveType("All");
+                    setMatchedFilter(false);
+                  }}
+                  className="text-xs font-medium bg-muted px-4 py-2 rounded-full hover:bg-muted/80 transition-colors"
+                >
+                  Clear search &amp; filters
+                </button>
+              ) : (
+                <>
+                  {debouncedSearch && (
+                    <button
+                      onClick={() => setSearchQuery("")}
+                      className="text-xs font-medium bg-muted px-4 py-2 rounded-full hover:bg-muted/80 transition-colors"
+                    >
+                      Clear search
+                    </button>
+                  )}
+                  {(activeType !== "All" || matchedFilter) && (
+                    <button
+                      onClick={() => {
+                        setActiveType("All");
+                        setMatchedFilter(false);
+                      }}
+                      className="text-xs font-medium bg-muted px-4 py-2 rounded-full hover:bg-muted/80 transition-colors"
+                    >
+                      Clear filters
+                    </button>
+                  )}
+                </>
+              )}
+            </div>
           </div>
         ) : (
           <div className="space-y-4">

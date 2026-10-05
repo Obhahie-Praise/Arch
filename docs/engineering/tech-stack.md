@@ -17,6 +17,7 @@ Do not introduce a dependency simply because another project uses it.
 | Backend runtime | Cloudflare Workers |
 | API framework | Hono |
 | Database | Cloudflare D1 |
+| File storage | UploadThing |
 | Validation | Zod |
 | AI | Gemini |
 | Styling | Tailwind CSS |
