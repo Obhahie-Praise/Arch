@@ -17,5 +17,24 @@
       "binding": "WORKER_SELF_REFERENCE",
       "service": "arch"
     }
-  ]
+  ],
+  /**
+   * Build-time public environment variables.
+   *
+   * NEXT_PUBLIC_* values are inlined as string literals by Next.js at build
+   * time (not at runtime). They must be present in wrangler.jsonc `vars` so
+   * that `opennextjs-cloudflare build` can read them via process.env during
+   * the Next.js build step.
+   *
+   * NEXT_PUBLIC_API_URL — the origin of the API Worker. Used by:
+   *   - lib/api.ts  (API_URL constant consumed by all data-fetching code)
+   *   - lib/auth-client.ts  (Better Auth client baseURL)
+   *   - middleware.ts  (server-side session validation)
+   *
+   * This is intentionally a non-secret plain var: it is the public URL of the
+   * API and is already visible in every network request the browser makes.
+   */
+  "vars": {
+    "NEXT_PUBLIC_API_URL": "https://api.obhahiepraise.workers.dev"
+  }
 }

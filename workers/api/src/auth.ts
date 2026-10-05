@@ -30,8 +30,15 @@ export const createAuth = (env: Env) =>
 
     secret: env.BETTER_AUTH_SECRET,
 
+    // The full origin of the API Worker — e.g. https://api.obhahiepraise.workers.dev
+    // Better Auth uses this to construct callback URLs for OAuth providers.
     baseURL: env.BETTER_AUTH_URL,
 
+    // All auth endpoints live under /api/auth (the default).
+    // Explicit here so it is clear and cannot drift.
+    basePath: "/api/auth",
+
+    // Allow requests from the frontend origin in addition to local dev origins.
     trustedOrigins: env.APP_URL
       ? [env.APP_URL, "http://localhost:3000", "http://127.0.0.1:3000"]
       : ["http://localhost:3000", "http://127.0.0.1:3000"],

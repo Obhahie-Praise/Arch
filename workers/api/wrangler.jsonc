@@ -27,7 +27,11 @@
 		"crons": ["0 * * * *"]
 	},
 	"vars": {
-		"ENVIRONMENT": "production"
+		"ENVIRONMENT": "production",
+		// The public-facing frontend URL. Used by CORS allowlist and Better Auth
+		// trustedOrigins so the production browser can reach the API.
+		// This is not a secret — it is the public URL of the frontend Worker.
+		"APP_URL": "https://arch.obhahiepraise.workers.dev"
 	}
 	/**
 	 * Secrets / plain vars (set via `wrangler secret put` or Cloudflare dashboard):
@@ -35,6 +39,7 @@
 	 * Already configured in production:
 	 *   BETTER_AUTH_SECRET      — secret
 	 *   BETTER_AUTH_URL         — https://api.obhahiepraise.workers.dev  (plain var)
+	 *   APP_URL                 — https://arch.obhahiepraise.workers.dev  (plain var, in vars above)
 	 *   UPLOADTHING_TOKEN       — secret
 	 *   GOOGLE_CLIENT_ID        — secret
 	 *   GOOGLE_CLIENT_SECRET    — secret
@@ -42,10 +47,6 @@
 	 *   GITHUB_CLIENT_SECRET    — secret
 	 *   TAVILY_API_KEY          — secret
 	 *   DEVELOPER_ACCESS_EMAIL  — plain var
-	 *
-	 * Still required when frontend is deployed:
-	 *   APP_URL                 — production frontend URL (for CORS + trustedOrigins)
-	 *                             wrangler secret put APP_URL
 	 *
 	 * Optional:
 	 *   INTERNAL_ENGINE_SECRET  — required for /api/internal/* in production
