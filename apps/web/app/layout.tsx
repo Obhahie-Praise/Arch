@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import localFont from "next/font/local";
 import { Poppins } from "next/font/google";
 import { Analytics } from "@vercel/analytics/next";
+import { SpeedInsights } from "@vercel/speed-insights/next"
 import { ThemeProvider } from "../components/theme-provider";
 
 import "./globals.css";
@@ -86,6 +87,7 @@ export default function RootLayout({
         className={`${geistSans.variable} ${geistMono.variable}  ${atypMediumDisplay.variable} ${atypSemiBoldDisplay.variable} ${poppins.variable} min-h-screen`}
       >
         <Analytics />
+        <SpeedInsights/>
         <ThemeProvider
           attribute="class"
           defaultTheme="system"
