@@ -25,8 +25,10 @@ npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 
-# env files (can opt-in for committing if needed)
-.env*
+# env files — ignore local/secret files, but allow .env.production (public values only)
+.env
+.env.local
+.env.*.local
 
 # vercel
 .vercel
