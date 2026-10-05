@@ -345,7 +345,7 @@ export default function SavedPage() {
                 : "bg-muted text-muted-foreground hover:text-foreground hover:bg-muted/80"
             }`}
           >
-            Matched
+            matched
           </button>
         )}
       </div>

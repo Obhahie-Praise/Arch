@@ -471,6 +471,7 @@ profileRouter.post("/upload", async (c) => {
   }
 
   if (!c.env.UPLOADTHING_TOKEN) {
+    console.error("[upload] UPLOADTHING_TOKEN is not set in the Worker environment. Add it to .env for local development (used via `wrangler dev --env-file .env`) or set it as a Wrangler secret for production.");
     return c.json({ error: "Storage not configured" }, 503);
   }
 
@@ -480,6 +481,16 @@ profileRouter.post("/upload", async (c) => {
 
     if (!file || !(file instanceof File)) {
       return c.json({ error: "No file provided" }, 400);
+    }
+
+    // Validate file size client-side limit: images ≤ 5 MB, documents ≤ 10 MB
+    const isImage = file.type.startsWith("image/");
+    const maxBytes = isImage ? 5 * 1024 * 1024 : 10 * 1024 * 1024;
+    if (file.size > maxBytes) {
+      return c.json(
+        { error: `File too large. Maximum size is ${isImage ? "5" : "10"} MB.` },
+        413
+      );
     }
 
     const result = await uploadFile(c.env.UPLOADTHING_TOKEN, file);
@@ -492,7 +503,9 @@ profileRouter.post("/upload", async (c) => {
       mimeType: file.type,
       size: result.size,
     });
-  } catch {
+  } catch (err) {
+    const message = err instanceof Error ? err.message : String(err);
+    console.error("[upload] Upload failed:", message);
     return c.json({ error: "Upload failed" }, 500);
   }
 });

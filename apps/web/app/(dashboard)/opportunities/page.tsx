@@ -347,7 +347,7 @@ export default function OpportunitiesPage() {
                 : "bg-muted text-muted-foreground hover:bg-muted/80 hover:text-foreground"
             }`}
           >
-            Matched
+            matched
           </button>
         )}
       </div>
