@@ -348,9 +348,17 @@ export default function HomePage() {
   const timeline = summary?.timeline ?? [];
   const chart = summary?.discoveryChart ?? [];
 
+  // The discovery chart represents global system activity (opportunities Arch has found),
+  // not the user's personal match state. It must be visible even before the matching
+  // engine has surfaced any opportunities to this user. We therefore include chart data
+  // in the empty-state check: if any day has discovered opportunities, show the full
+  // dashboard rather than the "no matches yet" placeholder.
+  const hasDiscoveryActivity = chart.some((d) => d.created > 0);
+
   const isDataEmpty =
     !loadingMetrics &&
     !hasError &&
+    !hasDiscoveryActivity &&
     metrics.matches === 0 &&
     metrics.saved === 0 &&
     metrics.pursuing === 0 &&

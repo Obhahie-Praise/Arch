@@ -89,6 +89,13 @@ All mock data removed from production rendering paths. Home metrics, charts, and
 - Removed unused/obsolete boilerplate, dead code, and development constants.
 - Passed full TS type checks for both Web and API.
 
+**Discovery Chart Fixed:**
+- Root cause: `isDataEmpty` gate in Home page was hiding the discovery chart for users with no personal matches. The chart represents global system activity and must be visible regardless of match state.
+- Fix: `hasDiscoveryActivity = chart.some(d => d.created > 0)` added to the `isDataEmpty` check — the full dashboard is shown whenever opportunities have been discovered.
+- Source of truth for the chart: `opportunities.first_seen_at` column. Querying directly from the `opportunities` table is correct and reliable; `discovery_runs.opportunities_created` is not used because it double-counts re-seen opportunities and is suppressed when a run is stuck in `running`.
+- Added `idx_opportunities_first_seen_at` index (migration 0011) to prevent full table scans on the chart query.
+- Fixed pre-existing TypeScript 7.0 incompatibility: removed `baseUrl` from `apps/web/tsconfig.json` (breaking in TS 7.0.2) and added null-safety fallbacks in `morphing.tsx` and `rotating.tsx` that were surfaced by strict mode once `baseUrl` was removed.
+
 Next steps:
 
 1. Implement the Applications page.

@@ -274,14 +274,24 @@ opportunitiesRouter.get("/home", async (c) => {
       )
       .bind(userId)
       .first<{ count: number }>(),
-    // Discovery runs last 7 days
+    // Discovery chart: count opportunities by the date they were first seen in the DB.
+    // This is the correct source of truth for "how many opportunities did Arch discover
+    // on each day?" because:
+    //   - first_seen_at is set exactly once when a new opportunity is inserted
+    //   - it is never affected by run status, failures, or AI enrichment
+    //   - it never double-counts (unlike summing opportunities_created across hourly runs)
+    //   - a stuck/failed discovery run does not suppress already-discovered opportunities
+    //
+    // discovery_runs.opportunities_created is NOT used here because:
+    //   - it counts only new inserts per run; re-seen opportunities count as 'updated'
+    //   - summing across many runs per day inflates figures meaninglessly
+    //   - runs stuck in 'running' status are silently excluded by a status filter
     db
       .prepare(
-        `SELECT date(started_at) AS day, SUM(opportunities_created) AS created
-         FROM discovery_runs
-         WHERE started_at >= date('now', '-7 days')
-           AND status = 'completed'
-         GROUP BY date(started_at)
+        `SELECT date(first_seen_at) AS day, COUNT(*) AS created
+         FROM opportunities
+         WHERE first_seen_at >= date('now', '-7 days')
+         GROUP BY date(first_seen_at)
          ORDER BY day ASC`
       )
       .all<{ day: string; created: number }>(),

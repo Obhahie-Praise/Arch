@@ -54,6 +54,28 @@ export class DiscoveryPipeline {
       errors: [],
     };
 
+    // 0. Clean up any permanently stuck 'running' rows from previous invocations.
+    // A run that started more than 30 minutes ago and is still 'running' was killed
+    // by the Cloudflare Worker CPU limit before the finally block could persist its
+    // terminal status. Mark them as 'failed' so getActiveTiers stops treating them
+    // as active and the discovery chart query does not exclude their partial counts.
+    try {
+      await db
+        .prepare(
+          `UPDATE discovery_runs
+           SET status = 'failed',
+               completed_at = COALESCE(completed_at, datetime(started_at, '+30 minutes')),
+               errors = json_insert(COALESCE(errors, '[]'), '$[0]', 'Run killed by Worker CPU limit before finalisation'),
+               updated_at = ?
+           WHERE status = 'running'
+             AND started_at <= datetime('now', '-30 minutes')`
+        )
+        .bind(getNowIso())
+        .run();
+    } catch {
+      // Best-effort cleanup — do not abort the current run if this fails
+    }
+
     // 1. Create discovery_runs record
     try {
       await db
