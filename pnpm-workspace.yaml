@@ -1,3 +1,11 @@
 packages:
   - "apps/*"
   - "packages/*"
+
+# pnpm 11 requires explicit approval for dependencies that run build/install scripts.
+# esbuild and workerd are legitimate build-time and runtime dependencies that need
+# their postinstall scripts to run (binary selection/installation).
+allowBuilds:
+  esbuild: true
+  workerd: true
+
