@@ -30,15 +30,24 @@
 		"ENVIRONMENT": "production"
 	}
 	/**
-	 * Secrets (set via `wrangler secret put`):
-	 *   BETTER_AUTH_SECRET
-	 *   BETTER_AUTH_URL
-	 *   APP_URL
-	 *   GOOGLE_CLIENT_ID
-	 *   GOOGLE_CLIENT_SECRET
-	 *   GITHUB_CLIENT_ID
-	 *   GITHUB_CLIENT_SECRET
-	 *   INTERNAL_ENGINE_SECRET
-	 *   TAVILY_API_KEY
+	 * Secrets / plain vars (set via `wrangler secret put` or Cloudflare dashboard):
+	 *
+	 * Already configured in production:
+	 *   BETTER_AUTH_SECRET      — secret
+	 *   BETTER_AUTH_URL         — https://api.obhahiepraise.workers.dev  (plain var)
+	 *   UPLOADTHING_TOKEN       — secret
+	 *   GOOGLE_CLIENT_ID        — secret
+	 *   GOOGLE_CLIENT_SECRET    — secret
+	 *   GITHUB_CLIENT_ID        — secret
+	 *   GITHUB_CLIENT_SECRET    — secret
+	 *   TAVILY_API_KEY          — secret
+	 *   DEVELOPER_ACCESS_EMAIL  — plain var
+	 *
+	 * Still required when frontend is deployed:
+	 *   APP_URL                 — production frontend URL (for CORS + trustedOrigins)
+	 *                             wrangler secret put APP_URL
+	 *
+	 * Optional:
+	 *   INTERNAL_ENGINE_SECRET  — required for /api/internal/* in production
 	 */
 }
