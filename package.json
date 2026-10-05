@@ -7,7 +7,8 @@
     "lint": "turbo run lint",
     "format": "prettier --write \"**/*.{ts,tsx,md}\"",
     "check-types": "turbo run check-types",
-    "deploy": "cd workers/api && pnpm exec wrangler deploy"
+    "deploy:api": "cd workers/api && pnpm exec wrangler deploy --minify",
+    "deploy:web": "pnpm --filter web run deploy"
   },
   "devDependencies": {
     "prettier": "3.9.6",
