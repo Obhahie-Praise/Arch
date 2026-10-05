@@ -102,13 +102,19 @@ export default function OpportunityChatPage() {
         return;
       }
 
-      if (json.data?.message) {
+      const message: string | undefined = json.data?.message;
+      if (message) {
         const assistantMsg = {
           id: (Date.now() + 1).toString(),
           role: "assistant",
-          content: json.data.message,
+          content: message,
         };
         setMessages((prev) => [...prev, assistantMsg]);
+      } else {
+        // Response was OK but contained no message text — surface this rather
+        // than leaving the user staring at dots that never resolve.
+        setMessages((prev) => prev.slice(0, -1));
+        setError("The assistant returned an empty response. Please try again.");
       }
     } catch {
       setMessages((prev) => prev.slice(0, -1));

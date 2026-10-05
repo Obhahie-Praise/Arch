@@ -6,8 +6,13 @@ export interface AIProvider {
   streamChat(messages: any[]): Promise<ReadableStream | string>;
 }
 
-const AI_MODEL = "@cf/meta/llama-3.3-70b-instruct-fp8-fast";
+// 70B model for high-quality extraction and matching (background tasks, latency-tolerant)
+const AI_MODEL_EXTRACTION = "@cf/meta/llama-3.3-70b-instruct-fp8-fast";
+// 8B fast model for interactive chat — must respond within Worker CPU time limits
+const AI_MODEL_CHAT = "@cf/meta/llama-3.1-8b-instruct-fast";
 const MAX_CONTENT_CHARS = 8000;
+// Chat responses can be detailed but must fit within Workers AI limits
+const CHAT_MAX_TOKENS = 1024;
 
 export class WorkersAIProvider implements AIProvider {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -18,7 +23,7 @@ export class WorkersAIProvider implements AIProvider {
 
     try {
       const response = await this.ai.run(
-        AI_MODEL,
+        AI_MODEL_EXTRACTION,
         {
           messages: [
             { role: "system", content: SYSTEM_EXTRACTION_PROMPT },
@@ -50,22 +55,34 @@ export class WorkersAIProvider implements AIProvider {
 
   async streamChat(messages: any[]): Promise<ReadableStream | string> {
     try {
-      // Use non-streaming mode. Cloudflare Workers AI streaming returns SSE which
-      // is difficult to relay correctly through Hono without wrapping/unwrapping
-      // mismatches on both ends. A plain JSON response is simpler and reliable.
-      const response = await this.ai.run(AI_MODEL, { messages });
+      const response = await this.ai.run(AI_MODEL_CHAT, {
+        messages,
+        max_tokens: CHAT_MAX_TOKENS,
+      });
+
+      // Log the raw response shape so failures can be diagnosed in wrangler logs
+      console.log("[streamChat] raw response type:", typeof response);
+      if (response && typeof response === "object") {
+        console.log("[streamChat] response keys:", Object.keys(response));
+      }
+
+      // Workers AI non-streaming returns { response: string, usage: {...} }
       const text: string =
         typeof response === "string"
           ? response
-          : (response?.response ?? "");
+          : typeof response?.response === "string"
+          ? response.response
+          : "";
+
       if (!text) {
-        console.error("[streamChat] AI returned empty response", { model: AI_MODEL });
-        return "I'm sorry, I wasn't able to generate a response. Please try again.";
+        console.error("[streamChat] AI returned empty or unrecognised response shape:", JSON.stringify(response));
+        return "I wasn't able to generate a response. Please try again.";
       }
+
       return text;
     } catch (err) {
-      console.error("[streamChat] AI call failed:", err);
-      return "I'm sorry, I encountered an error while generating a response. Please try again.";
+      console.error("[streamChat] Workers AI call failed:", err);
+      return "I encountered an error while generating a response. Please try again.";
     }
   }
 }
