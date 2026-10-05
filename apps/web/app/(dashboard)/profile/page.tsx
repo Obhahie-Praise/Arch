@@ -1,7 +1,9 @@
 "use client";
 import { API_URL } from "../../../lib/api";
+import { cachedFetch } from "../../../lib/cache";
 
 import React, { useState, useEffect, useRef, useCallback } from "react";
+import { useRouter } from "next/navigation";
 import { authClient } from "../../../lib/auth-client";
 import { LocationSelector } from "../../../components/profile/location-selector";
 import { TagInput } from "../../../components/profile/tag-input";
@@ -101,6 +103,7 @@ const KEY_PRIORITIES = [
 ];
 
 export default function ProfilePage() {
+  const router = useRouter();
   const { data: session } = authClient.useSession();
 
   const [isLoading, setIsLoading] = useState(true);
@@ -622,6 +625,21 @@ export default function ProfilePage() {
         }
 
         window.scrollTo({ top: 0, behavior: "smooth" });
+
+        // Invalidate the profile cache so Home/Opportunities read the updated
+        // completeness score on next navigation, and invalidate the home
+        // summary cache so match data reflects the new profile immediately.
+        // Also invalidate the saved list (match scores change) and all
+        // paginated opportunities (profile affects ranking/matching).
+        cachedFetch.invalidate(`${API_URL}/api/profile`);
+        cachedFetch.invalidate(`${API_URL}/api/opportunities/home`);
+        cachedFetch.invalidate(`${API_URL}/api/opportunities/saved`);
+        cachedFetch.invalidatePrefix(`${API_URL}/api/opportunities?`);
+        // Flush the Next.js router cache so that navigating to any page
+        // immediately re-mounts it with fresh data rather than serving a
+        // cached segment from the previous render.
+        router.refresh();
+
         setTimeout(() => setSaveSuccess(false), 5000);
       } else {
         setSaveError(data.error || "Failed to save profile.");

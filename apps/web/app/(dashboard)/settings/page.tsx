@@ -547,6 +547,12 @@ export default function SettingsPage() {
         });
         if (!res.ok) throw new Error("server error");
         cachedFetch.invalidate(SETTINGS_URL);
+        // matchingBreadth changes affect opportunity recommendations — flush
+        // the home summary cache so the next visit reads updated matches, and
+        // also flush all paginated opportunity list pages so Opportunities
+        // reflects the updated breadth immediately on next navigation.
+        cachedFetch.invalidate(`${API_URL}/api/opportunities/home`);
+        cachedFetch.invalidatePrefix(`${API_URL}/api/opportunities?`);
         setSaveStatus("saved");
         setTimeout(() => setSaveStatus("idle"), 2500);
       } catch {

@@ -1,6 +1,7 @@
 "use client";
 import { API_URL } from "../../../../lib/api";
 import { formatDeadline } from "../../../../lib/date";
+import { cachedFetch } from "../../../../lib/cache";
 
 import React, { useState, useEffect } from "react";
 import Link from "next/link";
@@ -135,6 +136,12 @@ export default function OpportunityDetailPage() {
       if (!res.ok) {
         // Revert on failure
         setIsSaved(wasAlreadySaved);
+      } else {
+        // Invalidate all caches that reflect save state so the next
+        // navigation to Saved, Home, or Opportunities reads fresh data.
+        cachedFetch.invalidate(`${API_URL}/api/opportunities/saved`);
+        cachedFetch.invalidate(`${API_URL}/api/opportunities/home`);
+        cachedFetch.invalidatePrefix(`${API_URL}/api/opportunities?`);
       }
     } catch {
       // Revert on error
