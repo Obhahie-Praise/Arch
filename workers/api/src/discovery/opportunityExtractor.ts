@@ -216,7 +216,15 @@ export class HeuristicOpportunityExtractor implements OpportunityExtractor {
 export class AIOpportunityExtractor implements OpportunityExtractor {
   private readonly heuristic = new HeuristicOpportunityExtractor();
 
-  constructor(private readonly aiProvider: AIProvider) {}
+  constructor(
+    private readonly aiProvider: AIProvider,
+    /**
+     * Optional callback invoked whenever the AI call fails for a candidate.
+     * The pipeline passes `(msg) => summary.errors.push(msg)` so every AI
+     * failure is recorded in the run summary without blocking the candidate loop.
+     */
+    private readonly onAIError?: (message: string) => void
+  ) {}
 
   async extract(content: ExtractedOpportunityContent, adapterInput?: Partial<OpportunityInput> | null): Promise<OpportunityInput | null> {
     // Run heuristic as baseline
@@ -245,12 +253,16 @@ export class AIOpportunityExtractor implements OpportunityExtractor {
     // Prepare compact context for AI
     const pageContext = preparePageContext(content);
 
-    // Attempt AI extraction
+    // Attempt AI extraction — on any failure, record the error and fall back
+    // to the heuristic result so the candidate is still ingested.
     let aiOutput: AIExtractionOutput | null = null;
     try {
       aiOutput = await this.aiProvider.extractOpportunity(pageContext);
-    } catch {
-      // AI failed, fall back to base
+    } catch (err) {
+      const msg = `AI extraction failed for ${content.url ?? "unknown"}: ${err instanceof Error ? err.message : String(err)}`;
+      console.error(`[AIOpportunityExtractor] ${msg}`);
+      this.onAIError?.(msg);
+      // Fall back to heuristic — do not reject the candidate over an AI failure.
       return mergedBase;
     }
 

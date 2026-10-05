@@ -185,7 +185,48 @@ export class DiscoveryPipeline {
 
       // 5. Fetch, extract, and ingest each candidate
       const aiProvider = createAIProvider(env.AI);
-      const extractor = new AIOpportunityExtractor(aiProvider);
+      const extractor = new AIOpportunityExtractor(
+        aiProvider,
+        // Surface every AI failure in the run summary so operators can diagnose
+        // Workers AI errors without having to inspect Worker logs.
+        (msg) => summary.errors.push(msg)
+      );
+
+      /**
+       * Flush current summary counters and errors to the DB without changing
+       * the terminal status (it is still 'running' at this point).
+       * Called every FLUSH_EVERY candidates so partial progress is visible even
+       * if the Worker is killed by Cloudflare's CPU budget before the loop ends.
+       */
+      const FLUSH_EVERY = 10;
+      let candidatesSinceLastFlush = 0;
+
+      async function flushProgress(): Promise<void> {
+        try {
+          await db
+            .prepare(
+              `UPDATE discovery_runs
+               SET candidates_found = ?, pages_fetched = ?,
+                   opportunities_created = ?, opportunities_updated = ?, opportunities_rejected = ?,
+                   errors = ?, source_metrics = ?, updated_at = ?
+               WHERE id = ?`
+            )
+            .bind(
+              summary.candidatesFound,
+              summary.pagesFetched,
+              summary.opportunitiesCreated,
+              summary.opportunitiesUpdated,
+              summary.opportunitiesRejected,
+              JSON.stringify(summary.errors.slice(0, 20)),
+              JSON.stringify(summary.sourceMetrics),
+              getNowIso(),
+              runId
+            )
+            .run();
+        } catch {
+          // Ignore flush errors — best-effort
+        }
+      }
 
       for (const candidate of uniqueCandidates) {
         try {
@@ -276,6 +317,13 @@ export class DiscoveryPipeline {
           }`;
           summary.errors.push(errMsg);
         }
+
+        // Periodically flush progress so a CPU kill doesn't erase all state
+        candidatesSinceLastFlush++;
+        if (candidatesSinceLastFlush >= FLUSH_EVERY) {
+          await flushProgress();
+          candidatesSinceLastFlush = 0;
+        }
       }
 
       summary.status = "completed";
@@ -286,34 +334,37 @@ export class DiscoveryPipeline {
       summary.errors.push(
         `Pipeline execution failed: ${err instanceof Error ? err.message : String(err)}`
       );
-    }
-
-    // 6. Update discovery_runs record
-    try {
-      await db
-        .prepare(
-          `UPDATE discovery_runs
-           SET completed_at = ?, status = ?, candidates_found = ?, pages_fetched = ?,
-               opportunities_created = ?, opportunities_updated = ?, opportunities_rejected = ?,
-               errors = ?, source_metrics = ?, updated_at = ?
-           WHERE id = ?`
-        )
-        .bind(
-          summary.completedAt || getNowIso(),
-          summary.status,
-          summary.candidatesFound,
-          summary.pagesFetched,
-          summary.opportunitiesCreated,
-          summary.opportunitiesUpdated,
-          summary.opportunitiesRejected,
-          JSON.stringify(summary.errors.slice(0, 20)),
-          JSON.stringify(summary.sourceMetrics),
-          getNowIso(),
-          runId
-        )
-        .run();
-    } catch {
-      // Ignore update errors
+    } finally {
+      // 6. Always persist the final run state, even if the outer catch fired.
+      // Without this in a finally block, an unhandled rejection would leave the
+      // discovery_runs row permanently in 'running', causing getActiveTiers to
+      // re-trigger the run on every subsequent cron tick.
+      try {
+        await db
+          .prepare(
+            `UPDATE discovery_runs
+             SET completed_at = ?, status = ?, candidates_found = ?, pages_fetched = ?,
+                 opportunities_created = ?, opportunities_updated = ?, opportunities_rejected = ?,
+                 errors = ?, source_metrics = ?, updated_at = ?
+             WHERE id = ?`
+          )
+          .bind(
+            summary.completedAt || getNowIso(),
+            summary.status,
+            summary.candidatesFound,
+            summary.pagesFetched,
+            summary.opportunitiesCreated,
+            summary.opportunitiesUpdated,
+            summary.opportunitiesRejected,
+            JSON.stringify(summary.errors.slice(0, 20)),
+            JSON.stringify(summary.sourceMetrics),
+            getNowIso(),
+            runId
+          )
+          .run();
+      } catch {
+        // Ignore update errors — best-effort persistence
+      }
     }
 
     return summary;
@@ -323,6 +374,15 @@ export class DiscoveryPipeline {
    * Determines which tiers are due for discovery based on the elapsed time
    * since each tier last ran. Falls back to running all tiers if history
    * is unavailable.
+   *
+   * A tier is considered "ran" if its most recent run has any of these statuses:
+   *   - 'completed'  — normal finish
+   *   - 'failed'     — outer pipeline error
+   *   - 'running' with started_at older than the tier interval — stale/CPU-killed run
+   *
+   * Previously, only 'completed' was checked. A run killed mid-loop by the
+   * Cloudflare Worker CPU budget stays permanently in 'running' and was never
+   * found, causing the tier to re-fire every cron tick forever.
    */
   private static async getActiveTiers(db: D1Database): Promise<(1 | 2 | 3)[]> {
     const now = Date.now();
@@ -333,26 +393,35 @@ export class DiscoveryPipeline {
       const intervalMs = intervalHours * 60 * 60 * 1000;
 
       try {
+        // Look for the most recent run for this tier regardless of status.
+        // Use COALESCE(completed_at, started_at) so killed runs (which never
+        // set completed_at) are still considered using their start time.
         const row = await db
           .prepare(
-            `SELECT completed_at FROM discovery_runs
-             WHERE provider_id LIKE ? AND status = 'completed'
-             ORDER BY completed_at DESC LIMIT 1`
+            `SELECT COALESCE(completed_at, started_at) AS last_activity_at
+             FROM discovery_runs
+             WHERE provider_id LIKE ?
+               AND (
+                 status IN ('completed', 'failed')
+                 OR (status = 'running' AND started_at <= datetime('now', ?))
+               )
+             ORDER BY last_activity_at DESC LIMIT 1`
           )
-          .bind(`%tiers:${tier}%`)
-          .first<{ completed_at: string }>();
+          .bind(`%tiers:${tier}%`, `-${intervalHours} hours`)
+          .first<{ last_activity_at: string }>();
 
-        if (!row || !row.completed_at) {
+        if (!row || !row.last_activity_at) {
+          // No prior run found at all — tier is due.
           activeTiers.push(tier);
           continue;
         }
 
-        const lastRanAt = new Date(row.completed_at).getTime();
+        const lastRanAt = new Date(row.last_activity_at).getTime();
         if (now - lastRanAt >= intervalMs) {
           activeTiers.push(tier);
         }
       } catch {
-        // On any DB error, include tier to be safe
+        // On any DB error, include tier to be safe.
         activeTiers.push(tier);
       }
     }

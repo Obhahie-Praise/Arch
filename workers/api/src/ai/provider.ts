@@ -13,6 +13,28 @@ const AI_MODEL_CHAT = "@cf/meta/llama-3.1-8b-instruct-fast";
 const MAX_CONTENT_CHARS = 8000;
 // Chat responses can be detailed but must fit within Workers AI limits
 const CHAT_MAX_TOKENS = 1024;
+// Maximum wall-clock time allowed for a single extraction call.
+// Workers AI on the 70B model can stall indefinitely under load; this cap
+// ensures the caller receives a fast rejection rather than hanging until the
+// Worker CPU budget is exhausted, which would kill the entire pipeline run.
+const AI_EXTRACTION_TIMEOUT_MS = 20_000;
+
+/**
+ * Races `promise` against a timer. Throws with a descriptive message on timeout
+ * so callers can distinguish a timeout from other AI errors.
+ */
+function withTimeout<T>(promise: Promise<T>, ms: number, label: string): Promise<T> {
+  return new Promise<T>((resolve, reject) => {
+    const timer = setTimeout(
+      () => reject(new Error(`AI call timed out after ${ms}ms (${label})`)),
+      ms
+    );
+    promise.then(
+      (v) => { clearTimeout(timer); resolve(v); },
+      (e) => { clearTimeout(timer); reject(e); }
+    );
+  });
+}
 
 export class WorkersAIProvider implements AIProvider {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -21,36 +43,36 @@ export class WorkersAIProvider implements AIProvider {
   async extractOpportunity(pageContent: string): Promise<AIExtractionOutput | null> {
     const truncated = pageContent.slice(0, MAX_CONTENT_CHARS);
 
-    try {
-      const response = await this.ai.run(
-        AI_MODEL_EXTRACTION,
-        {
-          messages: [
-            { role: "system", content: SYSTEM_EXTRACTION_PROMPT },
-            {
-              role: "user",
-              content: `Extract the opportunity information from this webpage content:\n\n${truncated}`,
-            },
-          ],
-          response_format: {
-            type: "json_schema",
-            json_schema: {
-              name: "opportunity_extraction",
-              strict: true,
-              schema: EXTRACTION_JSON_SCHEMA,
-            },
+    const aiCall = this.ai.run(
+      AI_MODEL_EXTRACTION,
+      {
+        messages: [
+          { role: "system", content: SYSTEM_EXTRACTION_PROMPT },
+          {
+            role: "user",
+            content: `Extract the opportunity information from this webpage content:\n\n${truncated}`,
           },
-        }
-      );
+        ],
+        response_format: {
+          type: "json_schema",
+          json_schema: {
+            name: "opportunity_extraction",
+            strict: true,
+            schema: EXTRACTION_JSON_SCHEMA,
+          },
+        },
+      }
+    );
 
-      const raw = typeof response === "string" ? response : response?.response ?? "";
-      if (!raw) return null;
+    // Let the timeout error propagate to the caller so it can record it.
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const response = await withTimeout<any>(aiCall, AI_EXTRACTION_TIMEOUT_MS, "extractOpportunity");
 
-      const parsed = JSON.parse(raw) as AIExtractionOutput;
-      return parsed;
-    } catch {
-      return null;
-    }
+    const raw = typeof response === "string" ? response : response?.response ?? "";
+    if (!raw) return null;
+
+    const parsed = JSON.parse(raw) as AIExtractionOutput;
+    return parsed;
   }
 
   async streamChat(messages: any[]): Promise<ReadableStream | string> {
