@@ -51,6 +51,20 @@ export const metadata: Metadata = {
     title: "Arch | Opportunity Intelligence Platform",
     description: "Discover opportunities worth pursuing and get the context and tools to pursue them.",
   },
+  icons: {
+    icon: [
+      {
+        url: "/favicon-light-mode.png",
+        media: "(prefers-color-scheme: light)",
+        type: "image/jpeg",
+      },
+      {
+        url: "/favicon-dark-mode.png",
+        media: "(prefers-color-scheme: dark)",
+        type: "image/jpeg",
+      },
+    ],
+  },
 };
 
 export default function RootLayout({

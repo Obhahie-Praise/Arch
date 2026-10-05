@@ -23,6 +23,7 @@ export default function SavedPage() {
 
   const [searchQuery, setSearchQuery] = useState("");
   const [activeType, setActiveType] = useState<string>("All");
+  const [matchedFilter, setMatchedFilter] = useState(false);
   
   const [savedIds, setSavedIds] = useState<Set<string>>(new Set());
   const [pursuingIds, setPursuingIds] = useState<Set<string>>(new Set());
@@ -30,6 +31,7 @@ export default function SavedPage() {
   const [opportunities, setOpportunities] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [hasError, setHasError] = useState(false);
+  const [isDeveloper, setIsDeveloper] = useState(false);
 
   // Profile completion
   useEffect(() => {
@@ -72,6 +74,10 @@ export default function SavedPage() {
         });
         
         setOpportunities(json.data || []);
+
+        if (json.meta) {
+          setIsDeveloper(!!json.meta.isDeveloper);
+        }
         
         if (json.data) {
           const saved = new Set<string>();
@@ -112,6 +118,9 @@ export default function SavedPage() {
 
       if (activeType !== "All" && opp.type !== activeType) return false;
 
+      // Developer-only: only show opportunities with a valid profile match score.
+      if (matchedFilter && !(opp.matchScore != null && opp.matchScore > 0)) return false;
+
       if (searchQuery.trim()) {
         const query = searchQuery.toLowerCase();
         const matchesTitle = opp.title.toLowerCase().includes(query);
@@ -128,7 +137,7 @@ export default function SavedPage() {
       }
       return true;
     });
-  }, [opportunities, searchQuery, activeType, savedIds]);
+  }, [opportunities, searchQuery, activeType, savedIds, matchedFilter]);
 
   const toggleSave = async (id: string, e: React.MouseEvent) => {
     e.preventDefault();
@@ -301,7 +310,7 @@ export default function SavedPage() {
           <button
             key={type}
             onClick={() => setActiveType(type)}
-            className={`px-4 py-1.5 rounded-full text-xs font-medium whitespace-nowrap transition-colors ${
+            className={`px-4 py-1.5 rounded-full text-sm font-medium whitespace-nowrap transition-colors ${
               activeType === type
                 ? "bg-foreground text-background"
                 : "bg-muted text-muted-foreground hover:text-foreground hover:bg-muted/80"
@@ -310,6 +319,20 @@ export default function SavedPage() {
             {type}
           </button>
         ))}
+
+        {/* Matched pill — developer account only */}
+        {isDeveloper && (
+          <button
+            onClick={() => setMatchedFilter((prev) => !prev)}
+            className={`px-4 py-1.5 rounded-full text-sm font-medium whitespace-nowrap transition-colors ${
+              matchedFilter
+                ? "bg-emerald-600 text-white"
+                : "bg-muted text-muted-foreground hover:text-foreground hover:bg-muted/80"
+            }`}
+          >
+            Matched
+          </button>
+        )}
       </div>
 
       <div className="space-y-4">

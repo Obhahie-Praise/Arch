@@ -15,6 +15,8 @@ export interface Env {
   GITHUB_CLIENT_SECRET?: string;
   /** Secret that must be supplied by callers of /api/internal/* endpoints. */
   INTERNAL_ENGINE_SECRET?: string;
+  /** Developer account email — grants access to the full matched result set without the weekly quota cap. Evaluated server-side only; never exposed to clients. */
+  DEVELOPER_ACCESS_EMAIL?: string;
   /** Required for web-search discovery via Tavily. */
   TAVILY_API_KEY?: string;
   /** Set to 'production' in deployed environment. */

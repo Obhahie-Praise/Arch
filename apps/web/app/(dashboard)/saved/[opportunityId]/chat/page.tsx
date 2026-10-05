@@ -69,6 +69,7 @@ export default function OpportunityChatPage() {
     const userContent = input.trim();
     setInput("");
     setIsSending(true);
+    setError(null);
 
     const tempUserMsg = {
       id: Date.now().toString(),
@@ -89,55 +90,29 @@ export default function OpportunityChatPage() {
         },
       );
 
-      if (!response.ok) {
-        throw new Error("Failed to send message");
+      const json = await response.json() as any;
+
+      if (!response.ok || json.error) {
+        // Revert the optimistic user message and show an inline error
+        setMessages((prev) => prev.slice(0, -1));
+        setError(
+          json.error?.message ||
+            "Failed to get a response. Please try again.",
+        );
+        return;
       }
 
-      const tempAssistantMsg = {
-        id: (Date.now() + 1).toString(),
-        role: "assistant",
-        content: "",
-      };
-      setMessages((prev) => [...prev, tempAssistantMsg]);
-
-      // Stream the response
-      const reader = response.body?.getReader();
-      const decoder = new TextDecoder();
-
-      if (reader) {
-        let aiContent = "";
-        while (true) {
-          const { done, value } = await reader.read();
-          if (done) break;
-          const chunk = decoder.decode(value, { stream: true });
-          aiContent += chunk;
-
-          setMessages((prev) => {
-            const newMsgs = [...prev];
-            newMsgs[newMsgs.length - 1] = {
-              ...newMsgs[newMsgs.length - 1],
-              content: aiContent,
-            };
-            return newMsgs;
-          });
-        }
-      } else {
-        const json = await response.json();
-        if (json.data?.message) {
-          setMessages((prev) => {
-            const newMsgs = [...prev];
-            newMsgs[newMsgs.length - 1] = {
-              ...newMsgs[newMsgs.length - 1],
-              content: json.data.message,
-            };
-            return newMsgs;
-          });
-        }
+      if (json.data?.message) {
+        const assistantMsg = {
+          id: (Date.now() + 1).toString(),
+          role: "assistant",
+          content: json.data.message,
+        };
+        setMessages((prev) => [...prev, assistantMsg]);
       }
-    } catch (err) {
-      // Revert optimism if error
+    } catch {
       setMessages((prev) => prev.slice(0, -1));
-      setError("Failed to send message. Please try again.");
+      setError("Unable to reach the server. Please check your connection and try again.");
     } finally {
       setIsSending(false);
     }
@@ -162,7 +137,7 @@ export default function OpportunityChatPage() {
   if (error || !opportunity) {
     return (
       <div className="max-w-3xl mx-auto py-12">
-        <div className="border border-red-500/20 bg-red-500/5 rounded-3xl p-8 text-center flex flex-col items-center justify-center gap-4">
+        <div className="rounded-3xl p-8 text-center flex flex-col items-center justify-center gap-4">
           <AlertCircle className="text-red-500" size={32} />
           <div className="space-y-1">
             <h2 className="text-lg font-medium text-foreground">
@@ -185,7 +160,7 @@ export default function OpportunityChatPage() {
 
   return (
     <div className="max-w-4xl mx-auto flex flex-col pb-32 pt-20">
-      <div className="fixed left-1/2 -translate-x-1/2 top-[80px] z-40 w-full max-w-4xl bg-background/90 backdrop-blur-md border-b border-border py-4 px-4 sm:px-0 flex items-center justify-between">
+      <div className="fixed left-1/2 -translate-x-1/2 top-[80px] z-40 w-full max-w-4xl bg-background/50 backdrop-blur-xl border-b border-border py-4 px-4 sm:px-0 flex items-center justify-between">
         <div className="flex items-center gap-4">
           <Link
             href="/saved"
@@ -259,10 +234,19 @@ export default function OpportunityChatPage() {
             </div>
           </div>
         )}
-        <div ref={messagesEndRef} />
+
+        {/* Inline send error — shown inside the conversation rather than replacing the whole page */}
+        {error && !isSending && (
+          <div className="flex justify-start">
+            <div className="max-w-[85%] rounded-3xl px-5 py-3.5 bg-red-500/10 border border-red-500/20 flex items-start gap-2">
+              <AlertCircle size={14} className="text-red-500 shrink-0 mt-0.5" />
+              <p className="text-sm text-red-600 dark:text-red-400">{error}</p>
+            </div>
+          </div>
+        )}        <div ref={messagesEndRef} />
       </div>
 
-      <div className="fixed bottom-0 left-1/2 -translate-x-1/2 w-full max-w-3xl p-4 bg-gradient-to-t from-background via-background to-transparent z-20">
+      <div className="fixed bottom-0 left-1/2 -translate-x-1/2 w-full max-w-4xl p-4 bg-gradient-to-t from-background via-background to-transparent z-20">
         <div className="w-full">
           <form
             onSubmit={handleSend}
@@ -275,6 +259,7 @@ export default function OpportunityChatPage() {
               value={input}
               onChange={(e) => {
                 setInput(e.target.value);
+                if (error) setError(null);
                 e.target.style.height = "auto";
                 e.target.style.height = `${Math.min(e.target.scrollHeight, 128)}px`;
               }}

@@ -18,20 +18,47 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     });
 
     if (res.ok) {
-      const data = await res.json();
-      if (data.opportunity) {
+      const json = await res.json();
+      const opp = json.data;
+
+      if (opp?.title) {
+        const org: string | undefined =
+          opp.organizationName || opp.organization || undefined;
+
+        // "React Developer — Acme" or just "React Developer" when org is absent
+        const title = org ? `${opp.title} — ${org}` : opp.title;
+
+        // Prefer stored description; fall back to a constructed sentence
+        const description: string =
+          opp.description
+            ? opp.description.slice(0, 160).trimEnd()
+            : org
+              ? `${opp.title} is an opportunity from ${org}. Discover whether it is right for you on Arch.`
+              : `${opp.title} — explore this opportunity on Arch.`;
+
         return {
-          title: data.opportunity.title,
-          description: `Learn more about ${data.opportunity.title} at ${data.opportunity.organizationName || data.opportunity.organization || "this organization"}.`,
+          title,
+          description,
+          openGraph: {
+            title,
+            description,
+            type: "article",
+          },
+          twitter: {
+            card: "summary",
+            title,
+            description,
+          },
         };
       }
     }
   } catch {
-    // Fetch failed or opportunity not found — fall through to default metadata
+    // Network failure or non-JSON response — fall through to default
   }
 
   return {
-    title: "Opportunity Details",
+    title: "Opportunity",
+    description: "Explore this opportunity on Arch.",
   };
 }
 

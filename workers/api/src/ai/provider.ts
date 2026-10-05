@@ -50,16 +50,22 @@ export class WorkersAIProvider implements AIProvider {
 
   async streamChat(messages: any[]): Promise<ReadableStream | string> {
     try {
-      const response = await this.ai.run(
-        AI_MODEL,
-        {
-          messages,
-          stream: true,
-        }
-      );
-      return response as ReadableStream;
-    } catch {
-      return "I'm sorry, I encountered an error while trying to generate a response.";
+      // Use non-streaming mode. Cloudflare Workers AI streaming returns SSE which
+      // is difficult to relay correctly through Hono without wrapping/unwrapping
+      // mismatches on both ends. A plain JSON response is simpler and reliable.
+      const response = await this.ai.run(AI_MODEL, { messages });
+      const text: string =
+        typeof response === "string"
+          ? response
+          : (response?.response ?? "");
+      if (!text) {
+        console.error("[streamChat] AI returned empty response", { model: AI_MODEL });
+        return "I'm sorry, I wasn't able to generate a response. Please try again.";
+      }
+      return text;
+    } catch (err) {
+      console.error("[streamChat] AI call failed:", err);
+      return "I'm sorry, I encountered an error while generating a response. Please try again.";
     }
   }
 }

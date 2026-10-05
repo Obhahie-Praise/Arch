@@ -38,7 +38,15 @@ export default function OpportunitiesPage() {
   const [hasError, setHasError] = useState(false);
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
+  const [total, setTotal] = useState(0);
+  const [hasNext, setHasNext] = useState(false);
+  const [hasPrevious, setHasPrevious] = useState(false);
   const [isDeveloper, setIsDeveloper] = useState(false);
+  // knownTypes accumulates every opportunity type seen across all fetches so the
+  // filter pills never disappear when a type filter narrows the result set.
+  const [knownTypes, setKnownTypes] = useState<string[]>([]);
+  // Developer-only: whether the Matched filter is currently active.
+  const [matchedFilter, setMatchedFilter] = useState(false);
 
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -99,6 +107,10 @@ export default function OpportunitiesPage() {
         if (debouncedSearch) {
           params.append("search", debouncedSearch);
         }
+        // matchedFilter is only ever true when isDeveloper — the server also enforces this.
+        if (matchedFilter) {
+          params.append("matched", "true");
+        }
 
         const json = await cachedFetch<any>(`${apiUrl}/api/opportunities?${params.toString()}`, {
           credentials: "include",
@@ -106,8 +118,22 @@ export default function OpportunitiesPage() {
         });
         
         setOpportunities(json.data || []);
+
+        // Accumulate types seen so far — never remove a type that was already visible.
+        if (json.data?.length) {
+          setKnownTypes((prev) => {
+            const next = new Set(prev);
+            (json.data as any[]).forEach((opp) => {
+              if (opp.type) next.add(opp.type as string);
+            });
+            return prev.length === next.size ? prev : Array.from(next);
+          });
+        }
         if (json.pagination) {
           setTotalPages(json.pagination.totalPages);
+          setTotal(json.pagination.total ?? 0);
+          setHasNext(!!json.pagination.hasNext);
+          setHasPrevious(!!json.pagination.hasPrevious);
         }
         if (json.meta) {
           setIsDeveloper(!!json.meta.isDeveloper);
@@ -132,17 +158,14 @@ export default function OpportunitiesPage() {
     }
     
     fetchOpportunities();
-  }, [profileCompletion, page, activeType, debouncedSearch]);
+  }, [profileCompletion, page, activeType, debouncedSearch, matchedFilter]);
 
-  // Derived state for available filter pills based on current data
-  const availableTypes = useMemo(() => {
-    const types = new Set<string>();
-    opportunities.forEach((opp) => {
-      // Uppercase first letter to match mock style if needed, but wait, type might be lowercase 'job', 'grant' etc
-      types.add(opp.type);
-    });
-    return ["All", ...Array.from(types)] as string[];
-  }, [opportunities]);
+  // Filter pills use knownTypes so the complete pill set stays visible regardless
+  // of which type filter is currently active.
+  const availableTypes = useMemo(
+    () => ["All", ...knownTypes],
+    [knownTypes]
+  );
 
   // Filter logic is now server-side, so we just use opportunities
   const filteredOpportunities = opportunities;
@@ -300,6 +323,23 @@ export default function OpportunitiesPage() {
             {type}
           </button>
         ))}
+
+        {/* Matched pill — developer account only */}
+        {isDeveloper && (
+          <button
+            onClick={() => {
+              setMatchedFilter((prev) => !prev);
+              setPage(1);
+            }}
+            className={`snap-start whitespace-nowrap px-4 py-2 rounded-full text-sm font-medium transition-colors ${
+              matchedFilter
+                ? "bg-emerald-600 text-white"
+                : "bg-muted text-muted-foreground hover:bg-muted/80 hover:text-foreground"
+            }`}
+          >
+            Matched
+          </button>
+        )}
       </div>
 
       {/* Opportunity List */}
@@ -354,48 +394,56 @@ export default function OpportunitiesPage() {
         )}
       </section>
 
-      {/* 30-opportunity limit notice */}
+      {/* Pagination row — always rendered when there are results so the layout never jumps */}
       {filteredOpportunities.length > 0 && (
-        <div className="pt-6 pb-2 text-center space-y-1">
-          {isDeveloper ? (
-            <p className="text-xs font-medium text-green-600">
-              Developer account: Accessing complete matched opportunity set.
-            </p>
-          ) : (
-            <>
-              <p className="text-xs font-medium text-foreground">
-                Arch currently surfaces up to 30 opportunities for you each week.
-              </p>
-              <p className="text-[11px] text-muted-foreground">
-                Upgrade to Pro to unlock a higher weekly limit.
-              </p>
-            </>
-          )}
+        <div className="flex items-center justify-between gap-4 pt-2 border-t border-border">
+          {/* Left: total count + page position */}
+          <p className="text-xs text-muted-foreground tabular-nums">
+            <span className="font-medium text-foreground">{total}</span>
+            {" opportunit"}{total === 1 ? "y" : "ies"}
+            {" · Page "}
+            <span className="font-medium text-foreground">{page}</span>
+            {" of "}
+            <span className="font-medium text-foreground">{totalPages}</span>
+          </p>
+
+          {/* Right: navigation controls */}
+          <div className="flex items-center gap-1">
+            <button
+              onClick={() => {
+                cachedFetch.invalidatePrefix(`${API_URL}/api/opportunities?`);
+                setPage((p) => Math.max(1, p - 1));
+              }}
+              disabled={!hasPrevious || isLoading}
+              className="px-3 py-1.5 text-sm text-muted-foreground rounded-full transition-colors hover:bg-muted hover:text-foreground disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:bg-transparent disabled:hover:text-muted-foreground"
+              aria-label="Previous page"
+            >
+              ‹ Previous
+            </button>
+            <button
+              onClick={() => {
+                cachedFetch.invalidatePrefix(`${API_URL}/api/opportunities?`);
+                setPage((p) => Math.min(totalPages, p + 1));
+              }}
+              disabled={!hasNext || isLoading}
+              className="px-3 py-1.5 text-sm text-muted-foreground rounded-full transition-colors hover:bg-muted hover:text-foreground disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:bg-transparent disabled:hover:text-muted-foreground"
+              aria-label="Next page"
+            >
+              Next ›
+            </button>
+          </div>
         </div>
       )}
 
-      {/* Pagination Controls */}
-      {totalPages > 1 && (
-        <div className="flex items-center justify-center gap-2 pt-4">
-          <button
-            onClick={() => setPage(p => Math.max(1, p - 1))}
-            disabled={page === 1}
-            className="px-4 py-2 bg-muted text-foreground text-sm font-medium rounded-full disabled:opacity-50 hover:bg-muted/80 transition-colors"
-          >
-            Previous
-          </button>
-          
-          <div className="text-sm text-muted-foreground px-4">
-            Page <span className="font-medium text-foreground">{page}</span> of <span className="font-medium text-foreground">{totalPages}</span>
-          </div>
-          
-          <button
-            onClick={() => setPage(p => Math.min(totalPages, p + 1))}
-            disabled={page === totalPages}
-            className="px-4 py-2 bg-muted text-foreground text-sm font-medium rounded-full disabled:opacity-50 hover:bg-muted/80 transition-colors"
-          >
-            Next
-          </button>
+      {/* Access-limit / Pro messaging — below pagination, outside the list, secondary */}
+      {filteredOpportunities.length > 0 && !isDeveloper && (
+        <div className="pb-2 text-center space-y-0.5">
+          <p className="text-xs text-muted-foreground">
+            Arch currently surfaces up to 30 opportunities for you.
+          </p>
+          <p className="text-[11px] text-muted-foreground/60">
+            Pro version coming soon — you&apos;ll be able to unlock more very soon.
+          </p>
         </div>
       )}
     </div>

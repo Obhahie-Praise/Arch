@@ -1,5 +1,4 @@
 import { Hono } from "hono";
-import { streamText } from "hono/streaming";
 import { createAuth, type Env } from "../auth";
 import { MatchingService } from "../matching/service";
 import { OpportunityService } from "./service";
@@ -11,7 +10,7 @@ import type { OpportunityType } from "./types";
 
 export const opportunitiesRouter = new Hono<{ Bindings: Env }>();
 
-// Middleware / Auth helper
+// Middleware / Auth helper — returns user ID only
 async function getAuthUserId(c: any): Promise<string | null> {
   const auth = createAuth(c.env);
   const session = await auth.api.getSession({
@@ -19,6 +18,16 @@ async function getAuthUserId(c: any): Promise<string | null> {
   });
   if (!session || !session.user) return null;
   return session.user.id;
+}
+
+// Auth helper that returns both ID and email (needed for developer detection)
+async function getAuthSession(c: any): Promise<{ id: string; email: string } | null> {
+  const auth = createAuth(c.env);
+  const session = await auth.api.getSession({
+    headers: c.req.raw.headers,
+  });
+  if (!session || !session.user) return null;
+  return { id: session.user.id, email: session.user.email };
 }
 
 // Security helper for internal engine endpoints
@@ -45,42 +54,116 @@ opportunitiesRouter.get("/", async (c) => {
   const userId = session.user.id;
   const userEmail = session.user.email;
 
-  const isDeveloper = !!c.env.DEVELOPER_ACCESS_EMAIL && userEmail === c.env.DEVELOPER_ACCESS_EMAIL;
+  // Developer check is server-side only — never trust client input for this.
+  const isDeveloper =
+    !!c.env.DEVELOPER_ACCESS_EMAIL && userEmail === c.env.DEVELOPER_ACCESS_EMAIL;
 
   try {
     const typeFilter = c.req.query("type") as OpportunityType | undefined;
     const searchFilter = c.req.query("search")?.toLowerCase();
-    const page = parseInt(c.req.query("page") || "1", 10);
-    const pageSize = parseInt(c.req.query("pageSize") || "30", 10);
+    // matched=true is a developer-only filter — only honoured when isDeveloper is true.
+    const matchedOnly = isDeveloper && c.req.query("matched") === "true";
 
-    const rawRecommendations = await MatchingService.getOrGenerateUserRecommendations(
-      c.env.arch_db,
-      userId,
-      c.env.AI,
-      isDeveloper
-    );
+    // pageSize is fixed server-side. Clients cannot influence it.
+    const PAGE_SIZE = 30;
+    const requestedPage = parseInt(c.req.query("page") || "1", 10);
+    const page = Number.isFinite(requestedPage) && requestedPage >= 1 ? requestedPage : 1;
 
-    let formatted = rawRecommendations.map((row) => OpportunityService.formatOpportunity(row, row));
+    let formatted: ReturnType<typeof OpportunityService.formatOpportunity>[];
 
+    if (isDeveloper) {
+      // ── DEVELOPER PATH ─────────────────────────────────────────────────────
+      // Return every active opportunity in the database regardless of whether it
+      // matches the developer's profile. Matching data is used only as optional
+      // enrichment: if a match record exists, its score is shown; if not, the
+      // opportunity still appears but with no score.
+
+      // 1. Fetch the complete active inventory from DB (all columns needed for
+      //    formatOpportunity, which operates on OpportunityRow-shaped objects).
+      const allOppsRes = await c.env.arch_db
+        .prepare(
+          `SELECT * FROM opportunities
+           WHERE status = 'active'
+             AND (deadline IS NULL OR deadline >= date('now'))
+           ORDER BY first_seen_at DESC`
+        )
+        .all<import("./types").OpportunityRow>();
+
+      const allOpps = allOppsRes.results ?? [];
+
+      // 2. Fetch all existing match records for this user in one query so we can
+      //    look them up by opportunity_id without N+1 queries.
+      const matchRes = await c.env.arch_db
+        .prepare(
+          `SELECT * FROM user_opportunity_matches WHERE user_id = ? AND status != 'dismissed'`
+        )
+        .bind(userId)
+        .all<import("./types").UserOpportunityMatchRow>();
+
+      const matchByOppId = new Map(
+        (matchRes.results ?? []).map((m) => [m.opportunity_id, m])
+      );
+
+      // 3. Merge: every opportunity gets its match record (or null).
+      //    formatOpportunity gracefully handles null match → matchScore undefined.
+      formatted = allOpps.map((opp) => {
+        const match = matchByOppId.get(opp.id) ?? null;
+        return OpportunityService.formatOpportunity(opp, match);
+      });
+    } else {
+      // ── NORMAL USER PATH ───────────────────────────────────────────────────
+      // Normal users see only the opportunities surfaced by the matching engine,
+      // capped at WEEKLY_QUOTA (30). This path is intentionally unchanged.
+      const rawRecommendations = await MatchingService.getOrGenerateUserRecommendations(
+        c.env.arch_db,
+        userId,
+        c.env.AI,
+        false
+      );
+
+      formatted = rawRecommendations.map((row) =>
+        OpportunityService.formatOpportunity(row, row)
+      );
+
+      // Hard-cap: defence-in-depth against any future MatchingService changes.
+      formatted = formatted.slice(0, 30);
+    }
+
+    // ── SHARED FILTERING (applies to both paths) ──────────────────────────────
     if (typeFilter) {
       formatted = formatted.filter((item) => item.type === typeFilter);
     }
 
     if (searchFilter) {
       formatted = formatted.filter((opp) => {
-        const matchesTitle = opp.title.toLowerCase().includes(searchFilter);
-        const matchesOrg = opp.organizationName?.toLowerCase().includes(searchFilter) || opp.organization?.toLowerCase().includes(searchFilter);
-        const matchesDesc = opp.description?.toLowerCase().includes(searchFilter);
-        const matchesSkills = opp.skills?.some((s: string) => s.toLowerCase().includes(searchFilter));
-        const matchesType = opp.type?.toLowerCase().includes(searchFilter);
-        return matchesTitle || matchesOrg || matchesDesc || matchesSkills || matchesType;
+        const haystack = [
+          opp.title,
+          opp.organizationName,
+          opp.description,
+          opp.type,
+          ...(opp.skills ?? []),
+        ]
+          .filter(Boolean)
+          .join(" ")
+          .toLowerCase();
+        return haystack.includes(searchFilter);
       });
     }
 
+    // Developer-only: restrict to opportunities that have a valid profile match score.
+    // matchedOnly is always false for normal users (enforced above).
+    if (matchedOnly) {
+      formatted = formatted.filter(
+        (opp) => opp.matchScore != null && opp.matchScore > 0
+      );
+    }
+
+    // ── PAGINATION ────────────────────────────────────────────────────────────
     const total = formatted.length;
-    const totalPages = Math.ceil(total / pageSize);
-    const offset = (page - 1) * pageSize;
-    const paginatedData = formatted.slice(offset, offset + pageSize);
+    const totalPages = Math.max(1, Math.ceil(total / PAGE_SIZE));
+    const safePage = Math.min(page, totalPages);
+    const offset = (safePage - 1) * PAGE_SIZE;
+    const paginatedData = formatted.slice(offset, offset + PAGE_SIZE);
 
     return c.json({
       data: paginatedData,
@@ -90,30 +173,46 @@ opportunitiesRouter.get("/", async (c) => {
         isDeveloper,
       },
       pagination: {
-        page,
-        pageSize,
+        page: safePage,
+        pageSize: PAGE_SIZE,
         total,
         totalPages,
-        hasNext: page < totalPages,
-        hasPrevious: page > 1,
+        hasNext: safePage < totalPages,
+        hasPrevious: safePage > 1,
       },
     });
   } catch (err) {
     const msg = err instanceof Error ? err.message : "Internal server error";
+    console.error("[opportunities/] error:", err);
     return c.json({ error: { code: "ENGINE_ERROR", message: msg } }, 500);
   }
 });
 
 // GET /api/opportunities/saved - Get saved opportunities
 opportunitiesRouter.get("/saved", async (c) => {
-  const userId = await getAuthUserId(c);
-  if (!userId) {
+  const user = await getAuthSession(c);
+  if (!user) {
     return c.json({ error: { code: "UNAUTHORIZED", message: "Authentication required" } }, 401);
   }
 
-  const rows = await OpportunityRepository.listUserSaved(c.env.arch_db, userId);
-  const formatted = rows.map((row) => OpportunityService.formatOpportunity(row, row));
-  return c.json({ data: formatted });
+  const isDeveloper =
+    !!c.env.DEVELOPER_ACCESS_EMAIL && user.email === c.env.DEVELOPER_ACCESS_EMAIL;
+
+  const rows = await OpportunityRepository.listUserSaved(c.env.arch_db, user.id);
+  let formatted = rows.map((row) => OpportunityService.formatOpportunity(row, row));
+
+  // Developer-only matched filter — normal users cannot activate this param.
+  const matchedOnly = isDeveloper && c.req.query("matched") === "true";
+  if (matchedOnly) {
+    formatted = formatted.filter(
+      (opp) => opp.matchScore != null && opp.matchScore > 0
+    );
+  }
+
+  return c.json({
+    data: formatted,
+    meta: { isDeveloper },
+  });
 });
 
 // GET /api/opportunities/pursuing - Get pursuing opportunities
@@ -399,8 +498,17 @@ opportunitiesRouter.post("/:id/chat/messages", async (c) => {
   if (!userId) return c.json({ error: { code: "UNAUTHORIZED", message: "Authentication required" } }, 401);
 
   const id = c.req.param("id");
-  const { content } = await c.req.json();
-  if (!content) return c.json({ error: { code: "BAD_REQUEST", message: "Message content required" } }, 400);
+
+  let body: { content?: string };
+  try {
+    body = await c.req.json();
+  } catch {
+    return c.json({ error: { code: "BAD_REQUEST", message: "Invalid JSON body" } }, 400);
+  }
+  const { content } = body;
+  if (!content?.trim()) {
+    return c.json({ error: { code: "BAD_REQUEST", message: "Message content required" } }, 400);
+  }
 
   const details = await OpportunityService.getDetails(c.env.arch_db, userId, id);
   if (!details || (details.userStatus !== "saved" && details.userStatus !== "pursuing")) {
@@ -412,86 +520,84 @@ opportunitiesRouter.post("/:id/chat/messages", async (c) => {
     conversation = await ChatRepository.createConversation(c.env.arch_db, userId, id);
   }
 
-  // Save user message
-  await ChatRepository.addMessage(c.env.arch_db, conversation.id, "user", content);
+  // Persist the user message before calling AI so it is saved even if AI fails
+  await ChatRepository.addMessage(c.env.arch_db, conversation.id, "user", content.trim());
 
   const dbMessages = await ChatRepository.getMessages(c.env.arch_db, conversation.id);
-  
-  const profileStmt = c.env.arch_db.prepare(`SELECT * FROM "profiles" WHERE "userId" = ?`);
-  const userProfile = await profileStmt.bind(userId).first<any>();
-  let userSkills = [];
-  try { userSkills = JSON.parse(userProfile?.technicalSkills || "[]"); } catch {}
 
-  const systemContext = `You are an AI assistant helping a user pursue an opportunity. 
-Only provide information related to this opportunity. Do not hallucinate.
+  // Load user profile for context-aware answers ("Am I eligible?" etc.)
+  const userProfile = await c.env.arch_db
+    .prepare(`SELECT * FROM profiles WHERE "userId" = ? LIMIT 1`)
+    .bind(userId)
+    .first<Record<string, unknown>>();
 
-OPPORTUNITY DETAILS:
-Title: ${details.title}
-Organization: ${details.organizationName}
-Type: ${details.type}
-Description: ${details.description || "N/A"}
-Requirements: ${details.requirements?.join(", ") || "N/A"}
-Eligibility: ${details.eligibility?.join(", ") || "N/A"}
-Skills: ${details.skills?.join(", ") || "N/A"}
-Location: ${details.location || "N/A"}
+  let userSkills: string[] = [];
+  try { userSkills = JSON.parse((userProfile?.technicalSkills as string) || "[]"); } catch {}
 
-USER PROFILE:
-Name: ${userProfile?.fullName || "N/A"}
-Bio: ${userProfile?.bio || "N/A"}
-Skills: ${userSkills.length > 0 ? userSkills.join(", ") : "N/A"}
-`;
+  // Build a rich system prompt scoped to this specific opportunity.
+  // Only include fields that are actually populated to avoid confusing the model.
+  const oppLines: string[] = [
+    `Title: ${details.title}`,
+    `Organization: ${details.organizationName}`,
+    `Type: ${details.type}`,
+  ];
+  if (details.description) oppLines.push(`Description: ${details.description}`);
+  if (details.location) oppLines.push(`Location: ${details.location}`);
+  if (details.isRemote) oppLines.push(`Remote: Yes`);
+  if (details.deadline) oppLines.push(`Deadline: ${details.deadline}`);
+  if (details.eligibility?.length) oppLines.push(`Eligibility: ${details.eligibility.join("; ")}`);
+  if (details.requirements?.length) oppLines.push(`Requirements: ${details.requirements.join("; ")}`);
+  if (details.skills?.length) oppLines.push(`Relevant skills: ${details.skills.join(", ")}`);
+  if (details.benefits?.length) oppLines.push(`Benefits: ${details.benefits.join(", ")}`);
+  if (details.applicationUrl) oppLines.push(`Application URL: ${details.applicationUrl}`);
+
+  const profileLines: string[] = [];
+  if (userProfile?.fullName) profileLines.push(`Name: ${userProfile.fullName}`);
+  if (userProfile?.bio) profileLines.push(`Bio: ${userProfile.bio as string}`);
+  if (userSkills.length) profileLines.push(`Technical skills: ${userSkills.join(", ")}`);
+
+  const systemContext = [
+    "You are Arch's opportunity assistant. You help users understand and prepare for a specific opportunity.",
+    "Answer questions using ONLY the information provided below.",
+    "If something is not specified, say so clearly rather than guessing.",
+    "Stay focused on this opportunity. Do not discuss other opportunities or unrelated topics.",
+    "",
+    "OPPORTUNITY:",
+    ...oppLines,
+    "",
+    "USER PROFILE:",
+    profileLines.length ? profileLines.join("\n") : "No profile information available.",
+  ].join("\n");
 
   const aiMessages = [
-    { role: "system", content: systemContext },
-    ...dbMessages.map(m => ({ role: m.role, content: m.content }))
+    { role: "system" as const, content: systemContext },
+    ...dbMessages.map((m) => ({ role: m.role as "user" | "assistant", content: m.content })),
   ];
 
-  const aiProvider = createAIProvider(c.env.AI);
-  const stream = await aiProvider.streamChat(aiMessages);
+  try {
+    const aiProvider = createAIProvider(c.env.AI);
+    const result = await aiProvider.streamChat(aiMessages);
 
-  if (typeof stream === "string") {
-    await ChatRepository.addMessage(c.env.arch_db, conversation.id, "assistant", stream);
-    return c.json({ data: { message: stream } });
-  }
+    // streamChat now always returns a string (non-streaming mode)
+    const responseText = typeof result === "string" ? result : "";
 
-  // Handle streaming response using Hono's streamText
-  return streamText(c, async (streamWriter) => {
-    let fullResponse = "";
-    const reader = stream.getReader();
-    const decoder = new TextDecoder("utf-8");
-
-    try {
-      while (true) {
-        const { done, value } = await reader.read();
-        if (done) break;
-        
-        // The Cloudflare AI streaming usually returns Server-Sent Events (SSE).
-        // Each event looks like `data: {"response":"..."}\n\n`
-        const chunk = decoder.decode(value, { stream: true });
-        
-        // Parse the SSE chunks (simplified parsing for CF AI)
-        const lines = chunk.split("\n");
-        for (const line of lines) {
-          if (line.startsWith("data: ") && line !== "data: [DONE]") {
-            try {
-              const data = JSON.parse(line.slice(6));
-              if (data.response) {
-                fullResponse += data.response;
-                await streamWriter.write(data.response);
-              }
-            } catch (e) {
-              // Ignore parse errors on partial chunks
-            }
-          }
-        }
-      }
-    } finally {
-      reader.releaseLock();
-      if (fullResponse) {
-        await ChatRepository.addMessage(c.env.arch_db, conversation.id, "assistant", fullResponse);
-      }
+    if (!responseText) {
+      console.error("[chat/messages] AI returned empty text for opportunity", id);
+      return c.json(
+        { error: { code: "AI_EMPTY_RESPONSE", message: "The AI returned an empty response. Please try again." } },
+        502
+      );
     }
-  });
+
+    await ChatRepository.addMessage(c.env.arch_db, conversation.id, "assistant", responseText);
+    return c.json({ data: { message: responseText } });
+  } catch (err) {
+    console.error("[chat/messages] Unexpected error for opportunity", id, err);
+    return c.json(
+      { error: { code: "AI_ERROR", message: "Failed to generate a response. Please try again." } },
+      502
+    );
+  }
 });
 
 // INTERNAL / ENGINE ENDPOINTS
