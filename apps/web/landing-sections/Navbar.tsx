@@ -6,7 +6,7 @@ import { ThemeSwitcher } from "../components/theme-switcher";
 const Navbar = () => {
   return (
     <div className="flex items-center justify-between px-40 py-6">
-      <h1 className="flex items-center gap-2">
+      <Link href={"/"} className="flex items-center gap-2">
         <ThemeImage
           srcLight="/logo-lightmode.jpg"
           srcDark="/logo-darkmode.jpg"
@@ -16,7 +16,7 @@ const Navbar = () => {
           className="rounded-lg"
         />
         <p className="font-display text-2xl">Arch</p>
-      </h1>
+      </Link>
       <div className="flex items-center gap-4">
         <ThemeSwitcher />
         <Link href={"./auth"} className="bg-primary text-primary-foreground px-6 py-3 rounded-full text-sm transition-colors hover:bg-primary/90 cursor-pointer duration-300 shadow-inner shadow-white">Get started</Link>
