@@ -7,6 +7,9 @@
 
 import type { AIMatchResult } from "../matching/types";
 import type { OpportunityRow } from "../opportunities/types";
+import { MatchingAIRouter } from "./router";
+import { DEFAULT_AI_FLAGS } from "./flags";
+import type { AIFeatureFlags } from "./flags";
 
 // Compact profile view sent to AI — only fields useful for matching
 export interface MatchingProfile {
@@ -174,7 +177,20 @@ export class NullMatchingAI implements MatchingAI {
   }
 }
 
-export function createMatchingAI(ai: unknown): MatchingAI {
-  if (ai) return new WorkersAIMatchingProvider(ai);
-  return new NullMatchingAI();
+/**
+ * Factory used by the matching service.
+ *
+ * Always returns a `MatchingAIRouter`-wrapped instance so fail-closed
+ * semantics and feature flags apply uniformly. The inner provider is selected
+ * based on whether the AI binding is present.
+ *
+ * @param ai    - The Workers AI binding from the Worker env, or undefined/null.
+ * @param flags - Optional partial flag overrides (defaults to DEFAULT_AI_FLAGS).
+ */
+export function createMatchingAI(
+  ai: unknown,
+  flags: Partial<AIFeatureFlags> = DEFAULT_AI_FLAGS
+): MatchingAI {
+  const inner = ai ? new WorkersAIMatchingProvider(ai) : new NullMatchingAI();
+  return new MatchingAIRouter(inner, flags);
 }

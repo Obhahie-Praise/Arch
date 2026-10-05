@@ -2,6 +2,7 @@ import type { ExtractedOpportunityContent, OpportunityInput } from "./types";
 import type { AIProvider } from "../ai/provider";
 import type { AIExtractionOutput } from "../ai/schemas";
 import type { OpportunityType } from "../opportunities/types";
+import { isAiUnavailable } from "../ai/provider";
 
 const VALID_TYPES: OpportunityType[] = [
   "job",
@@ -257,7 +258,19 @@ export class AIOpportunityExtractor implements OpportunityExtractor {
     // to the heuristic result so the candidate is still ingested.
     let aiOutput: AIExtractionOutput | null = null;
     try {
-      aiOutput = await this.aiProvider.extractOpportunity(pageContext);
+      const rawOutput = await this.aiProvider.extractOpportunity(pageContext);
+
+      // Router returned an explicit unavailable sentinel — AI is disabled or
+      // failed at the routing layer. Treat it identically to a caught error:
+      // record the reason and fall back to the heuristic result.
+      if (isAiUnavailable(rawOutput)) {
+        const msg = `AI unavailable for ${content.url ?? "unknown"}: ${rawOutput.reason}`;
+        console.warn(`[AIOpportunityExtractor] ${msg}`);
+        this.onAIError?.(msg);
+        return mergedBase;
+      }
+
+      aiOutput = rawOutput;
     } catch (err) {
       const msg = `AI extraction failed for ${content.url ?? "unknown"}: ${err instanceof Error ? err.message : String(err)}`;
       console.error(`[AIOpportunityExtractor] ${msg}`);

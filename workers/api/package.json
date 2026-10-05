@@ -4,7 +4,9 @@
 	"scripts": {
 		"dev": "wrangler dev --env-file .env",
 		"deploy": "wrangler deploy --minify",
-		"cf-typegen": "wrangler types --env-interface CloudflareBindings"
+		"cf-typegen": "wrangler types --env-interface CloudflareBindings",
+		"test:ai": "tsx --tsconfig tsconfig.json src/__tests__/ai-router.test.ts",
+		"test": "tsx --tsconfig tsconfig.json src/__tests__/ai-router.test.ts"
 	},
 	"dependencies": {
 		"@better-auth/kysely-adapter": "^1.7.7",

@@ -12,6 +12,7 @@ const Hero = () => {
           <MorphingText
             text={["Opportunities", "Hackathons", "Jobs", "Grants"]}
             loop
+            holdDelay={4000}
             transition={{
               type: "spring",
               stiffness: 125,

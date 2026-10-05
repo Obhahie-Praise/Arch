@@ -58,6 +58,7 @@ Keep it short and current.
 - [x] AI opportunity extraction layer (Workers AI, JSON schema mode, heuristic fallback)
 - [x] Deterministic matching pipeline & ranking engine (7 dimensions: eligibility, skills, interest, goals, experience, location, preference)
 - [x] Hard eligibility evaluation (eligible / ineligible / unknown — three-state, never overridden by AI)
+- [x] AI provider abstraction (`src/ai/`) — `AIRouter` + `MatchingAIRouter` with fail-closed semantics, `AiUnavailableResult` sentinel, `AIFeatureFlags` (master / extraction / matching), `WorkersAIProvider`, `NullAIProvider`, factory functions `createAIProvider` / `createMatchingAI`; Workers AI is the sole configured provider and its behaviour is preserved exactly
 - [x] AI semantic matching layer (Workers AI structured JSON, deterministic fallback on failure)
 - [x] Final blended scoring (deterministic 70% + AI 30%, with deadline urgency + freshness bonuses)
 - [x] Diversity-aware ranking (max 8 per type, max 3 per org)

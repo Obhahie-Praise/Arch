@@ -1,8 +1,26 @@
 import type { AIExtractionOutput } from "./schemas";
 import { SYSTEM_EXTRACTION_PROMPT, EXTRACTION_JSON_SCHEMA } from "./schemas";
+import { AIRouter } from "./router";
+import type { AiUnavailableResult } from "./router";
+import { DEFAULT_AI_FLAGS } from "./flags";
+import type { AIFeatureFlags } from "./flags";
+
+// Re-export so callers only need a single import point.
+export type { AiUnavailableResult };
+export { isAiUnavailable } from "./router";
 
 export interface AIProvider {
-  extractOpportunity(pageContent: string): Promise<AIExtractionOutput | null>;
+  /**
+   * Extract opportunity data from page content.
+   *
+   * Returns:
+   * - `AIExtractionOutput` — AI ran successfully.
+   * - `AiUnavailableResult` — AI is disabled or errored (router-level sentinel).
+   *   Callers **must** handle this case explicitly; do not treat it as null.
+   * - `null` — AI ran but determined the page is not an opportunity.
+   */
+  extractOpportunity(pageContent: string): Promise<AIExtractionOutput | AiUnavailableResult | null>;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   streamChat(messages: any[]): Promise<ReadableStream | string>;
 }
 
@@ -122,9 +140,20 @@ export class NullAIProvider implements AIProvider {
   }
 }
 
-export function createAIProvider(ai: unknown): AIProvider {
-  if (ai) {
-    return new WorkersAIProvider(ai);
-  }
-  return new NullAIProvider();
+/**
+ * Factory used by the pipeline and refresh worker.
+ *
+ * Always returns an `AIRouter`-wrapped instance so the fail-closed guarantee
+ * and feature flags apply uniformly across all call sites.
+ * The inner provider (Workers AI or Null) is selected based on the binding.
+ *
+ * @param ai      - The Workers AI binding from the Worker env, or undefined/null.
+ * @param flags   - Optional partial flag overrides (defaults to DEFAULT_AI_FLAGS).
+ */
+export function createAIProvider(
+  ai: unknown,
+  flags: Partial<AIFeatureFlags> = DEFAULT_AI_FLAGS
+): AIProvider {
+  const inner = ai ? new WorkersAIProvider(ai) : new NullAIProvider();
+  return new AIRouter(inner, flags);
 }
