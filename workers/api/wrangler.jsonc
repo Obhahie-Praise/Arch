@@ -24,7 +24,11 @@
 		"binding": "AI"
 	},
 	"triggers": {
-		"crons": ["0 * * * *"]
+		// Discovery + refresh runs once per day at midnight UTC.
+		// Previously ran hourly (0 * * * *) — reduced to avoid redundant
+		// opportunity re-processing since the tier-gating logic already
+		// throttles individual tier intervals (4 h / 12 h / 24 h).
+		"crons": ["0 0 * * *"]
 	},
 	"vars": {
 		"ENVIRONMENT": "production",

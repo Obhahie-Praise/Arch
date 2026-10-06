@@ -1,4 +1,5 @@
 import { MorphingText } from "@/components/animate-ui/primitives/texts/morphing";
+import SocialButton from "@/components/kokonutui/social-button";
 import { ChevronRight } from "lucide-react";
 import Link from "next/link";
 import React from "react";
@@ -43,6 +44,7 @@ const Hero = () => {
           </Link>
         </div>
       </div>
+      <SocialButton label="cre8ive_praise" className="mt-20 bg-background" />
     </div>
   );
 };
