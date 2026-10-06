@@ -199,15 +199,15 @@ export default function OpportunityDetailPage() {
 
       {/* Header Section */}
       <div className="space-y-6">
-        <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-6">
+        <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-4 sm:gap-6">
           <div className="space-y-3">
             <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-muted rounded-full text-xs font-medium text-foreground">
               {opportunity.type}
             </span>
-            <h1 className="font-display text-3xl sm:text-4xl font-medium text-foreground leading-tight">
+            <h1 className="font-display text-2xl sm:text-3xl md:text-4xl font-medium text-foreground leading-tight">
               {opportunity.title}
             </h1>
-            <div className="flex items-center gap-4 text-sm text-muted-foreground">
+            <div className="flex flex-wrap items-center gap-3 text-sm text-muted-foreground">
               <span className="flex items-center gap-1.5 font-medium text-foreground">
                 <Building2 size={16} /> {opportunity.organizationName}
               </span>
@@ -239,7 +239,7 @@ export default function OpportunityDetailPage() {
               href={opportunity.applicationUrl || opportunity.sourceUrl || "#"}
               target="_blank"
               rel="noopener noreferrer"
-              className="px-6 py-3 bg-foreground text-background rounded-full text-sm font-medium hover:bg-foreground/90 transition-colors flex items-center gap-2"
+              className="flex-1 sm:flex-none px-5 sm:px-6 py-3 bg-foreground text-background rounded-full text-sm font-medium hover:bg-foreground/90 transition-colors flex items-center justify-center gap-2"
             >
               Apply now <ExternalLink size={16} />
             </a>

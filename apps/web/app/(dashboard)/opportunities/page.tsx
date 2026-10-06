@@ -230,7 +230,7 @@ export default function OpportunitiesPage() {
     return (
       <div className="max-w-4xl mx-auto space-y-8 pb-16">
         <div className="flex flex-col gap-1">
-          <h1 className="font-display text-3xl font-medium text-foreground">
+          <h1 className="font-display text-2xl sm:text-3xl font-medium text-foreground">
             Opportunities
           </h1>
         </div>
@@ -269,7 +269,7 @@ export default function OpportunitiesPage() {
     return (
       <div className="max-w-4xl mx-auto space-y-8 pb-16">
         <div className="flex flex-col gap-1">
-          <h1 className="font-display text-3xl font-medium text-foreground">
+          <h1 className="font-display text-2xl sm:text-3xl font-medium text-foreground">
             Opportunities
           </h1>
         </div>
@@ -291,7 +291,7 @@ export default function OpportunitiesPage() {
     <div className="max-w-4xl mx-auto space-y-6 pb-16">
       {/* Header */}
       <div className="flex flex-col gap-1">
-        <h1 className="font-display text-3xl font-medium text-foreground">
+        <h1 className="font-display text-2xl sm:text-3xl font-medium text-foreground">
           Opportunities
         </h1>
       </div>

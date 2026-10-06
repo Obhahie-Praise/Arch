@@ -212,7 +212,7 @@ function DeleteModal({
         if (e.target === e.currentTarget) onCancel();
       }}
     >
-      <div className="bg-background border border-border rounded-4xl p-8 w-full max-w-md shadow-2xl">
+      <div className="bg-background border border-border rounded-4xl p-6 sm:p-8 w-full max-w-md shadow-2xl max-h-[90dvh] overflow-y-auto">
         <div className="flex items-start justify-between gap-4 mb-6">
           <div className="flex items-center gap-3">
             <div className="flex items-center justify-center w-10 h-10 rounded-full text-red-500 shrink-0">
@@ -381,7 +381,7 @@ function ChangePasswordModal({
         if (e.target === e.currentTarget) onCancel();
       }}
     >
-      <div className="bg-background border border-border rounded-4xl p-8 w-full max-w-md shadow-2xl">
+      <div className="bg-background border border-border rounded-4xl p-6 sm:p-8 w-full max-w-md shadow-2xl max-h-[90dvh] overflow-y-auto">
         <div className="flex items-start justify-between gap-4 mb-6">
           <div className="flex items-center gap-3">
             <div className="flex items-center justify-center w-10 h-10 rounded-full bg-muted text-foreground shrink-0">
@@ -638,7 +638,7 @@ export default function SettingsPage() {
       <div className="max-w-4xl mx-auto space-y-6 pb-20">
         <div className="flex items-end justify-between gap-3">
           <div className="flex flex-col gap-1">
-            <h1 className="font-display text-3xl font-medium text-foreground">
+            <h1 className="font-display text-2xl sm:text-3xl font-medium text-foreground">
               Settings
             </h1>
           </div>

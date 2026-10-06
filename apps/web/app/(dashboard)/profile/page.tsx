@@ -656,12 +656,12 @@ export default function ProfilePage() {
       {/* Header Banner & Subtle Local Storage Status */}
       <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-3">
         <div className="flex flex-col gap-1">
-          <h1 className="font-display text-3xl font-medium text-foreground">Profile</h1>
+          <h1 className="font-display text-2xl sm:text-3xl font-medium text-foreground">Profile</h1>
         </div>
 
-        {/* 2. SUBTLE LOCAL STORAGE COMMUNICATION NOTICE */}
+        {/* SUBTLE LOCAL STORAGE COMMUNICATION NOTICE */}
         {hasUnsavedChanges && (
-          <div className="flex items-center gap-1.5 text-xs text-muted-foreground font-normal bg-muted/50 border border-border px-3 py-1.5 rounded-full shrink-0">
+          <div className="flex items-center gap-1.5 text-xs text-muted-foreground font-normal bg-muted/50 border border-border px-3 py-1.5 rounded-full shrink-0 self-start sm:self-auto">
             <Smartphone size={13} className="text-muted-foreground shrink-0" />
             <span>Your changes are saved on this device till you save your profile.</span>
           </div>

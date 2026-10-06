@@ -45,12 +45,12 @@ const EmailAuthPage = () => {
   };
 
   return (
-    <div className="space-y-10">
+    <div className="space-y-10 w-full max-w-sm px-4">
       <h2 className="text-2xl font-medium text-center">
         Create an account with email
       </h2>
       {error && <p className="text-red-500 text-sm text-center">{error}</p>}
-      <form onSubmit={handleSubmit} className="min-w-md space-y-2">
+      <form onSubmit={handleSubmit} className="w-full space-y-2">
         <div className="flex flex-col gap-0.5">
           <label htmlFor="fullname" className="text-sm ">
             Full name

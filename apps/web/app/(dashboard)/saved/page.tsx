@@ -239,7 +239,7 @@ export default function SavedPage() {
     return (
       <div className="max-w-4xl mx-auto space-y-8 pb-16">
         <div className="flex flex-col gap-1">
-          <h1 className="font-display text-3xl font-medium text-foreground">Saved</h1>
+          <h1 className="font-display text-2xl sm:text-3xl font-medium text-foreground">Saved</h1>
         </div>
 
         <div className="rounded-3xl p-8 sm:p-12 text-center flex flex-col items-center justify-center gap-5 transition-all">
@@ -276,7 +276,7 @@ export default function SavedPage() {
     return (
       <div className="max-w-4xl mx-auto space-y-8 pb-16">
         <div className="flex flex-col gap-1">
-          <h1 className="font-display text-3xl font-medium text-foreground">Saved</h1>
+          <h1 className="font-display text-2xl sm:text-3xl font-medium text-foreground">Saved</h1>
         </div>
         <div className="rounded-3xl p-12 text-center flex flex-col items-center justify-center gap-4">
           <Bookmark size={32} strokeWidth={1.5} className="text-muted-foreground" />
@@ -296,7 +296,7 @@ export default function SavedPage() {
   return (
     <div className="max-w-4xl mx-auto space-y-6 pb-32">
       <div className="flex flex-col gap-1">
-        <h1 className="font-display text-3xl font-medium text-foreground">Saved</h1>
+        <h1 className="font-display text-2xl sm:text-3xl font-medium text-foreground">Saved</h1>
       </div>
 
       <div className="relative">

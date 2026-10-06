@@ -35,8 +35,8 @@ export default function AuthLayout({ children }: AuthLayoutProps) {
       <div className="flex-1 flex flex-col items-center justify-center">
         {children}
       </div>
-      <div className="flex items-center justify-center">
-        <p className="text-xs py-4 text-muted-foreground max-w-150 text-center">
+      <div className="flex items-center justify-center px-4">
+        <p className="text-xs py-4 text-muted-foreground max-w-xl text-center">
           Arch uses AI to help you discover and match with opportunities.
           Results aren't guaranteed to be complete, the best fit, or a path to
           acceptance.

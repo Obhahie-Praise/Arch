@@ -77,13 +77,13 @@ export const ProjectsManager: React.FC<ProjectsManagerProps> = ({
           className="flex items-center gap-1.5 px-4 py-2 text-sm font-medium border border-border rounded-full hover:bg-muted transition-all cursor-pointer"
         >
           <Plus size={16} />
-          <span>Add Project</span>
+          <span className="hidden md:inline">Add Project</span>
         </button>
       </div>
 
       {projects.length === 0 ? (
         <div className="border border-dashed border-border rounded-3xl p-6 text-center text-sm text-muted-foreground">
-          No projects added yet. Click "Add Project" to showcase your work.
+          No projects added yet. Click <span className="hidden md:inline">"Add Project"</span> <Plus size={16} className="inline md:hidden" /> to showcase your work.
         </div>
       ) : (
         <div className="space-y-3">

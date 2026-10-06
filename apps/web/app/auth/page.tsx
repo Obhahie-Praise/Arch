@@ -28,12 +28,12 @@ const AuthPage = () => {
   };
 
   return (
-    <div className="space-y-10">
+    <div className="space-y-10 w-full max-w-sm px-4">
       <h2 className="text-2xl font-medium text-center">Create an account</h2>
       {error && (
         <p className="text-red-500 text-sm text-center">{error}</p>
       )}
-      <div className="min-w-md space-y-2">
+      <div className="w-full space-y-2">
         <button
           onClick={() => handleSocial("google")}
           disabled={loading !== null}

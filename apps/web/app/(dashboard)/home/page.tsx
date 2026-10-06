@@ -316,7 +316,7 @@ export default function HomePage() {
     return (
       <div className="max-w-4xl mx-auto space-y-8 pb-16">
         <div className="flex flex-col gap-1">
-          <h1 className="font-display text-3xl font-medium text-foreground">Home</h1>
+          <h1 className="font-display text-2xl sm:text-3xl font-medium text-foreground">Home</h1>
         </div>
         <div className="rounded-3xl p-8 sm:p-12 text-center flex flex-col items-center justify-center gap-5 transition-all">
           <div className="p-4 bg-muted rounded-full text-foreground">
@@ -370,7 +370,7 @@ export default function HomePage() {
     return (
       <div className="max-w-4xl mx-auto space-y-8 pb-16">
         <div className="flex flex-col gap-1">
-          <h1 className="font-display text-3xl font-medium text-foreground">Home</h1>
+          <h1 className="font-display text-2xl sm:text-3xl font-medium text-foreground">Home</h1>
         </div>
         <div className="rounded-3xl p-8 text-center flex flex-col items-center justify-center gap-3 mt-8">
           <Sparkles size={24} className="text-muted-foreground" />
@@ -387,7 +387,7 @@ export default function HomePage() {
     <div className="max-w-4xl mx-auto space-y-8 pb-16">
       {/* Header */}
       <div className="flex flex-col gap-1">
-        <h1 className="font-display text-3xl font-medium text-foreground">Home</h1>
+        <h1 className="font-display text-2xl sm:text-3xl font-medium text-foreground">Home</h1>
       </div>
 
       {/* Metric Cards */}

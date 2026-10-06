@@ -74,13 +74,13 @@ export const AchievementsManager: React.FC<AchievementsManagerProps> = ({
           className="flex items-center gap-1.5 px-4 py-2 text-sm font-medium border border-border rounded-full hover:bg-muted transition-all cursor-pointer"
         >
           <Plus size={16} />
-          <span>Add Achievement</span>
+          <span className="hidden md:inline">Add Achievement</span>
         </button>
       </div>
 
       {achievements.length === 0 ? (
         <div className="border border-dashed border-border rounded-3xl p-6 text-center text-sm text-muted-foreground">
-          No achievements added yet. Click "Add Achievement" to list your recognitions.
+          No achievements added yet. Click <span className="hidden md:inline">"Add Achievement"</span> <Plus size={16} className="inline md:hidden" /> to list your recognitions.
         </div>
       ) : (
         <div className="space-y-3">
