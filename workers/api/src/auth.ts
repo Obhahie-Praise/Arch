@@ -6,8 +6,10 @@ export interface Env {
   AI?: any;
   BETTER_AUTH_SECRET: string;
   BETTER_AUTH_URL: string;
-  /** The public-facing web app URL (e.g. https://arch.inc in prod, http://localhost:3000 locally). */
+  /** The primary production frontend URL (e.g. https://arch-eight-orcin.vercel.app). Used by CORS and Better Auth trustedOrigins. */
   APP_URL?: string;
+  /** Comma-separated list of additional allowed origins (e.g. legacy Cloudflare frontend, other dev deployments). Not a secret. */
+  ADDITIONAL_ORIGINS?: string;
   GOOGLE_CLIENT_ID?: string;
   GOOGLE_CLIENT_SECRET?: string;
   GITHUB_CLIENT_ID?: string;
@@ -39,9 +41,17 @@ export const createAuth = (env: Env) =>
     basePath: "/api/auth",
 
     // Allow requests from the frontend origin in addition to local dev origins.
-    trustedOrigins: env.APP_URL
-      ? [env.APP_URL, "http://localhost:3000", "http://127.0.0.1:3000"]
-      : ["http://localhost:3000", "http://127.0.0.1:3000"],
+    // APP_URL is the primary production origin (Vercel).
+    // ADDITIONAL_ORIGINS is a comma-separated list of extra trusted origins
+    // (e.g. legacy Cloudflare frontend kept for development/testing).
+    trustedOrigins: [
+      "http://localhost:3000",
+      "http://127.0.0.1:3000",
+      ...(env.APP_URL ? [env.APP_URL] : []),
+      ...(env.ADDITIONAL_ORIGINS
+        ? env.ADDITIONAL_ORIGINS.split(",").map((o) => o.trim()).filter(Boolean)
+        : []),
+    ],
 
     emailAndPassword: {
       enabled: true,

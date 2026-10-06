@@ -13,7 +13,16 @@ const app = new Hono<{ Bindings: Env }>();
 
 app.use("/api/*", async (c, next) => {
   const allowedOrigins = ["http://localhost:3000", "http://127.0.0.1:3000"];
+  // APP_URL is the primary production frontend origin (Vercel).
   if (c.env.APP_URL) allowedOrigins.push(c.env.APP_URL);
+  // ADDITIONAL_ORIGINS is a comma-separated list of extra allowed origins
+  // (e.g. the legacy Cloudflare frontend used during development/testing).
+  if (c.env.ADDITIONAL_ORIGINS) {
+    for (const origin of c.env.ADDITIONAL_ORIGINS.split(",")) {
+      const trimmed = origin.trim();
+      if (trimmed) allowedOrigins.push(trimmed);
+    }
+  }
 
   return cors({
     origin: allowedOrigins,

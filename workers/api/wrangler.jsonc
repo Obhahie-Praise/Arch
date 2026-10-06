@@ -28,10 +28,12 @@
 	},
 	"vars": {
 		"ENVIRONMENT": "production",
-		// The public-facing frontend URL. Used by CORS allowlist and Better Auth
-		// trustedOrigins so the production browser can reach the API.
-		// This is not a secret — it is the public URL of the frontend Worker.
-		"APP_URL": "https://arch.obhahiepraise.workers.dev"
+		// APP_URL is the primary production frontend origin (Vercel).
+		// Used by CORS allowlist and Better Auth trustedOrigins.
+		"APP_URL": "https://arch-eight-orcin.vercel.app",
+		// ADDITIONAL_ORIGINS is a comma-separated list of extra allowed origins.
+		// The legacy Cloudflare frontend is preserved here for development/testing.
+		"ADDITIONAL_ORIGINS": "https://arch.obhahiepraise.workers.dev"
 	}
 	/**
 	 * Secrets / plain vars (set via `wrangler secret put` or Cloudflare dashboard):
@@ -39,7 +41,8 @@
 	 * Already configured in production:
 	 *   BETTER_AUTH_SECRET      — secret
 	 *   BETTER_AUTH_URL         — https://api.obhahiepraise.workers.dev  (plain var)
-	 *   APP_URL                 — https://arch.obhahiepraise.workers.dev  (plain var, in vars above)
+	 *   APP_URL                 — https://arch-eight-orcin.vercel.app  (plain var, in vars above)
+	 *   ADDITIONAL_ORIGINS      — https://arch.obhahiepraise.workers.dev  (plain var, in vars above)
 	 *   UPLOADTHING_TOKEN       — secret
 	 *   GOOGLE_CLIENT_ID        — secret
 	 *   GOOGLE_CLIENT_SECRET    — secret
