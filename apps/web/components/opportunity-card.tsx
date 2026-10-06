@@ -66,7 +66,7 @@ export function OpportunityCard({
   const hasMenuActions = Boolean(onSaveToggle || saveHref || chatHref || onPursueToggle);
 
   return (
-    <div className="border border-border rounded-3xl p-5 bg-card flex flex-col sm:flex-row sm:items-center justify-between gap-4 transition-all hover:border-foreground/40">
+    <div className="border border-border rounded-3xl p-5 bg-card flex flex-col sm:flex-row sm:items-center justify-between gap-4 transition-colors duration-200 hover:border-foreground/40">
       <div className="space-y-1.5">
         <div className="flex items-center gap-2 flex-wrap">
           <h3 className="font-display text-base font-medium text-foreground">
@@ -113,7 +113,7 @@ export function OpportunityCard({
       <div className="flex items-center gap-2 shrink-0 pt-2 sm:pt-0 relative" ref={menuRef}>
         <Link
           href={`/opportunities/${id}`}
-          className="px-4 py-2 border border-border rounded-full text-xs font-medium hover:bg-muted transition-colors"
+          className="px-4 py-2 border border-border rounded-full text-xs font-medium hover:bg-muted transition-colors duration-150"
         >
           Details
         </Link>
@@ -121,7 +121,10 @@ export function OpportunityCard({
         {hasMenuActions && (
           <button
             onClick={() => setIsMenuOpen(!isMenuOpen)}
-            className={`p-2 rounded-full transition-colors ${
+            aria-label="Open actions menu"
+            aria-expanded={isMenuOpen}
+            aria-haspopup="true"
+            className={`p-2 rounded-full transition-colors duration-150 ${
               isMenuOpen ? "bg-muted text-foreground" : "text-muted-foreground hover:bg-muted hover:text-foreground"
             }`}
           >
@@ -129,25 +132,46 @@ export function OpportunityCard({
           </button>
         )}
 
-        {isMenuOpen && hasMenuActions && (
-          <div className="absolute top-full right-0 mt-2 w-48 bg-card border border-border rounded-2xl shadow-lg shadow-black/5 overflow-hidden z-50 animate-in fade-in zoom-in-95 origin-top-right duration-150">
+        {/*
+         * Dropdown: always rendered, visibility controlled via CSS opacity +
+         * transform so the browser can smoothly interpolate without layout
+         * recalculation. pointer-events:none while hidden prevents accidental
+         * interaction. will-change:transform promotes this element to its own
+         * GPU layer so transitions stay on the compositor thread.
+         */}
+        {hasMenuActions && (
+          <div
+            role="menu"
+            aria-hidden={!isMenuOpen}
+            className={[
+              "absolute top-full right-0 mt-2 w-48",
+              "bg-card border border-border rounded-2xl shadow-lg shadow-black/5 overflow-hidden z-50",
+              "transition-all duration-150 ease-out origin-top-right",
+              isMenuOpen
+                ? "opacity-100 scale-100 translate-y-0 pointer-events-auto"
+                : "opacity-0 scale-95 -translate-y-1 pointer-events-none",
+            ].join(" ")}
+            style={{ willChange: "transform, opacity" }}
+          >
             <div className="p-1.5 flex flex-col gap-0.5">
               
               {onSaveToggle ? (
                 <button
+                  role="menuitem"
                   onClick={(e) => {
                     onSaveToggle(id, e);
                     setIsMenuOpen(false);
                   }}
-                  className="w-full flex items-center gap-2.5 px-3 py-2 text-sm text-foreground hover:bg-muted rounded-xl transition-colors text-left"
+                  className="w-full flex items-center gap-2.5 px-3 py-2 text-sm text-foreground hover:bg-muted rounded-xl transition-colors duration-100 text-left"
                 >
                   <Bookmark size={15} className={isSaved ? "fill-foreground text-foreground" : "text-muted-foreground"} />
                   <span>{isSaved ? "Unsave" : "Save"}</span>
                 </button>
               ) : saveHref ? (
                 <Link
+                  role="menuitem"
                   href={saveHref}
-                  className="w-full flex items-center gap-2.5 px-3 py-2 text-sm text-foreground hover:bg-muted rounded-xl transition-colors text-left"
+                  className="w-full flex items-center gap-2.5 px-3 py-2 text-sm text-foreground hover:bg-muted rounded-xl transition-colors duration-100 text-left"
                 >
                   <Bookmark size={15} className="text-muted-foreground" />
                   <span>Save</span>
@@ -156,8 +180,9 @@ export function OpportunityCard({
 
               {chatHref && (
                 <Link
+                  role="menuitem"
                   href={chatHref}
-                  className="w-full flex items-center gap-2.5 px-3 py-2 text-sm text-foreground hover:bg-muted rounded-xl transition-colors text-left"
+                  className="w-full flex items-center gap-2.5 px-3 py-2 text-sm text-foreground hover:bg-muted rounded-xl transition-colors duration-100 text-left"
                 >
                   <MessageSquare size={15} className="text-muted-foreground" />
                   <span>Chat</span>
@@ -166,11 +191,12 @@ export function OpportunityCard({
 
               {onPursueToggle && (
                 <button
+                  role="menuitem"
                   onClick={(e) => {
                     onPursueToggle(id, e);
                     setIsMenuOpen(false);
                   }}
-                  className={`w-full flex items-center gap-2.5 px-3 py-2 text-sm hover:bg-muted rounded-xl transition-colors text-left ${
+                  className={`w-full flex items-center gap-2.5 px-3 py-2 text-sm hover:bg-muted rounded-xl transition-colors duration-100 text-left ${
                     isPursuing ? "text-emerald-600 dark:text-emerald-400 font-medium bg-emerald-500/10 hover:bg-emerald-500/20" : "text-foreground"
                   }`}
                 >

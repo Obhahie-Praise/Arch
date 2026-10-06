@@ -43,7 +43,7 @@ const EmailSigninPage = () => {
   };
 
   return (
-    <div className="space-y-10 w-full max-w-sm px-4">
+    <div className="space-y-10 w-full max-w-sm px-4 animate-page-enter">
       <h2 className="text-2xl font-medium text-center">
         Sign in with your email
       </h2>

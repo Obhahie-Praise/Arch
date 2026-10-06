@@ -28,7 +28,7 @@ const AuthPage = () => {
   };
 
   return (
-    <div className="space-y-10 w-full max-w-sm px-4">
+    <div className="space-y-10 w-full max-w-sm px-4 animate-page-enter">
       <h2 className="text-2xl font-medium text-center">Create an account</h2>
       {error && (
         <p className="text-red-500 text-sm text-center">{error}</p>

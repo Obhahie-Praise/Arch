@@ -361,7 +361,7 @@ export default function DashboardLayout({
       </div>
 
       {/* ── Main content ────────────────────────────────────────────────────── */}
-      <main className="flex-1 overflow-y-auto pt-24 pb-10 px-4 sm:px-6">{children}</main>
+      <main className="flex-1 overflow-y-auto pt-24 pb-10 px-4 sm:px-6 animate-page-enter">{children}</main>
     </div>
   );
 }

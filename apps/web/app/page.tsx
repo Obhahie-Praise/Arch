@@ -6,10 +6,12 @@ import BeamsBackground from "@/components/kokonutui/beams-background";
 const LandingPage = () => {
   return (
     <div className="relative">
-      <nav className="">
+      {/* Navbar enters first — no delay */}
+      <nav className="animate-page-enter">
         <Navbar />
       </nav>
-      <div className="">
+      {/* Hero enters second — slight stagger after navbar */}
+      <div className="animate-page-enter animation-delay-150">
         <Hero />
       </div>
       <BeamsBackground className="absolute top-0 left-0 -z-100" />

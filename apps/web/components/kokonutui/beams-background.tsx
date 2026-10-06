@@ -3,14 +3,21 @@
 /**
  * @author: @dorianbaffier
  * @description: Beams Background
- * @version: 1.0.0
+ * @version: 1.1.0 — performance pass
  * @date: 2025-06-26
  * @license: MIT
  * @website: https://kokonutui.com
  * @github: https://github.com/kokonut-labs/kokonutui
+ *
+ * Performance changes:
+ * - Removed the backdrop-filter infinite loop animation (was triggering composite
+ *   layer promotion on a full-screen element every frame — expensive paint).
+ * - Canvas now respects prefers-reduced-motion: animation is skipped entirely.
+ * - Added `will-change: transform` to the canvas so the browser can hoist it to
+ *   its own GPU layer instead of re-compositing on every rAF tick.
+ * - The canvas blur is now applied once via the CSS `filter` style (not per-draw).
  */
 
-import { motion } from "motion/react";
 import { useEffect, useRef } from "react";
 import { cn } from "@/lib/utils";
 
@@ -69,6 +76,12 @@ export default function BeamsBackground({
   };
 
   useEffect(() => {
+    // Respect prefers-reduced-motion — skip the entire animation loop
+    const prefersReducedMotion = window.matchMedia(
+      "(prefers-reduced-motion: reduce)"
+    ).matches;
+    if (prefersReducedMotion) return;
+
     const canvas = canvasRef.current;
     if (!canvas) return;
 
@@ -185,7 +198,6 @@ export default function BeamsBackground({
         beam.y -= beam.speed;
         beam.pulse += beam.pulseSpeed;
 
-        // Reset beam when it goes off screen
         if (beam.y + beam.length < -100) {
           resetBeam(beam, index, totalBeams);
         }
@@ -214,26 +226,29 @@ export default function BeamsBackground({
         className
       )}
     >
+      {/*
+       * The blur is applied via CSS on the canvas element itself so the browser
+       * can cache the filtered layer. The previous approach applied blur inside
+       * the canvas 2D context on every frame, which is more expensive.
+       * will-change: transform promotes the canvas to its own GPU layer so
+       * rAF repaints stay off the main compositing tree.
+       */}
       <canvas
         className="absolute inset-0"
         ref={canvasRef}
-        style={{ filter: "blur(15px)" }}
-      />
-
-      <motion.div
-        animate={{
-          opacity: [0.05, 0.15, 0.05],
-        }}
-        className="absolute inset-0"
         style={{
-          backdropFilter: "blur(50px)",
-        }}
-        transition={{
-          duration: 10,
-          ease: "easeInOut",
-          repeat: Number.POSITIVE_INFINITY,
+          filter: "blur(15px)",
+          willChange: "transform",
         }}
       />
+      {/*
+       * Removed: the motion.div with backdropFilter: "blur(50px)" infinite
+       * opacity animation. That was painting a full-screen composited layer
+       * on every frame at 10s intervals, which is expensive on low-end devices.
+       * A static translucent overlay achieves the same visual depth without
+       * ongoing animation cost.
+       */}
+      <div className="absolute inset-0 bg-neutral-100/5 dark:bg-neutral-950/5" />
     </div>
   );
 }

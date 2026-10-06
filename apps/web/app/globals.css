@@ -116,6 +116,72 @@
   }
 }
 
+/* ─── Page entry animation ─────────────────────────────────────────────────── */
+
+@keyframes page-enter {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/*
+ * Single reusable entry animation class.
+ * Duration: 350ms — fast enough to feel instant, long enough to be perceptible.
+ * Easing: cubic-bezier(0.22, 1, 0.36, 1) — snappy spring-like deceleration.
+ * Only animates opacity + transform (GPU-composited, no layout work).
+ * animation-fill-mode: both ensures elements start hidden before animation fires.
+ */
+.animate-page-enter {
+  animation: page-enter 350ms cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+/* Stagger delay utilities — use with animate-page-enter */
+.animation-delay-75 {
+  animation-delay: 75ms;
+}
+.animation-delay-150 {
+  animation-delay: 150ms;
+}
+.animation-delay-225 {
+  animation-delay: 225ms;
+}
+.animation-delay-300 {
+  animation-delay: 300ms;
+}
+
+/* ─── Reduced-motion support ───────────────────────────────────────────────── */
+
+/*
+ * When the user has requested reduced motion:
+ * - Collapse all animation and transition durations to near-zero (1ms).
+ *   This keeps state changes functional (dropdowns still hide/show) without
+ *   any perceivable movement.
+ * - Override the page-enter keyframes so elements appear immediately.
+ * - The BeamsBackground canvas animation is also stopped in JS via the
+ *   matchMedia("prefers-reduced-motion: reduce") check in the component.
+ */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 1ms !important;
+    animation-delay: 0ms !important;
+    transition-duration: 1ms !important;
+    scroll-behavior: auto !important;
+  }
+
+  .animate-page-enter {
+    animation: none;
+    opacity: 1;
+    transform: none;
+  }
+}
+
   .font-display {
     font-family: var(--font-atyp-medium-display);
   }
