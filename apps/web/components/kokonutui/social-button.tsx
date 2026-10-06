@@ -39,22 +39,22 @@ const DEFAULT_SHARE_ITEMS: ShareItem[] = [
   {
     icon: XIcon,
     label: "Twitter",
-    href: "https://twitter.com/placeholder",
+    href: "https://twitter.com/praizedevx",
   },
   {
     icon: LinkedInIcon,
     label: "LinkedIn",
-    href: "https://linkedin.com/in/placeholder",
+    href: "https://linkedin.com/in/praise-d-builder-743b92426/",
   },
   {
     icon: GitHubIcon,
     label: "GitHub",
-    href: "https://github.com/placeholder",
+    href: "https://github.com/Obhahie-Praise",
   },
   {
     icon: LanguageIcon,
     label: "Portfolio",
-    href: "https://example.com",
+    href: "https://creative-praise.vercel.app",
   },
 ];
 
@@ -100,7 +100,7 @@ export default function SocialButton({
         <Button
           className={cn(
             "relative min-w-40",
-            "bg-background",
+            "bg-background/20 backdrop-blur-sm",
             "hover:bg-gray-50 dark:hover:bg-gray-950",
             "text-foreground",
             "border border-border",
@@ -122,7 +122,7 @@ export default function SocialButton({
           x: isVisible ? 0 : -8,
         }}
         aria-hidden={!isVisible}
-        className="absolute top-0 left-0 flex h-10 overflow-hidden mt-20"
+        className="absolute top-0 left-0 flex h-10 overflow-hidden"
         initial={{ opacity: 0, x: -8 }}
         transition={{
           duration: 0.3,

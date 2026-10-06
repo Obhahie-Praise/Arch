@@ -116,6 +116,85 @@
   }
 }
 
+/* ─── Hero headline shine sweep ────────────────────────────────────────────── */
+
+/*
+ * Technique: background-clip: text with background-position animation.
+ *
+ * The text is always driven by its background-image — color: transparent
+ * is set statically so the gradient shows through the glyphs at all times.
+ * The gradient's base stops exactly match --foreground, so before and after
+ * the highlight band passes through, the text looks completely normal.
+ * There is no color: transparent in keyframes, so there is no blink.
+ *
+ * The gradient is wider than the element (background-size: 300% 100%) so
+ * the highlight band starts fully off-screen left, sweeps through, and ends
+ * fully off-screen right.
+ *
+ * will-change: background-position tells the browser to promote this element
+ * to its own compositing layer so the position animation is handled off the
+ * main thread where possible.
+ *
+ * After animation-fill-mode: forwards holds the final position (highlight
+ * fully off-screen right), the element is static painted text — no loops,
+ * no rAF, no ongoing cost.
+ */
+
+@keyframes hero-shine-sweep {
+  from { background-position: -100% center; }
+  to   { background-position:  200% center; }
+}
+
+/*
+ * Applied to individual static text <span>s — NOT the parent <p> and NOT
+ * the MorphingText wrapper. This keeps background-clip: text scoped to
+ * elements that never change during morphing, preventing expensive repaints
+ * on every MorphingText character animation frame.
+ *
+ * "Find" fires at 0.45s.
+ * "worth chasing." fires at 0.65s — staggered so the beam feels like it
+ * travels from the first word down through the second.
+ */
+.hero-shine-target {
+  display: inline;
+  color: transparent;
+  -webkit-background-clip: text;
+  background-clip: text;
+  background-image: linear-gradient(
+    90deg,
+    oklch(0.145 0 0)    0%,
+    oklch(0.145 0 0)   35%,
+    oklch(0.38  0 0)   44%,
+    oklch(1     0.04 80) 50%,
+    oklch(0.38  0 0)   56%,
+    oklch(0.145 0 0)   65%,
+    oklch(0.145 0 0)  100%
+  );
+  background-size: 300% 100%;
+  background-position: -100% center;
+  will-change: background-position;
+  animation: hero-shine-sweep 1.4s cubic-bezier(0.4, 0, 0.2, 1) 0.45s forwards;
+}
+
+/* Second span ("worth chasing.") — delayed so beam arrives after "Find" */
+.hero-shine-target.animation-delay-shine {
+  animation-delay: 0.65s;
+}
+
+/* Dark mode */
+html.dark .hero-shine-target {
+  background-image: linear-gradient(
+    90deg,
+    oklch(0.985 0 0)    0%,
+    oklch(0.985 0 0)   35%,
+    oklch(0.75  0 0)   44%,
+    oklch(1     0.04 80) 50%,
+    oklch(0.75  0 0)   56%,
+    oklch(0.985 0 0)   65%,
+    oklch(0.985 0 0)  100%
+  );
+}
+
 /* ─── Page entry animation ─────────────────────────────────────────────────── */
 
 @keyframes page-enter {
@@ -179,6 +258,19 @@
     animation: none;
     opacity: 1;
     transform: none;
+  }
+
+  /*
+   * Skip the shine for reduced-motion users.
+   * Reset to normal rendered text immediately — no color: transparent left hanging.
+   */
+  .hero-shine-target {
+    animation: none !important;
+    color: inherit !important;
+    background-image: none !important;
+    -webkit-background-clip: unset !important;
+    background-clip: unset !important;
+    will-change: auto !important;
   }
 }
 
