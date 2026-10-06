@@ -83,7 +83,7 @@ export const ExperienceManager: React.FC<ExperienceManagerProps> = ({
       </div>
 
       {experiences.length === 0 ? (
-        <div className="border border-dashed border-border rounded-3xl p-6 text-center text-sm text-muted-foreground">
+        <div className="border border-dashed border-border rounded-4xl p-6 text-center text-sm text-muted-foreground">
           No work experiences added yet. Click "Add Experience" to add one.
         </div>
       ) : (
@@ -93,7 +93,7 @@ export const ExperienceManager: React.FC<ExperienceManagerProps> = ({
             return (
               <div
                 key={idx}
-                className="border border-border rounded-3xl p-5 bg-card transition-all duration-200"
+                className="border border-border rounded-4xl p-5 bg-card transition-all duration-200"
               >
                 {/* Header */}
                 <div
@@ -215,7 +215,7 @@ export const ExperienceManager: React.FC<ExperienceManagerProps> = ({
                         value={exp.description || ""}
                         onChange={(e) => updateExperience(idx, { ...exp, description: e.target.value })}
                         placeholder="Describe key responsibilities and impact..."
-                        className="border border-border text-base rounded-3xl p-4 w-full focus:outline-none focus:border-foreground/60 transition-all resize-y"
+                        className="border border-border text-base rounded-4xl p-4 w-full focus:outline-none focus:border-foreground/60 transition-all resize-y"
                       />
                     </div>
 

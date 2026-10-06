@@ -82,7 +82,7 @@ export const ProjectsManager: React.FC<ProjectsManagerProps> = ({
       </div>
 
       {projects.length === 0 ? (
-        <div className="border border-dashed border-border rounded-3xl p-6 text-center text-sm text-muted-foreground">
+        <div className="border border-dashed border-border rounded-4xl p-6 text-center text-sm text-muted-foreground">
           No projects added yet. Click <span className="hidden md:inline">"Add Project"</span> <Plus size={16} className="inline md:hidden" /> to showcase your work.
         </div>
       ) : (
@@ -92,7 +92,7 @@ export const ProjectsManager: React.FC<ProjectsManagerProps> = ({
             return (
               <div
                 key={idx}
-                className="border border-border rounded-3xl p-5 bg-card transition-all duration-200"
+                className="border border-border rounded-4xl p-5 bg-card transition-all duration-200"
               >
                 <div
                   className="flex items-center justify-between cursor-pointer select-none"
@@ -198,7 +198,7 @@ export const ProjectsManager: React.FC<ProjectsManagerProps> = ({
                         value={proj.description || ""}
                         onChange={(e) => updateProject(idx, { ...proj, description: e.target.value })}
                         placeholder="What problem does this project solve? What did you build?"
-                        className="border border-border text-base rounded-3xl p-4 w-full focus:outline-none focus:border-foreground/60 transition-all resize-y"
+                        className="border border-border text-base rounded-4xl p-4 w-full focus:outline-none focus:border-foreground/60 transition-all resize-y"
                       />
                     </div>
 

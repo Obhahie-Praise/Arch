@@ -69,7 +69,7 @@ export const EducationManager: React.FC<EducationManagerProps> = ({
       </div>
 
       {education.length === 0 ? (
-        <div className="border border-dashed border-border rounded-3xl p-6 text-center text-sm text-muted-foreground">
+        <div className="border border-dashed border-border rounded-4xl p-6 text-center text-sm text-muted-foreground">
           No education history added yet. Click <span className="hidden md:inline">"Add Education"</span> <Plus size={16} className="inline md:hidden" /> to add one.
         </div>
       ) : (
@@ -79,7 +79,7 @@ export const EducationManager: React.FC<EducationManagerProps> = ({
             return (
               <div
                 key={idx}
-                className="border border-border rounded-3xl p-5 bg-card transition-all duration-200"
+                className="border border-border rounded-4xl p-5 bg-card transition-all duration-200"
               >
                 <div
                   className="flex items-center justify-between cursor-pointer select-none"
@@ -193,7 +193,7 @@ export const EducationManager: React.FC<EducationManagerProps> = ({
                         value={edu.achievements || ""}
                         onChange={(e) => updateEducation(idx, { ...edu, achievements: e.target.value })}
                         placeholder="Honors, thesis, activities..."
-                        className="border border-border text-base rounded-3xl p-4 w-full focus:outline-none focus:border-foreground/60 transition-all resize-y"
+                        className="border border-border text-base rounded-4xl p-4 w-full focus:outline-none focus:border-foreground/60 transition-all resize-y"
                       />
                     </div>
                   </div>

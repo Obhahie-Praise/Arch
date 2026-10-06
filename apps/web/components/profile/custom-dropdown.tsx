@@ -106,7 +106,7 @@ export const CustomDropdown: React.FC<CustomDropdownProps> = ({
         <div
           id={listboxId}
           role="listbox"
-          className="absolute top-full left-0 right-0 mt-2 z-50 max-h-60 overflow-y-auto bg-background rounded-3xl border border-border shadow-xl px-2 pb-2  transition-all duration-200"
+          className="absolute top-full left-0 right-0 mt-2 z-50 max-h-60 overflow-y-auto bg-background rounded-4xl border border-border shadow-xl px-2 pb-2  transition-all duration-200"
         >
           {searchable && (
             <div className="p-2 border-b border-border mb-1 sticky top-0 bg-background">

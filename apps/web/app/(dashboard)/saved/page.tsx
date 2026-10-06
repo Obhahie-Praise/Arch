@@ -242,7 +242,7 @@ export default function SavedPage() {
           <h1 className="font-display text-2xl sm:text-3xl font-medium text-foreground">Saved</h1>
         </div>
 
-        <div className="rounded-3xl p-8 sm:p-12 text-center flex flex-col items-center justify-center gap-5 transition-all">
+        <div className="rounded-4xl p-8 sm:p-12 text-center flex flex-col items-center justify-center gap-5 transition-all">
           <div className="p-4 bg-muted rounded-full text-foreground">
             <Sparkles size={28} strokeWidth={1.5} />
           </div>
@@ -278,7 +278,7 @@ export default function SavedPage() {
         <div className="flex flex-col gap-1">
           <h1 className="font-display text-2xl sm:text-3xl font-medium text-foreground">Saved</h1>
         </div>
-        <div className="rounded-3xl p-12 text-center flex flex-col items-center justify-center gap-4">
+        <div className="rounded-4xl p-12 text-center flex flex-col items-center justify-center gap-4">
           <Bookmark size={32} strokeWidth={1.5} className="text-muted-foreground" />
           <div className="space-y-1">
             <p className="text-base font-medium text-foreground">
@@ -377,7 +377,7 @@ export default function SavedPage() {
             />
           ))
         ) : hasError ? (
-          <div className="border border-dashed border-border rounded-3xl p-12 text-center flex flex-col items-center justify-center gap-4">
+          <div className="border border-dashed border-border rounded-4xl p-12 text-center flex flex-col items-center justify-center gap-4">
             <p className="text-sm font-medium text-red-500">
               Failed to load saved opportunities. Please try again.
             </p>
@@ -385,7 +385,7 @@ export default function SavedPage() {
         ) : (
           // Filtered/search empty state — saved items exist but the current
           // query/filters return nothing. The full page layout stays intact.
-          <div className="border border-dashed border-border rounded-3xl p-12 text-center flex flex-col items-center justify-center gap-3">
+          <div className="border border-dashed border-border rounded-4xl p-12 text-center flex flex-col items-center justify-center gap-3">
             <Search size={24} className="text-muted-foreground" />
             <p className="text-sm font-medium text-foreground">
               No saved opportunities found

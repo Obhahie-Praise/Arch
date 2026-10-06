@@ -143,7 +143,7 @@ export default function OpportunityChatPage() {
   if (error || !opportunity) {
     return (
       <div className="max-w-3xl mx-auto py-12">
-        <div className="rounded-3xl p-8 text-center flex flex-col items-center justify-center gap-4">
+        <div className="rounded-4xl p-8 text-center flex flex-col items-center justify-center gap-4">
           <AlertCircle className="text-red-500" size={32} />
           <div className="space-y-1">
             <h2 className="text-lg font-medium text-foreground">
@@ -213,7 +213,7 @@ export default function OpportunityChatPage() {
               }`}
             >
               <div
-                className={`max-w-[85%] rounded-3xl px-5 py-3.5 text-sm leading-relaxed ${
+                className={`max-w-[85%] rounded-4xl px-5 py-3.5 text-sm leading-relaxed ${
                   msg.role === "user"
                     ? "bg-foreground text-background"
                     : "bg-muted text-foreground"
@@ -233,7 +233,7 @@ export default function OpportunityChatPage() {
 
         {isSending && messages[messages.length - 1]?.role === "user" && (
           <div className="flex justify-start">
-            <div className="max-w-[85%] rounded-3xl px-5 py-3.5 bg-muted flex items-center gap-2 text-muted-foreground">
+            <div className="max-w-[85%] rounded-4xl px-5 py-3.5 bg-muted flex items-center gap-2 text-muted-foreground">
               <div className="w-1.5 h-1.5 rounded-full bg-foreground/40 animate-pulse" />
               <div className="w-1.5 h-1.5 rounded-full bg-foreground/40 animate-pulse delay-150" />
               <div className="w-1.5 h-1.5 rounded-full bg-foreground/40 animate-pulse delay-300" />
@@ -244,7 +244,7 @@ export default function OpportunityChatPage() {
         {/* Inline send error — shown inside the conversation rather than replacing the whole page */}
         {error && !isSending && (
           <div className="flex justify-start">
-            <div className="max-w-[85%] rounded-3xl px-5 py-3.5 bg-red-500/10 border border-red-500/20 flex items-start gap-2">
+            <div className="max-w-[85%] rounded-4xl px-5 py-3.5 bg-red-500/10 border border-red-500/20 flex items-start gap-2">
               <AlertCircle size={14} className="text-red-500 shrink-0 mt-0.5" />
               <p className="text-sm text-red-600 dark:text-red-400">{error}</p>
             </div>

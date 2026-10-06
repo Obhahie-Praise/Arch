@@ -235,7 +235,7 @@ export default function OpportunitiesPage() {
           </h1>
         </div>
 
-        <div className="rounded-3xl p-8 sm:p-12 text-center flex flex-col items-center justify-center gap-5 transition-all">
+        <div className="rounded-4xl p-8 sm:p-12 text-center flex flex-col items-center justify-center gap-5 transition-all">
           <div className="p-4 bg-muted rounded-full text-foreground">
             <Sparkles size={28} strokeWidth={1.5} />
           </div>
@@ -273,7 +273,7 @@ export default function OpportunitiesPage() {
             Opportunities
           </h1>
         </div>
-        <div className="rounded-3xl p-12 text-center flex flex-col items-center justify-center gap-3">
+        <div className="rounded-4xl p-12 text-center flex flex-col items-center justify-center gap-3">
           <Sparkles size={24} className="text-muted-foreground" />
           <p className="text-sm font-medium text-foreground">
             No opportunities available
@@ -361,7 +361,7 @@ export default function OpportunitiesPage() {
             ))}
           </div>
         ) : hasError ? (
-          <div className="rounded-3xl p-12 text-center flex flex-col items-center justify-center gap-3">
+          <div className="rounded-4xl p-12 text-center flex flex-col items-center justify-center gap-3">
             <p className="text-sm font-medium text-red-500">
               Failed to load opportunities. Please try again.
             </p>
@@ -369,7 +369,7 @@ export default function OpportunitiesPage() {
         ) : filteredOpportunities.length === 0 ? (
           // Filtered/search empty state — opportunities exist but the current
           // query/filters return nothing. Keep the full page layout intact.
-          <div className="rounded-3xl p-12 text-center flex flex-col items-center justify-center gap-3">
+          <div className="rounded-4xl p-12 text-center flex flex-col items-center justify-center gap-3">
             <Search size={24} className="text-muted-foreground" />
             <p className="text-sm font-medium text-foreground">
               No opportunities found

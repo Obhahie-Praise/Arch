@@ -2,7 +2,7 @@ import React from "react";
 
 export function MetricCardSkeleton() {
   return (
-    <div className="border border-border rounded-3xl p-5 bg-card flex flex-col justify-between gap-3 animate-pulse">
+    <div className="border border-border rounded-4xl p-5 bg-card flex flex-col justify-between gap-3 animate-pulse">
       <div className="flex items-center justify-between">
         <div className="h-4 w-20 bg-muted rounded"></div>
         <div className="p-2 bg-muted rounded-full w-8 h-8"></div>
@@ -16,7 +16,7 @@ export function MetricCardSkeleton() {
 
 export function ChartSkeleton() {
   return (
-    <div className="border border-border rounded-3xl p-6 bg-card flex flex-col justify-between gap-4 animate-pulse">
+    <div className="border border-border rounded-4xl p-6 bg-card flex flex-col justify-between gap-4 animate-pulse">
       <div className="flex items-center justify-between">
         <div className="space-y-2">
           <div className="h-5 w-32 bg-muted rounded"></div>
@@ -39,7 +39,7 @@ export function ChartSkeleton() {
 
 export function OpportunityCardSkeleton() {
   return (
-    <div className="border border-border rounded-3xl p-5 bg-card flex flex-col sm:flex-row sm:items-center justify-between gap-4 animate-pulse">
+    <div className="border border-border rounded-4xl p-5 bg-card flex flex-col sm:flex-row sm:items-center justify-between gap-4 animate-pulse">
       <div className="space-y-1.5 flex-1">
         <div className="flex items-center gap-2 flex-wrap">
           <div className="h-5 bg-muted rounded w-48"></div>
@@ -70,7 +70,7 @@ export function OpportunityCardSkeleton() {
 
 export function SavedItemSkeleton() {
   return (
-    <div className="border border-border rounded-3xl p-4 bg-card flex items-center justify-between gap-3 animate-pulse">
+    <div className="border border-border rounded-4xl p-4 bg-card flex items-center justify-between gap-3 animate-pulse">
       <div className="space-y-1.5 flex-1">
         <div className="h-4 w-40 bg-muted rounded"></div>
         <div className="h-3 w-56 bg-muted rounded"></div>
@@ -127,7 +127,7 @@ export function DetailMetadataSkeleton() {
 
 export function DetailMatchSkeleton() {
   return (
-    <div className="p-6 bg-muted/30 border border-border rounded-3xl space-y-4 animate-pulse">
+    <div className="p-6 bg-muted/30 border border-border rounded-4xl space-y-4 animate-pulse">
       <div className="h-6 w-40 bg-muted rounded"></div>
       <div className="space-y-3">
         <div className="h-4 w-full sm:w-3/4 bg-muted rounded"></div>

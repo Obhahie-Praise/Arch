@@ -66,7 +66,7 @@ export function OpportunityCard({
   const hasMenuActions = Boolean(onSaveToggle || saveHref || chatHref || onPursueToggle);
 
   return (
-    <div className="border border-border rounded-3xl p-5 bg-card flex flex-col sm:flex-row sm:items-center justify-between gap-4 transition-colors duration-200 hover:border-foreground/40">
+    <div className="border border-border rounded-4xl p-5 bg-card flex flex-col sm:flex-row sm:items-center justify-between gap-4 transition-colors duration-200 hover:border-foreground/40">
       <div className="space-y-1.5">
         <div className="flex items-center gap-2 flex-wrap">
           <h3 className="font-display text-base font-medium text-foreground">

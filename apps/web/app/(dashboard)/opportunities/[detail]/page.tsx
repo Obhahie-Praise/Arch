@@ -162,7 +162,7 @@ export default function OpportunityDetailPage() {
         >
           <ArrowLeft size={16} /> Back to opportunities
         </Link>
-        <div className="rounded-3xl p-12 text-center flex flex-col items-center justify-center gap-3">
+        <div className="rounded-4xl p-12 text-center flex flex-col items-center justify-center gap-3">
           <AlertCircle size={24} className="text-muted-foreground" />
           <p className="text-sm font-medium text-foreground">Opportunity not found</p>
           <p className="text-xs text-muted-foreground max-w-sm">
@@ -282,7 +282,7 @@ export default function OpportunityDetailPage() {
       {loadingMatch ? (
         <DetailMatchSkeleton />
       ) : opportunity.matchScore ? (
-        <div className="p-6 bg-emerald-500/5 border border-emerald-500/20 rounded-3xl space-y-4">
+        <div className="p-6 bg-emerald-500/5 border border-emerald-500/20 rounded-4xl space-y-4">
           <div className="flex items-center gap-2 text-emerald-700 dark:text-emerald-400 font-medium">
             <Sparkles size={18} />
             <span>{opportunity.matchScore}% Match for you</span>

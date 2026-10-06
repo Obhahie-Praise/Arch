@@ -144,7 +144,7 @@ export const FileUpload: React.FC<FileUploadProps> = ({
 
       {valueUrl ? (
         // Preview State with Hover "Upload another"
-        <div className="relative group border border-border rounded-3xl p-4 bg-card flex items-center justify-between transition-all duration-300 hover:border-foreground/40">
+        <div className="relative group border border-border rounded-4xl p-4 bg-card flex items-center justify-between transition-all duration-300 hover:border-foreground/40">
           <div className="flex items-center gap-3 overflow-hidden">
             {type === "image" ? (
               <div className="w-12 h-12 rounded-full overflow-hidden border border-border shrink-0 bg-muted">
@@ -197,7 +197,7 @@ export const FileUpload: React.FC<FileUploadProps> = ({
           onDragLeave={onDragLeave}
           onDrop={onDrop}
           onClick={() => !isUploading && fileInputRef.current?.click()}
-          className={`border border-dashed rounded-3xl p-6 text-center cursor-pointer transition-all duration-300 flex flex-col items-center justify-center gap-2 ${
+          className={`border border-dashed rounded-4xl p-6 text-center cursor-pointer transition-all duration-300 flex flex-col items-center justify-center gap-2 ${
             isDragging
               ? "border-foreground bg-muted/40 scale-[1.01]"
               : "border-border hover:border-foreground/50 bg-background"

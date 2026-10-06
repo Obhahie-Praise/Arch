@@ -79,7 +79,7 @@ export const AchievementsManager: React.FC<AchievementsManagerProps> = ({
       </div>
 
       {achievements.length === 0 ? (
-        <div className="border border-dashed border-border rounded-3xl p-6 text-center text-sm text-muted-foreground">
+        <div className="border border-dashed border-border rounded-4xl p-6 text-center text-sm text-muted-foreground">
           No achievements added yet. Click <span className="hidden md:inline">"Add Achievement"</span> <Plus size={16} className="inline md:hidden" /> to list your recognitions.
         </div>
       ) : (
@@ -89,7 +89,7 @@ export const AchievementsManager: React.FC<AchievementsManagerProps> = ({
             return (
               <div
                 key={idx}
-                className="border border-border rounded-3xl p-5 bg-card transition-all duration-200"
+                className="border border-border rounded-4xl p-5 bg-card transition-all duration-200"
               >
                 <div
                   className="flex items-center justify-between cursor-pointer select-none"
@@ -184,7 +184,7 @@ export const AchievementsManager: React.FC<AchievementsManagerProps> = ({
                         value={ach.description || ""}
                         onChange={(e) => updateAchievement(idx, { ...ach, description: e.target.value })}
                         placeholder="Details about the recognition, score, or project submission..."
-                        className="border border-border text-base rounded-3xl p-4 w-full focus:outline-none focus:border-foreground/60 transition-all resize-y"
+                        className="border border-border text-base rounded-4xl p-4 w-full focus:outline-none focus:border-foreground/60 transition-all resize-y"
                       />
                     </div>
                   </div>

@@ -114,7 +114,7 @@ const NOTIFICATION_ITEMS: {
 
 function SectionSkeleton({ rows = 3 }: { rows?: number }) {
   return (
-    <div className="border border-border rounded-3xl p-6 bg-card space-y-5 animate-pulse">
+    <div className="border border-border rounded-4xl p-6 bg-card space-y-5 animate-pulse">
       <div className="h-5 w-32 bg-muted rounded" />
       {Array.from({ length: rows }).map((_, i) => (
         <div key={i} className="flex items-center justify-between gap-4">
@@ -659,7 +659,7 @@ export default function SettingsPage() {
             icon={<User2 size={16} strokeWidth={1.5} />}
             title="Account"
           />
-          <div className="border border-border rounded-3xl bg-card overflow-hidden divide-y divide-border">
+          <div className="border border-border rounded-4xl bg-card overflow-hidden divide-y divide-border">
             <Row label="Name" value={displayName} />
             <Row label="Email" value={displayEmail} />
             <div className="px-6 py-4">
@@ -780,7 +780,7 @@ export default function SettingsPage() {
           {!settings && !loadError ? (
             <SectionSkeleton rows={1} />
           ) : (
-            <div className="border border-border rounded-3xl bg-card p-6 space-y-4">
+            <div className="border border-border rounded-4xl bg-card p-6 space-y-4">
               <div>
                 <p className="text-sm font-medium text-foreground">
                   Matching breadth
@@ -839,7 +839,7 @@ export default function SettingsPage() {
           {!settings && !loadError ? (
             <SectionSkeleton rows={5} />
           ) : (
-            <div className="border border-border rounded-3xl bg-card overflow-hidden divide-y divide-border">
+            <div className="border border-border rounded-4xl bg-card overflow-hidden divide-y divide-border">
               {NOTIFICATION_ITEMS.map((item) => (
                 <div
                   key={item.key}
@@ -868,7 +868,7 @@ export default function SettingsPage() {
             icon={<Palette size={16} strokeWidth={1.5} />}
             title="Appearance"
           />
-          <div className="border border-border rounded-3xl bg-card p-6">
+          <div className="border border-border rounded-4xl bg-card p-6">
             <p className="text-base font-medium text-foreground mb-1">Theme</p>
             {mounted ? (
               <div className="flex gap-2 flex-wrap">
@@ -929,7 +929,7 @@ export default function SettingsPage() {
             title="Danger zone"
             danger
           />
-          <div className="border border-red-200 dark:border-red-900/50 rounded-3xl bg-card overflow-hidden divide-y divide-red-100 dark:divide-red-900/30">
+          <div className="border border-red-200 dark:border-red-900/50 rounded-4xl bg-card overflow-hidden divide-y divide-red-100 dark:divide-red-900/30">
             <div className="flex items-center justify-between gap-4 px-6 py-4">
               <div>
                 <p className="text-sm font-medium text-foreground">Sign out</p>

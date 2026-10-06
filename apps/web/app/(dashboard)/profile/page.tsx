@@ -697,7 +697,7 @@ export default function ProfilePage() {
         {isLoading ? (
           <IdentitySkeleton />
         ) : (
-          <section className="space-y-4 border border-border rounded-3xl p-6 bg-card">
+          <section className="space-y-4 border border-border rounded-4xl p-6 bg-card">
             <div className="border-b border-border pb-3">
               <h2 className="font-display text-xl text-foreground font-medium">Identity</h2>
             </div>
@@ -855,7 +855,7 @@ export default function ProfilePage() {
         {isLoading ? (
           <PreferencesSkeleton />
         ) : (
-          <section className="space-y-4 border border-border rounded-3xl p-6 bg-card">
+          <section className="space-y-4 border border-border rounded-4xl p-6 bg-card">
             <div className="border-b border-border pb-3">
               <h2 className="font-display text-xl text-foreground font-medium">Opportunity Preferences</h2>
             </div>
@@ -953,7 +953,7 @@ export default function ProfilePage() {
         {isLoading ? (
           <SkillsSkeleton />
         ) : (
-          <section className="space-y-4 border border-border rounded-3xl p-6 bg-card">
+          <section className="space-y-4 border border-border rounded-4xl p-6 bg-card">
             <div className="border-b border-border pb-3">
               <h2 className="font-display text-xl text-foreground font-medium">Skills</h2>
             </div>
@@ -997,7 +997,7 @@ export default function ProfilePage() {
         {isLoading ? (
           <ExperienceSkeleton />
         ) : (
-          <section className="border border-border rounded-3xl p-6 bg-card">
+          <section className="border border-border rounded-4xl p-6 bg-card">
             <ExperienceManager experiences={experiences} onChange={setExperiences} />
           </section>
         )}
@@ -1006,7 +1006,7 @@ export default function ProfilePage() {
         {isLoading ? (
           <EducationSkeleton />
         ) : (
-          <section className="border border-border rounded-3xl p-6 bg-card">
+          <section className="border border-border rounded-4xl p-6 bg-card">
             <EducationManager education={education} onChange={setEducation} />
           </section>
         )}
@@ -1015,7 +1015,7 @@ export default function ProfilePage() {
         {isLoading ? (
           <ProjectsSkeleton />
         ) : (
-          <section className="border border-border rounded-3xl p-6 bg-card">
+          <section className="border border-border rounded-4xl p-6 bg-card">
             <ProjectsManager projects={projects} onChange={setProjects} />
           </section>
         )}
@@ -1024,7 +1024,7 @@ export default function ProfilePage() {
         {isLoading ? (
           <AchievementsSkeleton />
         ) : (
-          <section className="border border-border rounded-3xl p-6 bg-card">
+          <section className="border border-border rounded-4xl p-6 bg-card">
             <AchievementsManager achievements={achievements} onChange={setAchievements} />
           </section>
         )}
@@ -1033,7 +1033,7 @@ export default function ProfilePage() {
         {isLoading ? (
           <GoalsSkeleton />
         ) : (
-          <section className="space-y-4 border border-border rounded-3xl p-6 bg-card">
+          <section className="space-y-4 border border-border rounded-4xl p-6 bg-card">
             <div className="border-b border-border pb-3">
               <h2 className="font-display text-xl text-foreground font-medium">Interests & Goals</h2>
             </div>
@@ -1066,7 +1066,7 @@ export default function ProfilePage() {
                   value={bio}
                   onChange={(e) => setBio(e.target.value)}
                   placeholder="A concise summary of who you are and what drives you..."
-                  className="border border-border text-base rounded-3xl p-4 w-full focus:outline-none focus:border-foreground/60 transition-all resize-y"
+                  className="border border-border text-base rounded-4xl p-4 w-full focus:outline-none focus:border-foreground/60 transition-all resize-y"
                 />
               </div>
 
@@ -1082,7 +1082,7 @@ export default function ProfilePage() {
                     value={shortTermGoals}
                     onChange={(e) => setShortTermGoals(e.target.value)}
                     placeholder="What are you focusing on over the next 6-12 months?"
-                    className="border border-border text-base rounded-3xl p-4 w-full focus:outline-none focus:border-foreground/60 transition-all resize-y"
+                    className="border border-border text-base rounded-4xl p-4 w-full focus:outline-none focus:border-foreground/60 transition-all resize-y"
                   />
                 </div>
 
@@ -1097,7 +1097,7 @@ export default function ProfilePage() {
                     value={longTermGoals}
                     onChange={(e) => setLongTermGoals(e.target.value)}
                     placeholder="Where do you want to be in 3-5 years?"
-                    className="border border-border text-base rounded-3xl p-4 w-full focus:outline-none focus:border-foreground/60 transition-all resize-y"
+                    className="border border-border text-base rounded-4xl p-4 w-full focus:outline-none focus:border-foreground/60 transition-all resize-y"
                   />
                 </div>
               </div>
@@ -1109,7 +1109,7 @@ export default function ProfilePage() {
         {isLoading ? (
           <EligibilitySkeleton />
         ) : (
-          <section className="space-y-4 border border-border rounded-3xl p-6 bg-card">
+          <section className="space-y-4 border border-border rounded-4xl p-6 bg-card">
             <div className="border-b border-border pb-3">
               <h2 className="font-display text-xl text-foreground font-medium">Eligibility & Status</h2>
             </div>
@@ -1178,7 +1178,7 @@ export default function ProfilePage() {
         {isLoading ? (
           <AvailabilitySkeleton />
         ) : (
-          <section className="space-y-4 border border-border rounded-3xl p-6 bg-card">
+          <section className="space-y-4 border border-border rounded-4xl p-6 bg-card">
             <div className="border-b border-border pb-3">
               <h2 className="font-display text-xl text-foreground font-medium">Availability</h2>
             </div>
@@ -1235,7 +1235,7 @@ export default function ProfilePage() {
         {isLoading ? (
           <CompensationSkeleton />
         ) : (
-          <section className="space-y-4 border border-border rounded-3xl p-6 bg-card">
+          <section className="space-y-4 border border-border rounded-4xl p-6 bg-card">
             <div className="border-b border-border pb-3">
               <h2 className="font-display text-xl text-foreground font-medium">Compensation & Expectations</h2>
             </div>
@@ -1303,7 +1303,7 @@ export default function ProfilePage() {
         {isLoading ? (
           <PreferencesSkeleton />
         ) : (
-          <section className="space-y-4 border border-border rounded-3xl p-6 bg-card">
+          <section className="space-y-4 border border-border rounded-4xl p-6 bg-card">
             <div className="border-b border-border pb-3">
               <h2 className="font-display text-xl text-foreground font-medium">Preferences & Deal-Breakers</h2>
             </div>
@@ -1347,7 +1347,7 @@ export default function ProfilePage() {
         {isLoading ? (
           <MaterialsSkeleton />
         ) : (
-          <section className="space-y-4 border border-border rounded-3xl p-6 bg-card">
+          <section className="space-y-4 border border-border rounded-4xl p-6 bg-card">
             <div className="border-b border-border pb-3">
               <h2 className="font-display text-xl text-foreground font-medium">Application Materials</h2>
             </div>
@@ -1373,7 +1373,7 @@ export default function ProfilePage() {
 
         {/* FINAL SUBMISSION MESSAGE & BUTTON */}
         <div className="space-y-4 pt-4 border-t border-border">
-          <div className="flex items-center gap-3 p-4 bg-muted/60 border border-border rounded-3xl">
+          <div className="flex items-center gap-3 p-4 bg-muted/60 border border-border rounded-4xl">
             <Sparkles className="text-amber-500 shrink-0" size={20} />
             <p className="text-sm text-foreground/90 leading-relaxed font-medium">
               Filling out your entire profile gives Arch more context to find opportunities that are a better fit for you.
@@ -1401,7 +1401,7 @@ export default function ProfilePage() {
 
       {/* Notifications */}
       {saveSuccess && (
-        <div className="flex items-center gap-3 p-4 bg-emerald-500/10 border border-emerald-500/30 rounded-3xl text-emerald-700 dark:text-emerald-300 text-sm">
+        <div className="flex items-center gap-3 p-4 bg-emerald-500/10 border border-emerald-500/30 rounded-4xl text-emerald-700 dark:text-emerald-300 text-sm">
           <CheckCircle size={20} className="shrink-0 text-emerald-500" />
           <div>
             <p className="font-medium">Profile saved successfully!</p>
@@ -1410,7 +1410,7 @@ export default function ProfilePage() {
       )}
 
       {saveError && (
-        <div className="flex items-center gap-3 p-4 bg-red-500/10 border border-red-500/30 rounded-3xl text-red-600 dark:text-red-400 text-sm">
+        <div className="flex items-center gap-3 p-4 bg-red-500/10 border border-red-500/30 rounded-4xl text-red-600 dark:text-red-400 text-sm">
           <AlertCircle size={20} className="shrink-0 text-red-500" />
           <p className="font-medium">{saveError}</p>
         </div>

@@ -318,7 +318,7 @@ export default function HomePage() {
         <div className="flex flex-col gap-1">
           <h1 className="font-display text-2xl sm:text-3xl font-medium text-foreground">Home</h1>
         </div>
-        <div className="rounded-3xl p-8 sm:p-12 text-center flex flex-col items-center justify-center gap-5 transition-all">
+        <div className="rounded-4xl p-8 sm:p-12 text-center flex flex-col items-center justify-center gap-5 transition-all">
           <div className="p-4 bg-muted rounded-full text-foreground">
             <Sparkles size={28} strokeWidth={1.5} />
           </div>
@@ -372,7 +372,7 @@ export default function HomePage() {
         <div className="flex flex-col gap-1">
           <h1 className="font-display text-2xl sm:text-3xl font-medium text-foreground">Home</h1>
         </div>
-        <div className="rounded-3xl p-8 text-center flex flex-col items-center justify-center gap-3 mt-8">
+        <div className="rounded-4xl p-8 text-center flex flex-col items-center justify-center gap-3 mt-8">
           <Sparkles size={24} className="text-muted-foreground" />
           <p className="text-sm font-medium text-foreground">No matches found yet</p>
           <p className="text-xs text-muted-foreground max-w-sm">
@@ -400,7 +400,7 @@ export default function HomePage() {
           </>
         ) : (
           <>
-            <div className="border border-border rounded-3xl p-5 bg-card flex flex-col justify-between gap-3 transition-all hover:border-foreground/30">
+            <div className="border border-border rounded-4xl p-5 bg-card flex flex-col justify-between gap-3 transition-all hover:border-foreground/30">
               <div className="flex items-center justify-between">
                 <span className="text-sm text-muted-foreground">Matches</span>
                 <div className="p-2 bg-muted rounded-full text-foreground">
@@ -412,7 +412,7 @@ export default function HomePage() {
               </div>
             </div>
 
-            <div className="border border-border rounded-3xl p-5 bg-card flex flex-col justify-between gap-3 transition-all hover:border-foreground/30">
+            <div className="border border-border rounded-4xl p-5 bg-card flex flex-col justify-between gap-3 transition-all hover:border-foreground/30">
               <div className="flex items-center justify-between">
                 <span className="text-sm text-muted-foreground">Saved</span>
                 <div className="p-2 bg-muted rounded-full text-foreground">
@@ -424,7 +424,7 @@ export default function HomePage() {
               </div>
             </div>
 
-            <div className="border border-border rounded-3xl p-5 bg-card flex flex-col justify-between gap-3 transition-all hover:border-foreground/30">
+            <div className="border border-border rounded-4xl p-5 bg-card flex flex-col justify-between gap-3 transition-all hover:border-foreground/30">
               <div className="flex items-center justify-between">
                 <span className="text-sm text-muted-foreground">Pursuing</span>
                 <div className="p-2 bg-muted rounded-full text-foreground">
@@ -449,7 +449,7 @@ export default function HomePage() {
         ) : (
           <>
             {/* Discovery Chart */}
-            <div className="border border-border rounded-3xl p-6 bg-card flex flex-col gap-4" style={{ minHeight: "220px" }}>
+            <div className="border border-border rounded-4xl p-6 bg-card flex flex-col gap-4" style={{ minHeight: "220px" }}>
               <div className="flex items-center justify-between shrink-0">
                 <h3 className="font-display text-base font-medium text-foreground">
                   Opportunities Discovered
@@ -462,7 +462,7 @@ export default function HomePage() {
             </div>
 
             {/* Journey Chart */}
-            <div className="border border-border rounded-3xl p-6 bg-card flex flex-col justify-between gap-4">
+            <div className="border border-border rounded-4xl p-6 bg-card flex flex-col justify-between gap-4">
               <h3 className="font-display text-base font-medium text-foreground">
                 Opportunity Journey
               </h3>
@@ -504,7 +504,7 @@ export default function HomePage() {
             <OpportunityCardSkeleton />
           </div>
         ) : hasError ? (
-          <div className="border border-dashed border-border rounded-3xl p-8 text-center flex flex-col items-center justify-center gap-3">
+          <div className="border border-dashed border-border rounded-4xl p-8 text-center flex flex-col items-center justify-center gap-3">
             <p className="text-sm font-medium text-red-500">Failed to load recent matches. Please try again.</p>
           </div>
         ) : recentMatches.length > 0 ? (
@@ -555,7 +555,7 @@ export default function HomePage() {
                 <Link
                   key={opp.id}
                   href={`/opportunities/${opp.id}`}
-                  className="border border-border rounded-3xl p-4 bg-card flex items-center justify-between gap-3 transition-all hover:border-foreground/30 block"
+                  className="border border-border rounded-4xl p-4 bg-card flex items-center justify-between gap-3 transition-all hover:border-foreground/30 block"
                 >
                   <div className="space-y-0.5 truncate">
                     <h4 className="text-sm font-medium text-foreground truncate">{opp.title}</h4>
@@ -572,7 +572,7 @@ export default function HomePage() {
               ))}
             </div>
           ) : (
-            <div className="rounded-3xl p-6 text-center text-xs text-muted-foreground">
+            <div className="rounded-4xl p-6 text-center text-xs text-muted-foreground">
               No saved opportunities yet. Saved opportunities will appear here.
             </div>
           )}
@@ -586,7 +586,7 @@ export default function HomePage() {
           </div>
 
           {loadingTimeline ? (
-            <div className="border border-border rounded-3xl p-6 bg-card">
+            <div className="border border-border rounded-4xl p-6 bg-card">
               <div className="space-y-6">
                 <TimelineItemSkeleton />
                 <TimelineItemSkeleton />
@@ -594,7 +594,7 @@ export default function HomePage() {
               </div>
             </div>
           ) : timeline.length > 0 ? (
-            <div className="border border-border rounded-3xl p-5 bg-card space-y-4">
+            <div className="border border-border rounded-4xl p-5 bg-card space-y-4">
               {timeline.map((item) => (
                 <div key={item.id} className="space-y-1.5">
                   <div className="flex items-center justify-between text-xs">
@@ -624,7 +624,7 @@ export default function HomePage() {
               ))}
             </div>
           ) : (
-            <div className="rounded-3xl p-6 text-center text-xs text-muted-foreground">
+            <div className="rounded-4xl p-6 text-center text-xs text-muted-foreground">
               No active deadlines to track. Save opportunities to view their closing timeline.
             </div>
           )}

@@ -49,7 +49,7 @@ export const ProfileCompleteness: React.FC<ProfileCompletenessProps> = ({
   ];
 
   return (
-    <div className="border border-border rounded-3xl p-5 bg-card flex flex-col gap-4 transition-all duration-300">
+    <div className="border border-border rounded-4xl p-5 bg-card flex flex-col gap-4 transition-all duration-300">
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
           <Sparkles className="text-foreground shrink-0" size={20} strokeWidth={1.5} />

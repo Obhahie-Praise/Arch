@@ -226,7 +226,7 @@ export default function DashboardLayout({
 
             {/* Desktop Profile Dropdown */}
             <div
-              className={`absolute top-full right-0 mt-2 w-56 bg-background rounded-3xl shadow-lg p-2 z-10 border border-border transition-all duration-200 ease-out origin-top-right ${
+              className={`absolute top-full right-0 mt-2 w-56 bg-background rounded-4xl shadow-lg p-2 z-10 border border-border transition-all duration-200 ease-out origin-top-right ${
                 isDropdownOpen
                   ? "opacity-100 scale-100 translate-y-0 pointer-events-auto"
                   : "opacity-0 scale-95 -translate-y-2 pointer-events-none"
