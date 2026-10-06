@@ -3,28 +3,28 @@
 /**
  * @author: @dorianbaffier
  * @description: Social Button
- * @version: 1.0.0
+ * @version: 1.1.0
  * @date: 2025-06-26
  * @license: MIT
  * @website: https://kokonutui.com
  * @github: https://github.com/kokonut-labs/kokonutui
  */
 
-import type { LucideIcon } from "lucide-react";
+import type { SvgIconComponent } from "@mui/icons-material";
 import { Link } from "lucide-react";
-import InstagramIcon from '@mui/icons-material/Instagram';
-import XIcon from '@mui/icons-material/X';
-import LinkedInIcon from '@mui/icons-material/LinkedIn';
-import GitHubIcon from '@mui/icons-material/GitHub';
-import LanguageIcon from '@mui/icons-material/Language';
+import XIcon from "@mui/icons-material/X";
+import LinkedInIcon from "@mui/icons-material/LinkedIn";
+import GitHubIcon from "@mui/icons-material/GitHub";
+import LanguageIcon from "@mui/icons-material/Language";
 import { motion } from "motion/react";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 
 interface ShareItem {
-  icon: any;
+  icon: SvgIconComponent;
   label: string;
+  href: string;
 }
 
 interface SocialButtonProps
@@ -36,11 +36,26 @@ interface SocialButtonProps
 }
 
 const DEFAULT_SHARE_ITEMS: ShareItem[] = [
-  { icon: XIcon, label: "Share on Twitter" },
-  { icon: InstagramIcon, label: "Share on Instagram" },
-  { icon: LinkedInIcon, label: "Share on LinkedIn" },
-  { icon: LinkedInIcon, label: "Share on LinkedIn" },
-  { icon: LanguageIcon, label: "Portfolio" },
+  {
+    icon: XIcon,
+    label: "Twitter",
+    href: "https://twitter.com/placeholder",
+  },
+  {
+    icon: LinkedInIcon,
+    label: "LinkedIn",
+    href: "https://linkedin.com/in/placeholder",
+  },
+  {
+    icon: GitHubIcon,
+    label: "GitHub",
+    href: "https://github.com/placeholder",
+  },
+  {
+    icon: LanguageIcon,
+    label: "Portfolio",
+    href: "https://example.com",
+  },
 ];
 
 export default function SocialButton({
@@ -53,9 +68,9 @@ export default function SocialButton({
   const [isVisible, setIsVisible] = useState(false);
   const [activeIndex, setActiveIndex] = useState<number | null>(null);
 
-  const handleShare = (index: number) => {
+  const handleShare = (index: number, item: ShareItem) => {
     setActiveIndex(index);
-    onShare?.(index, items[index]);
+    onShare?.(index, item);
     setTimeout(() => setActiveIndex(null), 300);
   };
 
@@ -64,29 +79,37 @@ export default function SocialButton({
       className="relative"
       onMouseEnter={() => setIsVisible(true)}
       onMouseLeave={() => setIsVisible(false)}
+      onFocus={() => setIsVisible(true)}
+      onBlur={(e) => {
+        // Only hide when focus leaves the entire container
+        if (!e.currentTarget.contains(e.relatedTarget)) {
+          setIsVisible(false);
+        }
+      }}
     >
       <motion.div
         animate={{
           opacity: isVisible ? 0 : 1,
+          pointerEvents: isVisible ? "none" : "auto",
         }}
         transition={{
-          duration: 0.2,
+          duration: 0.25,
           ease: "easeInOut",
         }}
       >
         <Button
           className={cn(
             "relative min-w-40",
-            "bg-white dark:bg-black",
+            "bg-background",
             "hover:bg-gray-50 dark:hover:bg-gray-950",
-            "text-black dark:text-white",
-            "border border-black/10 dark:border-white/10",
+            "text-foreground",
+            "border border-border",
             "transition-colors duration-200",
             className
           )}
           {...props}
         >
-          <span className="flex items-center gap-2">
+          <span className="flex items-center gap-2 px-6 py-3">
             <Link className="h-4 w-4" />
             {label}
           </span>
@@ -95,21 +118,24 @@ export default function SocialButton({
 
       <motion.div
         animate={{
-          width: isVisible ? "auto" : 0,
+          opacity: isVisible ? 1 : 0,
+          x: isVisible ? 0 : -8,
         }}
+        aria-hidden={!isVisible}
         className="absolute top-0 left-0 flex h-10 overflow-hidden mt-20"
+        initial={{ opacity: 0, x: -8 }}
         transition={{
           duration: 0.3,
           ease: [0.23, 1, 0.32, 1],
         }}
       >
-        {items.map((button, i) => (
-          <motion.button
+        {items.map((item, i) => (
+          <motion.a
             animate={{
               opacity: isVisible ? 1 : 0,
-              x: isVisible ? 0 : -20,
+              x: isVisible ? 0 : -12,
             }}
-            aria-label={button.label}
+            aria-label={`Visit ${item.label}`}
             className={cn(
               "h-10",
               "w-10",
@@ -120,18 +146,22 @@ export default function SocialButton({
               i === items.length - 1 && "rounded-r-md",
               "border-white/10 border-r last:border-r-0 dark:border-black/10",
               "hover:bg-gray-900 dark:hover:bg-gray-100",
-              "outline-none",
+              "outline-none focus-visible:ring-2 focus-visible:ring-white/50",
               "relative overflow-hidden",
               "transition-colors duration-200"
             )}
-            key={`share-${button.label}`}
-            onClick={() => handleShare(i)}
+            href={item.href}
+            initial={{ opacity: 0, x: -12 }}
+            key={`share-${item.label}`}
+            onClick={() => handleShare(i, item)}
+            rel="noopener noreferrer"
+            tabIndex={isVisible ? 0 : -1}
+            target="_blank"
             transition={{
               duration: 0.3,
               ease: [0.23, 1, 0.32, 1],
-              delay: isVisible ? i * 0.05 : 0,
+              delay: isVisible ? i * 0.04 : 0,
             }}
-            type="button"
           >
             <motion.div
               animate={{
@@ -143,7 +173,7 @@ export default function SocialButton({
                 ease: "easeInOut",
               }}
             >
-              <button.icon className="h-4 w-4" />
+              <item.icon sx={{ fontSize: 16 }} />
             </motion.div>
             <motion.div
               animate={{
@@ -156,7 +186,7 @@ export default function SocialButton({
                 ease: "easeInOut",
               }}
             />
-          </motion.button>
+          </motion.a>
         ))}
       </motion.div>
     </div>
