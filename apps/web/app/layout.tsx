@@ -77,6 +77,9 @@ export const metadata: Metadata = {
       },
     ],
   },
+  verification: {
+    google: "google9d8e7e3177d97656.html",
+  },
 };
 
 export default function RootLayout({
