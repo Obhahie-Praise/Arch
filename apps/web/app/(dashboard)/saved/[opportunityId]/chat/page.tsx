@@ -3,7 +3,7 @@ import { API_URL } from "../../../../../lib/api";
 
 import React, { useState, useEffect, useRef } from "react";
 import Link from "next/link";
-import { useParams, useRouter } from "next/navigation";
+import { useParams } from "next/navigation";
 import { authClient } from "../../../../../lib/auth-client";
 import { cachedFetch } from "../../../../../lib/cache";
 import { ArrowLeft, Send, Sparkles, AlertCircle } from "lucide-react";
@@ -11,7 +11,6 @@ import ReactMarkdown from "react-markdown";
 
 export default function OpportunityChatPage() {
   const { opportunityId } = useParams();
-  const router = useRouter();
   const { data: session } = authClient.useSession();
 
   const [isLoading, setIsLoading] = useState(true);
@@ -23,6 +22,7 @@ export default function OpportunityChatPage() {
   const [error, setError] = useState<string | null>(null);
 
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const scrollContainerRef = useRef<HTMLDivElement>(null);
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -40,7 +40,7 @@ export default function OpportunityChatPage() {
           `${apiUrl}/api/opportunities/${opportunityId}/chat`,
           {
             credentials: "include",
-            ttl: 0, // Always fetch fresh
+            ttl: 0,
           },
         );
 
@@ -50,7 +50,7 @@ export default function OpportunityChatPage() {
           setOpportunity(json.data.opportunity);
           setMessages(json.data.messages || []);
         }
-      } catch (err) {
+      } catch {
         setError("Unable to connect to chat.");
       } finally {
         setIsLoading(false);
@@ -90,14 +90,12 @@ export default function OpportunityChatPage() {
         },
       );
 
-      const json = await response.json() as any;
+      const json = (await response.json()) as any;
 
       if (!response.ok || json.error) {
-        // Revert the optimistic user message and show an inline error
         setMessages((prev) => prev.slice(0, -1));
         setError(
-          json.error?.message ||
-            "Failed to get a response. Please try again.",
+          json.error?.message || "Failed to get a response. Please try again.",
         );
         return;
       }
@@ -111,14 +109,14 @@ export default function OpportunityChatPage() {
         };
         setMessages((prev) => [...prev, assistantMsg]);
       } else {
-        // Response was OK but contained no message text — surface this rather
-        // than leaving the user staring at dots that never resolve.
         setMessages((prev) => prev.slice(0, -1));
         setError("The assistant returned an empty response. Please try again.");
       }
     } catch {
       setMessages((prev) => prev.slice(0, -1));
-      setError("Unable to reach the server. Please check your connection and try again.");
+      setError(
+        "Unable to reach the server. Please check your connection and try again.",
+      );
     } finally {
       setIsSending(false);
     }
@@ -133,7 +131,7 @@ export default function OpportunityChatPage() {
 
   if (isLoading) {
     return (
-      <div className="max-w-3xl mx-auto py-12 flex flex-col items-center justify-center space-y-4">
+      <div className="flex flex-col items-center justify-center space-y-4 h-full py-12">
         <Sparkles className="animate-pulse text-muted-foreground" size={24} />
         <p className="text-sm text-muted-foreground">Preparing workspace...</p>
       </div>
@@ -165,34 +163,45 @@ export default function OpportunityChatPage() {
   }
 
   return (
-    <div className="max-w-4xl mx-auto flex flex-col pb-32 pt-20">
-      <div className="fixed left-1/2 -translate-x-1/2 top-[80px] z-40 w-full max-w-4xl bg-background/60 backdrop-blur-2xl border-b border-border/50 py-4 px-4 sm:px-0 flex items-center justify-between">
-        <div className="flex items-center gap-4">
+    // The chat page owns its own height and scroll. It stretches to fill the
+    // remaining space inside <main>, then divides into three flex rows:
+    //   1. chat header  — shrinks to content
+    //   2. messages     — flex-1, overflow-y-auto (scrolls independently)
+    //   3. input bar    — shrinks to content, always pinned at bottom
+    // This avoids position:fixed which breaks inside overflow-y-auto containers.
+    <div className="flex flex-col h-full max-w-4xl mx-auto w-full">
+      {/* ── Header ── */}
+      <div className="shrink-0 py-3 px-2 sm:px-0 flex items-center justify-between border-b border-border/40">
+        <div className="flex items-center gap-3">
           <Link
             href="/saved"
             className="p-2 -ml-2 rounded-full hover:bg-muted text-muted-foreground hover:text-foreground transition-colors"
           >
             <ArrowLeft size={18} />
           </Link>
-          <div className="flex items-center gap-2">
-            <h1 className="font-display text-base font-medium text-foreground leading-tight">
+          <div className="flex items-center gap-2 min-w-0">
+            <h1 className="font-display text-base font-medium text-foreground leading-tight truncate">
               {opportunity.title}
             </h1>
-            <p className="text-xs text-muted-foreground flex items-center gap-2 py-0.5 px-2 bg-muted/40 backdrop-blur-2xl rounded-full">
-              <span className="capitalize">{opportunity.type}</span>
-            </p>
+            <span className="shrink-0 text-xs text-muted-foreground py-0.5 px-2 bg-muted/40 backdrop-blur-2xl rounded-full capitalize">
+              {opportunity.type}
+            </span>
           </div>
         </div>
-        <div className="hidden sm:flex items-center gap-2">
-          <span className="text-[11px] font-medium text-muted-foreground">
-            <span className="capitalize">{opportunity.organization}</span>
+        <div className="hidden sm:flex items-center gap-2 shrink-0 ml-4">
+          <span className="text-[11px] font-medium text-muted-foreground capitalize">
+            {opportunity.organization}
           </span>
         </div>
       </div>
 
-      <div className="flex-1 space-y-6 px-2 sm:px-4">
+      {/* ── Messages ── */}
+      <div
+        ref={scrollContainerRef}
+        className="flex-1 overflow-y-auto px-2 sm:px-4 py-6 space-y-6"
+      >
         {messages.length === 0 ? (
-          <div className="h-full flex flex-col items-center justify-center text-center space-y-4 text-muted-foreground pt-12 pb-24">
+          <div className="h-full flex flex-col items-center justify-center text-center space-y-4 text-muted-foreground py-16">
             <div className="p-4 bg-muted/50 backdrop-blur-2xl rounded-full">
               <Sparkles size={24} className="text-foreground/70" />
             </div>
@@ -208,9 +217,7 @@ export default function OpportunityChatPage() {
           messages.map((msg, idx) => (
             <div
               key={msg.id || idx}
-              className={`flex ${
-                msg.role === "user" ? "justify-end" : "justify-start"
-              }`}
+              className={`flex ${msg.role === "user" ? "justify-end" : "justify-start"}`}
             >
               <div
                 className={`max-w-[85%] rounded-4xl px-5 py-3.5 text-sm leading-relaxed ${
@@ -241,7 +248,6 @@ export default function OpportunityChatPage() {
           </div>
         )}
 
-        {/* Inline send error — shown inside the conversation rather than replacing the whole page */}
         {error && !isSending && (
           <div className="flex justify-start">
             <div className="max-w-[85%] rounded-4xl px-5 py-3.5 bg-red-500/10 border border-red-500/20 flex items-start gap-2">
@@ -249,43 +255,42 @@ export default function OpportunityChatPage() {
               <p className="text-sm text-red-600 dark:text-red-400">{error}</p>
             </div>
           </div>
-        )}        <div ref={messagesEndRef} />
+        )}
+
+        <div ref={messagesEndRef} />
       </div>
 
-      <div className="fixed bottom-0 left-1/2 -translate-x-1/2 w-full max-w-4xl p-4 bg-gradient-to-t from-background via-background to-transparent z-20">
-        <div className="w-full">
-          <form
-            onSubmit={handleSend}
-            className="relative flex items-end gap-2 bg-card/50 backdrop-blur-2xl border border-border/50 rounded-full p-1.5 shadow-sm focus-within:border-foreground/40 focus-within:ring-1 focus-within:ring-foreground/40 transition-all"
+      {/* ── Input ── */}
+      <div className="shrink-0 px-2 sm:px-0 pb-4 pt-2">
+        <form
+          onSubmit={handleSend}
+          className="relative flex items-end gap-2 bg-card/50 backdrop-blur-2xl border border-border/50 rounded-full p-1.5 shadow-sm focus-within:border-foreground/40 focus-within:ring-1 focus-within:ring-foreground/40 transition-all"
+        >
+          <textarea
+            className="flex-1 max-h-32 w-full resize-none bg-transparent px-4 py-3 text-sm focus:outline-none scrollbar-hide text-foreground placeholder:text-muted-foreground leading-relaxed"
+            placeholder="Ask a question..."
+            rows={1}
+            value={input}
+            onChange={(e) => {
+              setInput(e.target.value);
+              if (error) setError(null);
+              e.target.style.height = "auto";
+              e.target.style.height = `${Math.min(e.target.scrollHeight, 128)}px`;
+            }}
+            onKeyDown={handleKeyDown}
+            disabled={isSending}
+          />
+          <button
+            type="submit"
+            disabled={!input.trim() || isSending}
+            className="p-3 bg-foreground text-background rounded-full shrink-0 disabled:opacity-50 disabled:cursor-not-allowed hover:bg-foreground/90 transition-colors h-[44px] w-[44px] flex items-center justify-center self-end"
           >
-            <textarea
-              className="flex-1 max-h-32 w-full resize-none bg-transparent px-4 py-3 text-sm focus:outline-none scrollbar-hide text-foreground placeholder:text-muted-foreground leading-relaxed"
-              placeholder="Ask a question..."
-              rows={1}
-              value={input}
-              onChange={(e) => {
-                setInput(e.target.value);
-                if (error) setError(null);
-                e.target.style.height = "auto";
-                e.target.style.height = `${Math.min(e.target.scrollHeight, 128)}px`;
-              }}
-              onKeyDown={handleKeyDown}
-              disabled={isSending}
-            />
-            <button
-              type="submit"
-              disabled={!input.trim() || isSending}
-              className="p-3 bg-foreground text-background rounded-full shrink-0 disabled:opacity-50 disabled:cursor-not-allowed hover:bg-foreground/90 transition-colors h-[44px] w-[44px] flex items-center justify-center self-end"
-            >
-              <Send size={16} strokeWidth={2} />
-            </button>
-          </form>
-          <div className="text-center mt-2 pb-2">
-            <span className="text-[10px] text-muted-foreground">
-              Arch AI can make mistakes. Verify important information.
-            </span>
-          </div>
-        </div>
+            <Send size={16} strokeWidth={2} />
+          </button>
+        </form>
+        <p className="text-center mt-2 text-[10px] text-muted-foreground">
+          Arch AI can make mistakes. Verify important information.
+        </p>
       </div>
     </div>
   );

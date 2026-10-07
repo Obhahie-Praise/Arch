@@ -1,4 +1,7 @@
-import React, { useState, useRef, useEffect } from "react";
+"use client";
+
+import React, { useState, useRef, useEffect, useCallback } from "react";
+import { createPortal } from "react-dom";
 import Link from "next/link";
 import { Sparkles, MapPin, Clock, Bookmark, MessageSquare, MoreHorizontal, Check } from "lucide-react";
 import { formatDeadline } from "../lib/date";
@@ -20,6 +23,104 @@ export interface OpportunityCardProps {
   chatHref?: string;
 }
 
+interface DropdownPortalProps {
+  anchorRef: React.RefObject<HTMLButtonElement | null>;
+  isOpen: boolean;
+  onClose: () => void;
+  children: React.ReactNode;
+}
+
+/**
+ * Renders the dropdown menu directly on document.body via a portal so it
+ * escapes every stacking context in the component tree (overflow-y-auto on
+ * <main>, backdrop-filter on cards, etc.).  Position is calculated from the
+ * trigger button's bounding rect on every open and on scroll/resize.
+ */
+function DropdownPortal({ anchorRef, isOpen, onClose, children }: DropdownPortalProps) {
+  const [coords, setCoords] = useState<{ top: number; right: number } | null>(null);
+  const dropdownRef = useRef<HTMLDivElement>(null);
+
+  const reposition = useCallback(() => {
+    if (!anchorRef.current) return;
+    const rect = anchorRef.current.getBoundingClientRect();
+    setCoords({
+      top: rect.bottom + 8,
+      right: window.innerWidth - rect.right,
+    });
+  }, [anchorRef]);
+
+  // Reposition whenever the menu opens
+  useEffect(() => {
+    if (isOpen) reposition();
+  }, [isOpen, reposition]);
+
+  // Keep position accurate while the scroll container moves
+  useEffect(() => {
+    if (!isOpen) return;
+    window.addEventListener("scroll", reposition, true);
+    window.addEventListener("resize", reposition);
+    return () => {
+      window.removeEventListener("scroll", reposition, true);
+      window.removeEventListener("resize", reposition);
+    };
+  }, [isOpen, reposition]);
+
+  // Close on outside click or Escape
+  useEffect(() => {
+    if (!isOpen) return;
+
+    const handleMouseDown = (e: MouseEvent) => {
+      if (
+        dropdownRef.current &&
+        !dropdownRef.current.contains(e.target as Node) &&
+        anchorRef.current &&
+        !anchorRef.current.contains(e.target as Node)
+      ) {
+        onClose();
+      }
+    };
+
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape") onClose();
+    };
+
+    document.addEventListener("mousedown", handleMouseDown);
+    document.addEventListener("keydown", handleKeyDown);
+    return () => {
+      document.removeEventListener("mousedown", handleMouseDown);
+      document.removeEventListener("keydown", handleKeyDown);
+    };
+  }, [isOpen, onClose, anchorRef]);
+
+  if (typeof window === "undefined" || !coords) return null;
+
+  return createPortal(
+    <div
+      ref={dropdownRef}
+      role="menu"
+      aria-hidden={!isOpen}
+      style={{
+        position: "fixed",
+        top: coords.top,
+        right: coords.right,
+        zIndex: 9999,
+        willChange: "transform, opacity",
+      }}
+      className={[
+        "w-48",
+        "bg-card/90 backdrop-blur-2xl border border-border rounded-2xl shadow-lg shadow-black/10 overflow-hidden",
+        "transition-all duration-150 ease-out origin-top-right",
+        isOpen
+          ? "opacity-100 scale-100 translate-y-0 pointer-events-auto"
+          : "opacity-0 scale-95 -translate-y-1 pointer-events-none",
+      ].join(" ")}
+    >
+      {children}
+    </div>,
+    document.body,
+  );
+}
+
 export function OpportunityCard({
   id,
   title,
@@ -37,31 +138,9 @@ export function OpportunityCard({
   chatHref,
 }: OpportunityCardProps) {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
-  const menuRef = useRef<HTMLDivElement>(null);
+  const triggerRef = useRef<HTMLButtonElement>(null);
 
-  useEffect(() => {
-    const handleClickOutside = (event: MouseEvent) => {
-      if (menuRef.current && !menuRef.current.contains(event.target as Node)) {
-        setIsMenuOpen(false);
-      }
-    };
-
-    const handleEscape = (event: KeyboardEvent) => {
-      if (event.key === "Escape") {
-        setIsMenuOpen(false);
-      }
-    };
-
-    if (isMenuOpen) {
-      document.addEventListener("mousedown", handleClickOutside);
-      document.addEventListener("keydown", handleEscape);
-    }
-    
-    return () => {
-      document.removeEventListener("mousedown", handleClickOutside);
-      document.removeEventListener("keydown", handleEscape);
-    };
-  }, [isMenuOpen]);
+  const closeMenu = useCallback(() => setIsMenuOpen(false), []);
 
   const hasMenuActions = Boolean(onSaveToggle || saveHref || chatHref || onPursueToggle);
 
@@ -110,7 +189,7 @@ export function OpportunityCard({
         )}
       </div>
 
-      <div className="flex items-center gap-2 shrink-0 pt-2 sm:pt-0 relative" ref={menuRef}>
+      <div className="flex items-center gap-2 shrink-0 pt-2 sm:pt-0">
         <Link
           href={`/opportunities/${id}`}
           className="px-4 py-2 border border-border rounded-full text-xs font-medium hover:bg-muted transition-colors duration-150"
@@ -120,51 +199,37 @@ export function OpportunityCard({
 
         {hasMenuActions && (
           <button
-            onClick={() => setIsMenuOpen(!isMenuOpen)}
+            ref={triggerRef}
+            onClick={() => setIsMenuOpen((prev) => !prev)}
             aria-label="Open actions menu"
             aria-expanded={isMenuOpen}
             aria-haspopup="true"
             className={`p-2 rounded-full transition-colors duration-150 ${
-              isMenuOpen ? "bg-muted text-foreground" : "text-muted-foreground hover:bg-muted hover:text-foreground"
+              isMenuOpen
+                ? "bg-muted text-foreground"
+                : "text-muted-foreground hover:bg-muted hover:text-foreground"
             }`}
           >
             <MoreHorizontal size={18} />
           </button>
         )}
 
-        {/*
-         * Dropdown: always rendered, visibility controlled via CSS opacity +
-         * transform so the browser can smoothly interpolate without layout
-         * recalculation. pointer-events:none while hidden prevents accidental
-         * interaction. will-change:transform promotes this element to its own
-         * GPU layer so transitions stay on the compositor thread.
-         */}
         {hasMenuActions && (
-          <div
-            role="menu"
-            aria-hidden={!isMenuOpen}
-            className={[
-              "absolute top-full right-0 mt-2 w-48",
-              "bg-card/60 backdrop-blur-2xl border border-border rounded-2xl shadow-lg shadow-black/5 overflow-hidden z-50",
-              "transition-all duration-150 ease-out origin-top-right",
-              isMenuOpen
-                ? "opacity-100 scale-100 translate-y-0 pointer-events-auto"
-                : "opacity-0 scale-95 -translate-y-1 pointer-events-none",
-            ].join(" ")}
-            style={{ willChange: "transform, opacity" }}
-          >
+          <DropdownPortal anchorRef={triggerRef} isOpen={isMenuOpen} onClose={closeMenu}>
             <div className="p-1.5 flex flex-col gap-0.5">
-              
               {onSaveToggle ? (
                 <button
                   role="menuitem"
                   onClick={(e) => {
                     onSaveToggle(id, e);
-                    setIsMenuOpen(false);
+                    closeMenu();
                   }}
                   className="w-full flex items-center gap-2.5 px-3 py-2 text-sm text-foreground hover:bg-muted rounded-xl transition-colors duration-100 text-left"
                 >
-                  <Bookmark size={15} className={isSaved ? "fill-foreground text-foreground" : "text-muted-foreground"} />
+                  <Bookmark
+                    size={15}
+                    className={isSaved ? "fill-foreground text-foreground" : "text-muted-foreground"}
+                  />
                   <span>{isSaved ? "Unsave" : "Save"}</span>
                 </button>
               ) : saveHref ? (
@@ -194,18 +259,24 @@ export function OpportunityCard({
                   role="menuitem"
                   onClick={(e) => {
                     onPursueToggle(id, e);
-                    setIsMenuOpen(false);
+                    closeMenu();
                   }}
                   className={`w-full flex items-center gap-2.5 px-3 py-2 text-sm hover:bg-muted rounded-xl transition-colors duration-100 text-left ${
-                    isPursuing ? "text-emerald-600 dark:text-emerald-400 font-medium bg-emerald-500/10 hover:bg-emerald-500/20" : "text-foreground"
+                    isPursuing
+                      ? "text-emerald-600 dark:text-emerald-400 font-medium bg-emerald-500/10 hover:bg-emerald-500/20"
+                      : "text-foreground"
                   }`}
                 >
-                  <Check size={15} strokeWidth={isPursuing ? 2.5 : 1.5} className={isPursuing ? "text-emerald-600 dark:text-emerald-400" : "text-muted-foreground"} />
+                  <Check
+                    size={15}
+                    strokeWidth={isPursuing ? 2.5 : 1.5}
+                    className={isPursuing ? "text-emerald-600 dark:text-emerald-400" : "text-muted-foreground"}
+                  />
                   <span>{isPursuing ? "Pursuing" : "Mark as pursuing"}</span>
                 </button>
               )}
             </div>
-          </div>
+          </DropdownPortal>
         )}
       </div>
     </div>

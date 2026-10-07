@@ -153,7 +153,7 @@ export default function DashboardLayout({
   const avatarSrc = profileAvatar || user?.image;
 
   return (
-    <div className="h-screen max-w-6xl mx-auto">
+    <div className="h-screen max-w-6xl mx-auto flex flex-col">
       {/* ── Desktop Navigation ─────────────────────────────────────────────── */}
       <nav className="fixed left-1/2 -translate-x-1/2 top-0 z-50 w-full max-w-6xl px-4 sm:px-6 flex items-center justify-between py-5 bg-background/50 backdrop-blur-xl md:rounded-full">
         <Link href={"/"} className="flex items-center gap-2 shrink-0">
@@ -362,7 +362,7 @@ export default function DashboardLayout({
       </div>
 
       {/* ── Main content ────────────────────────────────────────────────────── */}
-      <main className="flex-1 overflow-y-auto pt-24 pb-10 px-4 sm:px-6 animate-page-enter">{children}</main>
+      <main className="flex-1 min-h-0 overflow-y-auto pt-24 pb-10 px-4 sm:px-6 animate-page-enter">{children}</main>
       <BeamsBackground className="absolute top-0 left-0 -z-100 opacity-60" />
     </div>
   );
