@@ -235,7 +235,7 @@ export default function OpportunitiesPage() {
           </h1>
         </div>
 
-        <div className="rounded-4xl p-8 sm:p-12 text-center flex flex-col items-center justify-center gap-5 transition-all">
+        <div className="rounded-3xl p-8 sm:p-12 text-center flex flex-col items-center justify-center gap-5 transition-all">
           <div className="p-4 bg-muted rounded-full text-foreground">
             <Sparkles size={28} strokeWidth={1.5} />
           </div>
@@ -273,7 +273,7 @@ export default function OpportunitiesPage() {
             Opportunities
           </h1>
         </div>
-        <div className="rounded-4xl p-12 text-center flex flex-col items-center justify-center gap-3">
+        <div className="rounded-3xl p-12 text-center flex flex-col items-center justify-center gap-3">
           <Sparkles size={24} className="text-muted-foreground" />
           <p className="text-sm font-medium text-foreground">
             No opportunities available
@@ -304,7 +304,7 @@ export default function OpportunitiesPage() {
         <input
           type="text"
           placeholder="Search by title, organization, skills, or type..."
-          className="w-full pl-11 pr-10 py-3.5 bg-card border border-border rounded-full text-sm focus:outline-none focus:border-foreground/30 transition-colors"
+          className="w-full pl-11 pr-10 py-3.5 bg-card/50 backdrop-blur-2xl border border-border/50 rounded-full text-sm focus:outline-none focus:border-foreground/30 transition-colors"
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
         />
@@ -327,7 +327,7 @@ export default function OpportunitiesPage() {
             className={`snap-start whitespace-nowrap px-4 py-2 rounded-full text-sm font-medium transition-colors ${
               activeType === type
                 ? "bg-foreground text-background"
-                : "bg-muted text-muted-foreground hover:bg-muted/80 hover:text-foreground"
+                : "bg-muted/30 backdrop-blur-2xl text-muted-foreground hover:bg-muted/80 hover:text-foreground"
             }`}
           >
             {type}
@@ -344,7 +344,7 @@ export default function OpportunitiesPage() {
             className={`snap-start whitespace-nowrap px-4 py-2 rounded-full text-sm font-medium transition-colors ${
               matchedFilter
                 ? "bg-emerald-600 text-white"
-                : "bg-muted text-muted-foreground hover:bg-muted/80 hover:text-foreground"
+                : "bg-muted/30 backdrop-blur-2xl text-muted-foreground hover:bg-muted/80 hover:text-foreground"
             }`}
           >
             matched
@@ -361,7 +361,7 @@ export default function OpportunitiesPage() {
             ))}
           </div>
         ) : hasError ? (
-          <div className="rounded-4xl p-12 text-center flex flex-col items-center justify-center gap-3">
+          <div className="rounded-3xl p-12 text-center flex flex-col items-center justify-center gap-3">
             <p className="text-sm font-medium text-red-500">
               Failed to load opportunities. Please try again.
             </p>
@@ -369,7 +369,7 @@ export default function OpportunitiesPage() {
         ) : filteredOpportunities.length === 0 ? (
           // Filtered/search empty state — opportunities exist but the current
           // query/filters return nothing. Keep the full page layout intact.
-          <div className="rounded-4xl p-12 text-center flex flex-col items-center justify-center gap-3">
+          <div className="rounded-3xl p-12 text-center flex flex-col items-center justify-center gap-3">
             <Search size={24} className="text-muted-foreground" />
             <p className="text-sm font-medium text-foreground">
               No opportunities found

@@ -2,6 +2,7 @@ import { ReactNode } from "react";
 import { ThemeImage } from "../../components/theme-image";
 import Link from "next/link";
 import { Metadata } from "next";
+import BeamsBackground from "@/components/kokonutui/beams-background";
 
 export const metadata: Metadata = {
   title: "Create Account",
@@ -14,7 +15,7 @@ interface AuthLayoutProps {
 
 export default function AuthLayout({ children }: AuthLayoutProps) {
   return (
-    <div className="flex flex-col min-h-screen">
+    <div className="flex flex-col min-h-screen relative">
       <div className="flex items-center justify-between px-5 py-5">
         <Link href={"/"}>
           <ThemeImage
@@ -42,6 +43,7 @@ export default function AuthLayout({ children }: AuthLayoutProps) {
           acceptance.
         </p>
       </div>
+      <BeamsBackground className="absolute top-0 left-0 -z-100" />
     </div>
   );
 }

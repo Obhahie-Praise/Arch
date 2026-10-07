@@ -114,7 +114,7 @@ const NOTIFICATION_ITEMS: {
 
 function SectionSkeleton({ rows = 3 }: { rows?: number }) {
   return (
-    <div className="border border-border rounded-4xl p-6 bg-card space-y-5 animate-pulse">
+    <div className="border border-border/50 rounded-4xl p-6 bg-card/30 backdrop-blur-2xl space-y-5 animate-pulse">
       <div className="h-5 w-32 bg-muted rounded" />
       {Array.from({ length: rows }).map((_, i) => (
         <div key={i} className="flex items-center justify-between gap-4">
@@ -659,7 +659,7 @@ export default function SettingsPage() {
             icon={<User2 size={16} strokeWidth={1.5} />}
             title="Account"
           />
-          <div className="border border-border rounded-4xl bg-card overflow-hidden divide-y divide-border">
+          <div className="border border-border/50 rounded-4xl bg-card/30 backdrop-blur-2xl overflow-hidden divide-y divide-border/50">
             <Row label="Name" value={displayName} />
             <Row label="Email" value={displayEmail} />
             <div className="px-6 py-4">
@@ -676,7 +676,7 @@ export default function SettingsPage() {
               </div>
               <div className="flex flex-col gap-3">
                 {hasPasswordCredential && (
-                  <div className="flex items-center justify-between p-3 rounded-2xl border border-border bg-muted/30">
+                  <div className="flex items-center justify-between p-3 rounded-2xl border border-border bg-muted/30 backdrop-blur-2xl">
                     <div className="flex items-center gap-3">
                       <div className="flex items-center justify-center w-8 h-8 rounded-full bg-background border border-border text-foreground">
                         <Mail size={16} strokeWidth={1.8} />
@@ -702,7 +702,7 @@ export default function SettingsPage() {
                 <div
                   className={`flex items-center justify-between p-3 rounded-2xl border transition-colors ${
                     connectedProviders.includes("google")
-                      ? "border-border bg-muted/30"
+                      ? "border-border bg-muted/30 backdrop-blur-2xl"
                       : "border-border/40 bg-transparent opacity-60"
                   }`}
                 >
@@ -728,7 +728,7 @@ export default function SettingsPage() {
                 <div
                   className={`flex items-center justify-between p-3 rounded-2xl border transition-colors ${
                     connectedProviders.includes("github")
-                      ? "border-border bg-muted/30"
+                      ? "border-border bg-muted/30 backdrop-blur-2xl"
                       : "border-border/40 bg-transparent opacity-60"
                   }`}
                 >
@@ -780,7 +780,7 @@ export default function SettingsPage() {
           {!settings && !loadError ? (
             <SectionSkeleton rows={1} />
           ) : (
-            <div className="border border-border rounded-4xl bg-card p-6 space-y-4">
+            <div className="border border-border/50 rounded-4xl bg-card/30 backdrop-blur-2xl p-6 space-y-4">
               <div>
                 <p className="text-sm font-medium text-foreground">
                   Matching breadth
@@ -801,7 +801,7 @@ export default function SettingsPage() {
                       className={`text-left p-4 rounded-2xl border transition-all duration-200 ${
                         active
                           ? "border-foreground bg-foreground/5"
-                          : "border-border hover:border-foreground/30 hover:bg-muted/50"
+                          : "border-border/50 hover:border-foreground/30 hover:bg-muted/30 backdrop-blur-2xl"
                       }`}
                     >
                       <div className="flex items-center justify-between mb-1.5">
@@ -839,7 +839,7 @@ export default function SettingsPage() {
           {!settings && !loadError ? (
             <SectionSkeleton rows={5} />
           ) : (
-            <div className="border border-border rounded-4xl bg-card overflow-hidden divide-y divide-border">
+            <div className="border border-border/50 rounded-4xl bg-card/30 backdrop-blur-2xl overflow-hidden divide-y divide-border/50">
               {NOTIFICATION_ITEMS.map((item) => (
                 <div
                   key={item.key}
@@ -868,7 +868,7 @@ export default function SettingsPage() {
             icon={<Palette size={16} strokeWidth={1.5} />}
             title="Appearance"
           />
-          <div className="border border-border rounded-4xl bg-card p-6">
+          <div className="border border-border/50 rounded-4xl bg-card/30 backdrop-blur-2xl p-6">
             <p className="text-base font-medium text-foreground mb-1">Theme</p>
             {mounted ? (
               <div className="flex gap-2 flex-wrap">
@@ -929,7 +929,7 @@ export default function SettingsPage() {
             title="Danger zone"
             danger
           />
-          <div className="border border-red-200 dark:border-red-900/50 rounded-4xl bg-card overflow-hidden divide-y divide-red-100 dark:divide-red-900/30">
+          <div className="border border-red-200 dark:border-red-900/50 rounded-4xl bg-card/30 backdrop-blur-2xl overflow-hidden divide-y divide-red-100/50 dark:divide-red-900/20">
             <div className="flex items-center justify-between gap-4 px-6 py-4">
               <div>
                 <p className="text-sm font-medium text-foreground">Sign out</p>

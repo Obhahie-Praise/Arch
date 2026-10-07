@@ -661,7 +661,7 @@ export default function ProfilePage() {
 
         {/* SUBTLE LOCAL STORAGE COMMUNICATION NOTICE */}
         {hasUnsavedChanges && (
-          <div className="flex items-center gap-1.5 text-xs text-muted-foreground font-normal bg-muted/50 border border-border px-3 py-1.5 rounded-full shrink-0 self-start sm:self-auto">
+          <div className="flex items-center gap-1.5 text-xs text-muted-foreground font-normal bg-muted/30 backdrop-blur-2xl border border-border/50 px-3 py-1.5 rounded-full shrink-0 self-start sm:self-auto">
             <Smartphone size={13} className="text-muted-foreground shrink-0" />
             <span>Your changes are saved on this device till you save your profile.</span>
           </div>
@@ -697,8 +697,8 @@ export default function ProfilePage() {
         {isLoading ? (
           <IdentitySkeleton />
         ) : (
-          <section className="space-y-4 border border-border rounded-4xl p-6 bg-card">
-            <div className="border-b border-border pb-3">
+          <section className="space-y-4 border border-border/50 rounded-4xl p-6 bg-card/30 backdrop-blur-2xl">
+            <div className="border-b border-border/50 pb-3">
               <h2 className="font-display text-xl text-foreground font-medium">Identity</h2>
             </div>
 
@@ -855,8 +855,8 @@ export default function ProfilePage() {
         {isLoading ? (
           <PreferencesSkeleton />
         ) : (
-          <section className="space-y-4 border border-border rounded-4xl p-6 bg-card">
-            <div className="border-b border-border pb-3">
+          <section className="space-y-4 border border-border/50 rounded-4xl p-6 bg-card/30 backdrop-blur-2xl">
+            <div className="border-b border-border/50 pb-3">
               <h2 className="font-display text-xl text-foreground font-medium">Opportunity Preferences</h2>
             </div>
 
@@ -953,8 +953,8 @@ export default function ProfilePage() {
         {isLoading ? (
           <SkillsSkeleton />
         ) : (
-          <section className="space-y-4 border border-border rounded-4xl p-6 bg-card">
-            <div className="border-b border-border pb-3">
+          <section className="space-y-4 border border-border/50 rounded-4xl p-6 bg-card/30 backdrop-blur-2xl">
+            <div className="border-b border-border/50 pb-3">
               <h2 className="font-display text-xl text-foreground font-medium">Skills</h2>
             </div>
 
@@ -997,7 +997,7 @@ export default function ProfilePage() {
         {isLoading ? (
           <ExperienceSkeleton />
         ) : (
-          <section className="border border-border rounded-4xl p-6 bg-card">
+          <section className="border border-border/50 rounded-4xl p-6 bg-card/30 backdrop-blur-2xl">
             <ExperienceManager experiences={experiences} onChange={setExperiences} />
           </section>
         )}
@@ -1006,7 +1006,7 @@ export default function ProfilePage() {
         {isLoading ? (
           <EducationSkeleton />
         ) : (
-          <section className="border border-border rounded-4xl p-6 bg-card">
+          <section className="border border-border/50 rounded-4xl p-6 bg-card/30 backdrop-blur-2xl">
             <EducationManager education={education} onChange={setEducation} />
           </section>
         )}
@@ -1015,7 +1015,7 @@ export default function ProfilePage() {
         {isLoading ? (
           <ProjectsSkeleton />
         ) : (
-          <section className="border border-border rounded-4xl p-6 bg-card">
+          <section className="border border-border/50 rounded-4xl p-6 bg-card/30 backdrop-blur-2xl">
             <ProjectsManager projects={projects} onChange={setProjects} />
           </section>
         )}
@@ -1024,7 +1024,7 @@ export default function ProfilePage() {
         {isLoading ? (
           <AchievementsSkeleton />
         ) : (
-          <section className="border border-border rounded-4xl p-6 bg-card">
+          <section className="border border-border/50 rounded-4xl p-6 bg-card/30 backdrop-blur-2xl">
             <AchievementsManager achievements={achievements} onChange={setAchievements} />
           </section>
         )}
@@ -1033,8 +1033,8 @@ export default function ProfilePage() {
         {isLoading ? (
           <GoalsSkeleton />
         ) : (
-          <section className="space-y-4 border border-border rounded-4xl p-6 bg-card">
-            <div className="border-b border-border pb-3">
+          <section className="space-y-4 border border-border/50 rounded-4xl p-6 bg-card/30 backdrop-blur-2xl">
+            <div className="border-b border-border/50 pb-3">
               <h2 className="font-display text-xl text-foreground font-medium">Interests & Goals</h2>
             </div>
 
@@ -1109,8 +1109,8 @@ export default function ProfilePage() {
         {isLoading ? (
           <EligibilitySkeleton />
         ) : (
-          <section className="space-y-4 border border-border rounded-4xl p-6 bg-card">
-            <div className="border-b border-border pb-3">
+          <section className="space-y-4 border border-border/50 rounded-4xl p-6 bg-card/30 backdrop-blur-2xl">
+            <div className="border-b border-border/50 pb-3">
               <h2 className="font-display text-xl text-foreground font-medium">Eligibility & Status</h2>
             </div>
 
@@ -1178,8 +1178,8 @@ export default function ProfilePage() {
         {isLoading ? (
           <AvailabilitySkeleton />
         ) : (
-          <section className="space-y-4 border border-border rounded-4xl p-6 bg-card">
-            <div className="border-b border-border pb-3">
+          <section className="space-y-4 border border-border/50 rounded-4xl p-6 bg-card/30 backdrop-blur-2xl">
+            <div className="border-b border-border/50 pb-3">
               <h2 className="font-display text-xl text-foreground font-medium">Availability</h2>
             </div>
 
@@ -1235,8 +1235,8 @@ export default function ProfilePage() {
         {isLoading ? (
           <CompensationSkeleton />
         ) : (
-          <section className="space-y-4 border border-border rounded-4xl p-6 bg-card">
-            <div className="border-b border-border pb-3">
+          <section className="space-y-4 border border-border/50 rounded-4xl p-6 bg-card/30 backdrop-blur-2xl">
+            <div className="border-b border-border/50 pb-3">
               <h2 className="font-display text-xl text-foreground font-medium">Compensation & Expectations</h2>
             </div>
 
@@ -1303,8 +1303,8 @@ export default function ProfilePage() {
         {isLoading ? (
           <PreferencesSkeleton />
         ) : (
-          <section className="space-y-4 border border-border rounded-4xl p-6 bg-card">
-            <div className="border-b border-border pb-3">
+          <section className="space-y-4 border border-border/50 rounded-4xl p-6 bg-card/30 backdrop-blur-2xl">
+            <div className="border-b border-border/50 pb-3">
               <h2 className="font-display text-xl text-foreground font-medium">Preferences & Deal-Breakers</h2>
             </div>
 
@@ -1347,8 +1347,8 @@ export default function ProfilePage() {
         {isLoading ? (
           <MaterialsSkeleton />
         ) : (
-          <section className="space-y-4 border border-border rounded-4xl p-6 bg-card">
-            <div className="border-b border-border pb-3">
+          <section className="space-y-4 border border-border/50 rounded-4xl p-6 bg-card/30 backdrop-blur-2xl">
+            <div className="border-b border-border/50 pb-3">
               <h2 className="font-display text-xl text-foreground font-medium">Application Materials</h2>
             </div>
 
@@ -1373,7 +1373,7 @@ export default function ProfilePage() {
 
         {/* FINAL SUBMISSION MESSAGE & BUTTON */}
         <div className="space-y-4 pt-4 border-t border-border">
-          <div className="flex items-center gap-3 p-4 bg-muted/60 border border-border rounded-4xl">
+          <div className="flex items-center gap-3 p-4 bg-muted/30 backdrop-blur-2xl border border-border/50 rounded-4xl">
             <Sparkles className="text-amber-500 shrink-0" size={20} />
             <p className="text-sm text-foreground/90 leading-relaxed font-medium">
               Filling out your entire profile gives Arch more context to find opportunities that are a better fit for you.

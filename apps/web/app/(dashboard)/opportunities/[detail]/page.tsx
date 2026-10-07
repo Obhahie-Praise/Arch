@@ -201,7 +201,7 @@ export default function OpportunityDetailPage() {
       <div className="space-y-6">
         <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-4 sm:gap-6">
           <div className="space-y-3">
-            <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-muted rounded-full text-xs font-medium text-foreground">
+            <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-muted/50 backdrop-blur-2xl rounded-full text-xs font-medium text-foreground">
               {opportunity.type}
             </span>
             <h1 className="font-display text-2xl sm:text-3xl md:text-4xl font-medium text-foreground leading-tight">
@@ -225,7 +225,7 @@ export default function OpportunityDetailPage() {
               className={`p-3 rounded-full transition-colors flex items-center justify-center ${
                 isSaved
                   ? "bg-foreground text-background"
-                  : "bg-muted text-foreground hover:bg-foreground hover:text-background"
+                  : "bg-muted/50 backdrop-blur-2xl text-foreground hover:bg-foreground hover:text-background"
               }`}
               aria-label={isSaved ? "Unsave opportunity" : "Save opportunity"}
             >
@@ -251,7 +251,7 @@ export default function OpportunityDetailPage() {
         ) : (
           <div className="flex flex-wrap items-center gap-3 pt-2">
             {opportunity.deadline && (
-              <div className="flex items-center gap-2 px-4 py-2 bg-card border border-border rounded-full text-sm">
+              <div className="flex items-center gap-2 px-4 py-2 bg-card/30 backdrop-blur-2xl border border-border/50 rounded-full text-sm">
                 <Clock size={16} className="text-muted-foreground" />
                 <span>
                   <span className="text-muted-foreground">Deadline:</span>{" "}
@@ -260,7 +260,7 @@ export default function OpportunityDetailPage() {
               </div>
             )}
             {fundingDisplay && (
-              <div className="flex items-center gap-2 px-3 py-2 bg-card border border-border rounded-full text-sm">
+              <div className="flex items-center gap-2 px-3 py-2 bg-card/30 backdrop-blur-2xl border border-border/50 rounded-full text-sm">
                 <DollarSign size={16} className="text-muted-foreground" />
                 <span>
                   <span className="text-muted-foreground">Funding:</span>{" "}
@@ -269,7 +269,7 @@ export default function OpportunityDetailPage() {
               </div>
             )}
             {opportunity.isRemote && (
-              <div className="flex items-center gap-2 px-3 py-2 bg-card border border-border rounded-full text-sm">
+              <div className="flex items-center gap-2 px-3 py-2 bg-card/30 backdrop-blur-2xl border border-border/50 rounded-full text-sm">
                 <MapPin size={16} className="text-muted-foreground" />
                 <span className="font-medium text-foreground">Remote</span>
               </div>
@@ -282,7 +282,7 @@ export default function OpportunityDetailPage() {
       {loadingMatch ? (
         <DetailMatchSkeleton />
       ) : opportunity.matchScore ? (
-        <div className="p-6 bg-emerald-500/5 border border-emerald-500/20 rounded-4xl space-y-4">
+        <div className="p-6 bg-emerald-500/5 backdrop-blur-2xl border border-emerald-500/20 rounded-4xl space-y-4">
           <div className="flex items-center gap-2 text-emerald-700 dark:text-emerald-400 font-medium">
             <Sparkles size={18} />
             <span>{opportunity.matchScore}% Match for you</span>
@@ -340,7 +340,7 @@ export default function OpportunityDetailPage() {
             {opportunity.eligibility && opportunity.eligibility.length > 0 && (
               <section className="space-y-4">
                 <h2 className="font-display text-xl font-medium text-foreground">Eligibility</h2>
-                <div className="p-5 bg-card border border-border rounded-2xl space-y-2">
+                <div className="p-5 bg-card/30 backdrop-blur-2xl border border-border/50 rounded-2xl space-y-2">
                   {opportunity.eligibility.map((item, idx) => (
                     <p key={idx} className="text-sm text-muted-foreground">
                       {item}
@@ -362,7 +362,7 @@ export default function OpportunityDetailPage() {
                   {opportunity.skills.map((skill, idx) => (
                     <span
                       key={idx}
-                      className="px-2.5 py-1 bg-muted rounded-lg text-xs text-muted-foreground font-medium"
+                      className="px-2.5 py-1 bg-muted/50 rounded-lg text-xs text-muted-foreground font-medium"
                     >
                       {skill}
                     </span>
@@ -386,7 +386,7 @@ export default function OpportunityDetailPage() {
             </section>
 
             {/* Application Box */}
-            <div className="p-5 bg-card border border-border rounded-2xl space-y-4 mt-8">
+            <div className="p-5 bg-card/30 backdrop-blur-2xl border border-border/50 rounded-2xl space-y-4 mt-8">
               <h3 className="font-medium text-foreground">Ready to apply?</h3>
               <p className="text-xs text-muted-foreground">
                 Make sure to read all eligibility requirements before submitting your application.

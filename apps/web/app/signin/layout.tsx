@@ -2,6 +2,7 @@ import { ReactNode } from "react";
 import { ThemeImage } from "../../components/theme-image";
 import Link from "next/link";
 import { Metadata } from "next";
+import BeamsBackground from "@/components/kokonutui/beams-background";
 
 export const metadata: Metadata = {
   title: "Sign In",
@@ -41,6 +42,7 @@ export default function SigninLayout({ children }: SigninLayoutProps) {
           acceptance.
         </p>
       </div>
+      <BeamsBackground className="absolute top-0 left-0 -z-100" />
     </div>
   );
 }

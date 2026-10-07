@@ -306,7 +306,7 @@ export default function SavedPage() {
         <input
           type="text"
           placeholder="Search saved opportunities..."
-          className="w-full pl-11 pr-10 py-3.5 bg-card border border-border rounded-full text-sm focus:outline-none focus:border-foreground/30 transition-colors"
+          className="w-full pl-11 pr-10 py-3.5 bg-card/50 backdrop-blur-2xl border border-border/50 rounded-full text-sm focus:outline-none focus:border-foreground/30 transition-colors"
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
         />
@@ -328,7 +328,7 @@ export default function SavedPage() {
             className={`px-4 py-1.5 rounded-full text-sm font-medium whitespace-nowrap transition-colors ${
               activeType === type
                 ? "bg-foreground text-background"
-                : "bg-muted text-muted-foreground hover:text-foreground hover:bg-muted/80"
+                : "bg-muted/30 backdrop-blur-2xl text-muted-foreground hover:bg-muted/60 hover:text-foreground"
             }`}
           >
             {type}
@@ -342,7 +342,7 @@ export default function SavedPage() {
             className={`px-4 py-1.5 rounded-full text-sm font-medium whitespace-nowrap transition-colors ${
               matchedFilter
                 ? "bg-emerald-600 text-white"
-                : "bg-muted text-muted-foreground hover:text-foreground hover:bg-muted/80"
+                : "bg-muted/30 backdrop-blur-2xl text-muted-foreground hover:bg-muted/60 hover:text-foreground"
             }`}
           >
             matched

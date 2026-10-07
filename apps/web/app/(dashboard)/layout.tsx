@@ -8,6 +8,7 @@ import { ThemeImage } from "../../components/theme-image";
 import { ThemeSwitcher } from "../../components/theme-switcher";
 import { Cog, User2, LogOut, Menu, X, Home, Compass, Bookmark, User } from "lucide-react";
 import { authClient } from "../../lib/auth-client";
+import BeamsBackground from "@/components/kokonutui/beams-background";
 
 const NAV_ITEMS = [
   { label: "Home", href: "/home", icon: Home },
@@ -154,7 +155,7 @@ export default function DashboardLayout({
   return (
     <div className="h-screen max-w-6xl mx-auto">
       {/* ── Desktop Navigation ─────────────────────────────────────────────── */}
-      <nav className="fixed left-1/2 -translate-x-1/2 top-0 z-50 w-full max-w-6xl px-4 sm:px-6 flex items-center justify-between py-5 bg-background/50 backdrop-blur-xl">
+      <nav className="fixed left-1/2 -translate-x-1/2 top-0 z-50 w-full max-w-6xl px-4 sm:px-6 flex items-center justify-between py-5 bg-background/50 backdrop-blur-xl md:rounded-full">
         <Link href={"/"} className="flex items-center gap-2 shrink-0">
           <ThemeImage
             srcLight="/logo-lightmode.jpg"
@@ -362,6 +363,7 @@ export default function DashboardLayout({
 
       {/* ── Main content ────────────────────────────────────────────────────── */}
       <main className="flex-1 overflow-y-auto pt-24 pb-10 px-4 sm:px-6 animate-page-enter">{children}</main>
+      <BeamsBackground className="absolute top-0 left-0 -z-100 opacity-60" />
     </div>
   );
 }

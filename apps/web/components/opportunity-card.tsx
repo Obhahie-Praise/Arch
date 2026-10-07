@@ -66,7 +66,7 @@ export function OpportunityCard({
   const hasMenuActions = Boolean(onSaveToggle || saveHref || chatHref || onPursueToggle);
 
   return (
-    <div className="border border-border rounded-4xl p-5 bg-card flex flex-col sm:flex-row sm:items-center justify-between gap-4 transition-colors duration-200 hover:border-foreground/40">
+    <div className="border border-border/50 rounded-4xl p-5 bg-card/30 backdrop-blur-2xl flex flex-col sm:flex-row sm:items-center justify-between gap-4 transition-colors duration-200 hover:border-foreground/40">
       <div className="space-y-1.5">
         <div className="flex items-center gap-2 flex-wrap">
           <h3 className="font-display text-base font-medium text-foreground">
@@ -145,7 +145,7 @@ export function OpportunityCard({
             aria-hidden={!isMenuOpen}
             className={[
               "absolute top-full right-0 mt-2 w-48",
-              "bg-card border border-border rounded-2xl shadow-lg shadow-black/5 overflow-hidden z-50",
+              "bg-card/60 backdrop-blur-2xl border border-border rounded-2xl shadow-lg shadow-black/5 overflow-hidden z-50",
               "transition-all duration-150 ease-out origin-top-right",
               isMenuOpen
                 ? "opacity-100 scale-100 translate-y-0 pointer-events-auto"

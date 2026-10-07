@@ -86,7 +86,7 @@ function DiscoveryBarChart({ data }: { data: { day: string; created: number }[] 
                     <br />
                     <span className="opacity-60">{dayName}, {d.day.slice(5)}</span>
                   </div>
-                  <div className="w-2 h-2 bg-foreground rotate-45 mx-auto -mt-1" />
+                  <div className="w-2 h-2 bg-foreground/30 backdrop-blur-2xl rotate-45 mx-auto -mt-1" />
                 </div>
               )}
               {/* Bar container */}
@@ -154,7 +154,7 @@ function JourneyChart({
             {saved} ({savedPct}%)
           </span>
         </div>
-        <div className="w-full bg-muted h-1.5 rounded-full overflow-hidden">
+        <div className="w-full bg-muted/30 backdrop-blur-2xl h-1.5 rounded-full overflow-hidden">
           <div
             className="bg-foreground/70 h-full rounded-full transition-all duration-500"
             style={{ width: `${savedPct}%` }}
@@ -171,7 +171,7 @@ function JourneyChart({
             {pursuing} ({pursuingPct}%)
           </span>
         </div>
-        <div className="w-full bg-muted h-1.5 rounded-full overflow-hidden">
+        <div className="w-full bg-muted/30 backdrop-blur-2xl h-1.5 rounded-full overflow-hidden">
           <div
             className="bg-foreground/40 h-full rounded-full transition-all duration-500"
             style={{ width: `${pursuingPct}%` }}
@@ -400,10 +400,10 @@ export default function HomePage() {
           </>
         ) : (
           <>
-            <div className="border border-border rounded-4xl p-5 bg-card flex flex-col justify-between gap-3 transition-all hover:border-foreground/30">
+            <div className="border border-border/50 rounded-4xl p-5 bg-card/30 backdrop-blur-2xl flex flex-col justify-between gap-3 transition-all hover:border-foreground/30">
               <div className="flex items-center justify-between">
                 <span className="text-sm text-muted-foreground">Matches</span>
-                <div className="p-2 bg-muted rounded-full text-foreground">
+                <div className="p-2 bg-muted/20 backdrop-blur-2xl rounded-full text-foreground">
                   <Sparkles size={16} strokeWidth={1.5} />
                 </div>
               </div>
@@ -412,10 +412,10 @@ export default function HomePage() {
               </div>
             </div>
 
-            <div className="border border-border rounded-4xl p-5 bg-card flex flex-col justify-between gap-3 transition-all hover:border-foreground/30">
+            <div className="border border-border/50 rounded-4xl p-5 bg-card/30 backdrop-blur-2xl flex flex-col justify-between gap-3 transition-all hover:border-foreground/30">
               <div className="flex items-center justify-between">
                 <span className="text-sm text-muted-foreground">Saved</span>
-                <div className="p-2 bg-muted rounded-full text-foreground">
+                <div className="p-2 bg-muted/30 backdrop-blur-2xl rounded-full text-foreground">
                   <Bookmark size={16} strokeWidth={1.5} />
                 </div>
               </div>
@@ -424,10 +424,10 @@ export default function HomePage() {
               </div>
             </div>
 
-            <div className="border border-border rounded-4xl p-5 bg-card flex flex-col justify-between gap-3 transition-all hover:border-foreground/30">
+            <div className="border border-border/50 rounded-4xl p-5 bg-card/30 backdrop-blur-2xl flex flex-col justify-between gap-3 transition-all hover:border-foreground/30">
               <div className="flex items-center justify-between">
                 <span className="text-sm text-muted-foreground">Pursuing</span>
-                <div className="p-2 bg-muted rounded-full text-foreground">
+                <div className="p-2 bg-muted/30 backdrop-blur-2xl rounded-full text-foreground">
                   <Briefcase size={16} strokeWidth={1.5} />
                 </div>
               </div>
@@ -449,12 +449,12 @@ export default function HomePage() {
         ) : (
           <>
             {/* Discovery Chart */}
-            <div className="border border-border rounded-4xl p-6 bg-card flex flex-col gap-4" style={{ minHeight: "220px" }}>
+            <div className="border border-border/50 rounded-4xl p-6 bg-card/30 backdrop-blur-2xl flex flex-col gap-4" style={{ minHeight: "220px" }}>
               <div className="flex items-center justify-between shrink-0">
                 <h3 className="font-display text-base font-medium text-foreground">
                   Opportunities Discovered
                 </h3>
-                <span className="text-xs font-mono bg-muted px-2.5 py-1 rounded-full text-foreground">
+                <span className="text-xs font-mono bg-muted/30 backdrop-blur-2xl px-2.5 py-1 rounded-full text-foreground">
                   Past 7 Days
                 </span>
               </div>
@@ -462,7 +462,7 @@ export default function HomePage() {
             </div>
 
             {/* Journey Chart */}
-            <div className="border border-border rounded-4xl p-6 bg-card flex flex-col justify-between gap-4">
+            <div className="border border-border/50 rounded-4xl p-6 bg-card/30 backdrop-blur-2xl flex flex-col justify-between gap-4">
               <h3 className="font-display text-base font-medium text-foreground">
                 Opportunity Journey
               </h3>
@@ -555,7 +555,7 @@ export default function HomePage() {
                 <Link
                   key={opp.id}
                   href={`/opportunities/${opp.id}`}
-                  className="border border-border rounded-4xl p-4 bg-card flex items-center justify-between gap-3 transition-all hover:border-foreground/30 block"
+                  className="border border-border/50 rounded-4xl p-4 bg-card/30 backdrop-blur-2xl flex items-center justify-between gap-3 transition-all hover:border-foreground/30"
                 >
                   <div className="space-y-0.5 truncate">
                     <h4 className="text-sm font-medium text-foreground truncate">{opp.title}</h4>
@@ -594,7 +594,7 @@ export default function HomePage() {
               </div>
             </div>
           ) : timeline.length > 0 ? (
-            <div className="border border-border rounded-4xl p-5 bg-card space-y-4">
+            <div className="border border-border/50 rounded-4xl p-5 bg-card/30 backdrop-blur-2xl space-y-4">
               {timeline.map((item) => (
                 <div key={item.id} className="space-y-1.5">
                   <div className="flex items-center justify-between text-xs">

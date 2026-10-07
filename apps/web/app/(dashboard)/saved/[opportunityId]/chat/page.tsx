@@ -166,7 +166,7 @@ export default function OpportunityChatPage() {
 
   return (
     <div className="max-w-4xl mx-auto flex flex-col pb-32 pt-20">
-      <div className="fixed left-1/2 -translate-x-1/2 top-[80px] z-40 w-full max-w-4xl bg-background/50 backdrop-blur-xl border-b border-border py-4 px-4 sm:px-0 flex items-center justify-between">
+      <div className="fixed left-1/2 -translate-x-1/2 top-[80px] z-40 w-full max-w-4xl bg-background/60 backdrop-blur-2xl border-b border-border/50 py-4 px-4 sm:px-0 flex items-center justify-between">
         <div className="flex items-center gap-4">
           <Link
             href="/saved"
@@ -178,7 +178,7 @@ export default function OpportunityChatPage() {
             <h1 className="font-display text-base font-medium text-foreground leading-tight">
               {opportunity.title}
             </h1>
-            <p className="text-xs text-muted-foreground flex items-center gap-2 py-0.5 px-2 bg-muted rounded-full">
+            <p className="text-xs text-muted-foreground flex items-center gap-2 py-0.5 px-2 bg-muted/40 backdrop-blur-2xl rounded-full">
               <span className="capitalize">{opportunity.type}</span>
             </p>
           </div>
@@ -193,7 +193,7 @@ export default function OpportunityChatPage() {
       <div className="flex-1 space-y-6 px-2 sm:px-4">
         {messages.length === 0 ? (
           <div className="h-full flex flex-col items-center justify-center text-center space-y-4 text-muted-foreground pt-12 pb-24">
-            <div className="p-4 bg-muted rounded-full">
+            <div className="p-4 bg-muted/50 backdrop-blur-2xl rounded-full">
               <Sparkles size={24} className="text-foreground/70" />
             </div>
             <div className="max-w-xs space-y-1">
@@ -216,7 +216,7 @@ export default function OpportunityChatPage() {
                 className={`max-w-[85%] rounded-4xl px-5 py-3.5 text-sm leading-relaxed ${
                   msg.role === "user"
                     ? "bg-foreground text-background"
-                    : "bg-muted text-foreground"
+                    : "bg-muted/60 backdrop-blur-2xl text-foreground"
                 }`}
               >
                 {msg.role === "assistant" ? (
@@ -233,7 +233,7 @@ export default function OpportunityChatPage() {
 
         {isSending && messages[messages.length - 1]?.role === "user" && (
           <div className="flex justify-start">
-            <div className="max-w-[85%] rounded-4xl px-5 py-3.5 bg-muted flex items-center gap-2 text-muted-foreground">
+            <div className="max-w-[85%] rounded-4xl px-5 py-3.5 bg-muted/60 backdrop-blur-2xl flex items-center gap-2 text-muted-foreground">
               <div className="w-1.5 h-1.5 rounded-full bg-foreground/40 animate-pulse" />
               <div className="w-1.5 h-1.5 rounded-full bg-foreground/40 animate-pulse delay-150" />
               <div className="w-1.5 h-1.5 rounded-full bg-foreground/40 animate-pulse delay-300" />
@@ -256,7 +256,7 @@ export default function OpportunityChatPage() {
         <div className="w-full">
           <form
             onSubmit={handleSend}
-            className="relative flex items-end gap-2 bg-card border border-border rounded-full p-1.5 shadow-sm focus-within:border-foreground/40 focus-within:ring-1 focus-within:ring-foreground/40 transition-all"
+            className="relative flex items-end gap-2 bg-card/50 backdrop-blur-2xl border border-border/50 rounded-full p-1.5 shadow-sm focus-within:border-foreground/40 focus-within:ring-1 focus-within:ring-foreground/40 transition-all"
           >
             <textarea
               className="flex-1 max-h-32 w-full resize-none bg-transparent px-4 py-3 text-sm focus:outline-none scrollbar-hide text-foreground placeholder:text-muted-foreground leading-relaxed"
