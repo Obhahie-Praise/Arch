@@ -42,6 +42,37 @@ function isInternalAuthorized(c: any): boolean {
   return secret === envSecret;
 }
 
+/**
+ * Parses the developer email list from environment variables.
+ *
+ * Supports two variable names for backward compatibility:
+ *   DEVELOPER_ACCESS_EMAILS  — comma-separated list (preferred, plural form)
+ *   DEVELOPER_ACCESS_EMAIL   — single email (legacy singular form)
+ *
+ * When both are set, DEVELOPER_ACCESS_EMAILS takes precedence.
+ *
+ * Parsing rules:
+ *   1. Split on commas.
+ *   2. Trim whitespace from each value.
+ *   3. Ignore empty entries.
+ *
+ * Returns an empty array when neither variable is set.
+ * The returned list is never sent to the client.
+ */
+function parseDeveloperEmails(env: import("../auth").Env): string[] {
+  const source = env.DEVELOPER_ACCESS_EMAILS ?? env.DEVELOPER_ACCESS_EMAIL ?? "";
+  return source
+    .split(",")
+    .map((e) => e.trim())
+    .filter(Boolean);
+}
+
+/** Returns true if the given email belongs to a configured developer account. */
+function checkIsDeveloper(env: import("../auth").Env, email: string): boolean {
+  const emails = parseDeveloperEmails(env);
+  return emails.length > 0 && emails.includes(email);
+}
+
 // GET /api/opportunities - Get recommendations for current user
 opportunitiesRouter.get("/", async (c) => {
   const auth = createAuth(c.env);
@@ -55,8 +86,7 @@ opportunitiesRouter.get("/", async (c) => {
   const userEmail = session.user.email;
 
   // Developer check is server-side only — never trust client input for this.
-  const isDeveloper =
-    !!c.env.DEVELOPER_ACCESS_EMAIL && userEmail === c.env.DEVELOPER_ACCESS_EMAIL;
+  const isDeveloper = checkIsDeveloper(c.env, userEmail);
 
   try {
     const typeFilter = c.req.query("type") as OpportunityType | undefined;
@@ -112,8 +142,7 @@ opportunitiesRouter.get("/", async (c) => {
       });
     } else {
       // ── NORMAL USER PATH ───────────────────────────────────────────────────
-      // Normal users see only the opportunities surfaced by the matching engine,
-      // capped at WEEKLY_QUOTA (30). This path is intentionally unchanged.
+      // Normal users see only the opportunities surfaced by the matching engine.
       const rawRecommendations = await MatchingService.getOrGenerateUserRecommendations(
         c.env.arch_db,
         userId,
@@ -124,9 +153,7 @@ opportunitiesRouter.get("/", async (c) => {
       formatted = rawRecommendations.map((row) =>
         OpportunityService.formatOpportunity(row, row)
       );
-
-      // Hard-cap: defence-in-depth against any future MatchingService changes.
-      formatted = formatted.slice(0, 30);
+      // No hard-cap: users see every opportunity the matching engine has surfaced for them.
     }
 
     // ── SHARED FILTERING (applies to both paths) ──────────────────────────────
@@ -169,7 +196,6 @@ opportunitiesRouter.get("/", async (c) => {
       data: paginatedData,
       meta: {
         total,
-        weeklyLimit: isDeveloper ? "unlimited" : 30,
         isDeveloper,
       },
       pagination: {
@@ -195,8 +221,7 @@ opportunitiesRouter.get("/saved", async (c) => {
     return c.json({ error: { code: "UNAUTHORIZED", message: "Authentication required" } }, 401);
   }
 
-  const isDeveloper =
-    !!c.env.DEVELOPER_ACCESS_EMAIL && user.email === c.env.DEVELOPER_ACCESS_EMAIL;
+  const isDeveloper = checkIsDeveloper(c.env, user.email);
 
   const rows = await OpportunityRepository.listUserSaved(c.env.arch_db, user.id);
   let formatted = rows.map((row) => OpportunityService.formatOpportunity(row, row));

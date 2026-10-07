@@ -53,7 +53,9 @@
 	 *   GITHUB_CLIENT_ID        — secret
 	 *   GITHUB_CLIENT_SECRET    — secret
 	 *   TAVILY_API_KEY          — secret
-	 *   DEVELOPER_ACCESS_EMAIL  — plain var
+	 *   DEVELOPER_ACCESS_EMAIL  — plain var (legacy singular; still supported)
+	 *   DEVELOPER_ACCESS_EMAILS — plain var (preferred plural, comma-separated:
+	 *                              e.g. me@example.com,friend@example.com)
 	 *
 	 * Optional:
 	 *   INTERNAL_ENGINE_SECRET  — required for /api/internal/* in production

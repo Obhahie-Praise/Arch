@@ -3,6 +3,46 @@ import type { DiscoverySourceConfig } from "./types";
 export const DISCOVERY_SOURCES: DiscoverySourceConfig[] = [
   // --- Tier 1: Major Job & Opportunity Platforms ---
   {
+    // Facebook Jobs & Events are publicly indexed by search engines.
+    // Individual opportunity pages may require a Facebook account to interact with,
+    // but the core content (title, description, organization, deadline) is often
+    // accessible in the page HTML returned to crawlers. The pipeline's AI extractor
+    // processes whatever content is available and rejects incomplete entries using
+    // the same quality gate applied to all other sources.
+    //
+    // Integration strategy: web-search queries via Tavily — identical to LinkedIn,
+    // Indeed, and all other Tier 1 sources. No Facebook API credentials required.
+    id: "facebook-jobs",
+    name: "Facebook Jobs",
+    domain: "facebook.com",
+    types: ["job"],
+    priority: 1,
+    enabled: true,
+    discoveryStrategy: "search",
+    queries: [
+      "site:facebook.com/jobs software engineer",
+      "site:facebook.com/jobs developer",
+      "site:facebook.com/jobs frontend developer",
+      "site:facebook.com/jobs backend developer",
+      "site:facebook.com/jobs remote developer",
+    ],
+    refreshIntervalHours: 4,
+  },
+  {
+    id: "facebook-hackathons",
+    name: "Facebook Events (Hackathons)",
+    domain: "facebook.com",
+    types: ["hackathon"],
+    priority: 1,
+    enabled: true,
+    discoveryStrategy: "search",
+    queries: [
+      "site:facebook.com/events hackathon developer",
+      "site:facebook.com/events coding challenge",
+    ],
+    refreshIntervalHours: 4,
+  },
+  {
     id: "linkedin-jobs",
     name: "LinkedIn Jobs",
     domain: "linkedin.com",

@@ -177,6 +177,9 @@ export class DiscoveryPipeline {
         /^https?:\/\/apply\.techstars\.com\/?$/i,
         /^https?:\/\/(www\.)?linkedin\.com\/jobs\/?$/i,
         /^https?:\/\/(www\.)?indeed\.com\/?$/i,
+        // Facebook listing pages — individual opportunity pages pass through
+        /^https?:\/\/(www\.)?facebook\.com\/jobs\/?$/i,
+        /^https?:\/\/(www\.)?facebook\.com\/events\/?$/i,
       ];
 
       function isListingPage(url: string): boolean {

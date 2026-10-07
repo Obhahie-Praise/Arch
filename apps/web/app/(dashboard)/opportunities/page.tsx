@@ -482,14 +482,11 @@ export default function OpportunitiesPage() {
         </div>
       )}
 
-      {/* Access-limit / Pro messaging — below pagination, outside the list, secondary */}
+      {/* Matching context message — below pagination, outside the list, secondary */}
       {filteredOpportunities.length > 0 && !isDeveloper && (
         <div className="pb-2 text-center space-y-0.5">
           <p className="text-xs text-muted-foreground">
-            Arch currently surfaces up to 30 opportunities for you.
-          </p>
-          <p className="text-[11px] text-muted-foreground/60">
-            Pro version coming soon — you&apos;ll be able to unlock more very soon.
+            These opportunities have been matched to your profile.
           </p>
         </div>
       )}

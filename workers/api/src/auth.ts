@@ -16,8 +16,17 @@ export interface Env {
   GITHUB_CLIENT_SECRET?: string;
   /** Secret that must be supplied by callers of /api/internal/* endpoints. */
   INTERNAL_ENGINE_SECRET?: string;
-  /** Developer account email — grants access to the full matched result set without the weekly quota cap. Evaluated server-side only; never exposed to clients. */
+  /** Developer account email — grants access to the full matched result set without the weekly quota cap. Evaluated server-side only; never exposed to clients.
+   * @deprecated Use DEVELOPER_ACCESS_EMAILS (plural, comma-separated) instead. Both are supported for backward compatibility.
+   */
   DEVELOPER_ACCESS_EMAIL?: string;
+  /**
+   * Comma-separated list of developer account emails. Takes precedence over DEVELOPER_ACCESS_EMAIL
+   * when both are set. Evaluated server-side only; never exposed to clients.
+   *
+   * Example: DEVELOPER_ACCESS_EMAILS=me@example.com,friend@example.com
+   */
+  DEVELOPER_ACCESS_EMAILS?: string;
   /** Required for web-search discovery via Tavily. */
   TAVILY_API_KEY?: string;
   /** UploadThing API token — used for profile avatar and resume uploads. Never expose to the client. */

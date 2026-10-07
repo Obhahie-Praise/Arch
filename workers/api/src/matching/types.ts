@@ -24,9 +24,13 @@ export const SCORE_BLEND = {
 export const AI_CANDIDATE_LIMIT = 50;
 
 /**
- * Weekly recommendation limit per user (across all opportunity types).
+ * There is no per-user opportunity quota.
+ * Users see every opportunity the matching engine determines is relevant to them.
+ *
+ * @deprecated This constant is no longer used. Kept as a tombstone to prevent
+ * accidental re-introduction of an arbitrary limit.
  */
-export const WEEKLY_QUOTA = 30;
+// export const WEEKLY_QUOTA = 30;
 
 /**
  * Eligibility status: deterministic hard-check outcome.

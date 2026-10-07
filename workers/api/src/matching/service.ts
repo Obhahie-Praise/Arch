@@ -30,7 +30,7 @@ import type {
 } from "../opportunities/types";
 import { SeedDiscoverySource } from "../discovery/sources";
 import { IngestionService } from "../discovery/service";
-import { AI_CANDIDATE_LIMIT, WEEKLY_QUOTA } from "./types";
+import { AI_CANDIDATE_LIMIT } from "./types";
 import type { EligibilityStatus, AIMatchResult } from "./types";
 
 // ─── ISO week key helper ────────────────────────────────────────────────────
@@ -168,22 +168,18 @@ export class MatchingService {
 
     const used = quota?.recommendations_used ?? 0;
 
-    const limitClause = isDeveloper ? "" : `LIMIT ${WEEKLY_QUOTA}`;
-
-    // 2. Fetch existing recommendations (all time, non-dismissed)
+    // 2. Fetch all existing recommendations (all time, non-dismissed) — no cap.
     const existingMatches = await db
-      .prepare(`${JOINED_MATCH_QUERY} ${limitClause}`)
+      .prepare(`${JOINED_MATCH_QUERY}`)
       .bind(userId)
       .all<JoinedOpportunityMatchRow>();
 
     const existingResults = existingMatches.results ?? [];
 
-    // Quota full — return cached
-    if (!isDeveloper && (used >= WEEKLY_QUOTA || existingResults.length >= WEEKLY_QUOTA)) {
-      return existingResults.slice(0, WEEKLY_QUOTA);
-    }
-
-    const remainingQuota = isDeveloper ? 10000 : WEEKLY_QUOTA - used;
+    // No quota cap — the matching engine decides what is relevant.
+    // remainingQuota bounds how many new items diversity-ranking will surface
+    // per run (not a user-visible restriction). 10000 is effectively unlimited.
+    const remainingQuota = 10000;
 
     // 3. Seed opportunities if table is empty
     const countRes = await db
@@ -442,9 +438,9 @@ export class MatchingService {
     }
 
     // 11. Return complete set for this week
-    const finalLimitClause = isDeveloper ? "" : `LIMIT ${WEEKLY_QUOTA}`;
+    // 11. Return all matches for this user (no cap — users see every match).
     const finalMatches = await db
-      .prepare(`${JOINED_MATCH_QUERY} ${finalLimitClause}`)
+      .prepare(`${JOINED_MATCH_QUERY}`)
       .bind(userId)
       .all<JoinedOpportunityMatchRow>();
 
