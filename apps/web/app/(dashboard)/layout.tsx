@@ -153,7 +153,7 @@ export default function DashboardLayout({
   const avatarSrc = profileAvatar || user?.image;
 
   return (
-    <div className="h-screen max-w-6xl mx-auto flex flex-col">
+    <div className="h-screen flex flex-col">
       {/* ── Desktop Navigation ─────────────────────────────────────────────── */}
       <nav className="fixed left-1/2 -translate-x-1/2 top-0 z-50 w-full max-w-6xl px-4 sm:px-6 flex items-center justify-between py-5 bg-background/50 backdrop-blur-xl md:rounded-full">
         <Link href={"/"} className="flex items-center gap-2 shrink-0">
