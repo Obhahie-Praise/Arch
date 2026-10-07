@@ -100,7 +100,7 @@ export default function Hero() {
           }}
         >
           <Link
-            href={"./auth/login"}
+            href={"/"}
             className="bg-background/20 text-primary px-6 py-3 rounded-full text-sm transition-colors hover:bg-muted/20 backdrop-blur-sm cursor-pointer duration-300 border shadow border-border"
           >
             How it works
