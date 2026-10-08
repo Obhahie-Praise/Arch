@@ -90,6 +90,12 @@ All mock data removed from production rendering paths. Home metrics, charts, and
 - Removed unused/obsolete boilerplate, dead code, and development constants.
 - Passed full TS type checks for both Web and API.
 
+**Google OAuth `state_mismatch` Fixed:**
+- Root cause: cross-origin partitioned cookie problem. The frontend (vercel.app) initiates the OAuth flow via a `fetch()` to the API (workers.dev). Browsers store the resulting state cookie partitioned under the vercel.app top-level origin. When Google redirects back to workers.dev, the top-level origin changes and the partitioned cookie is not sent, causing `state_mismatch`.
+- Fix 1: Added `account: { skipStateCookieCheck: true }` to Better Auth config (`workers/api/src/auth.ts`). This removes the secondary state cookie check. The primary CSRF protection — the one-time verification record in D1 — is still enforced.
+- Fix 2: Added `NEXT_PUBLIC_APP_URL` env var (`apps/web/.env.production`, `.env`, `.env.example`) and exported `APP_URL` from `apps/web/lib/api.ts`. Changed `callbackURL: "/home"` to `callbackURL: \`${APP_URL}/home\`` in `auth/page.tsx` and `signin/page.tsx`. A relative callbackURL was resolved against the API's baseURL (workers.dev) instead of the frontend — sending users to the wrong domain after authentication.
+- TypeScript type checks pass for both web and API packages.
+
 **Discovery Chart Fixed:**
 - Root cause: `isDataEmpty` gate in Home page was hiding the discovery chart for users with no personal matches. The chart represents global system activity and must be visible regardless of match state.
 - Fix: `hasDiscoveryActivity = chart.some(d => d.created > 0)` added to the `isDataEmpty` check — the full dashboard is shown whenever opportunities have been discovered.

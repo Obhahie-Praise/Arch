@@ -7,6 +7,7 @@ import MailOutlinedIcon from "@mui/icons-material/MailOutlined";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { authClient } from "../../lib/auth-client";
+import { APP_URL } from "../../lib/api";
 
 const AuthPage = () => {
   const router = useRouter();
@@ -19,7 +20,10 @@ const AuthPage = () => {
     try {
       await authClient.signIn.social({
         provider,
-        callbackURL: "/home",
+        // Absolute URL is required because Better Auth runs on the API domain
+        // (workers.dev) and resolves a relative path against its own baseURL,
+        // which would redirect the user to the API rather than to the frontend.
+        callbackURL: `${APP_URL}/home`,
       });
     } catch {
       setError(`Failed to sign in with ${provider}. Please try again.`);

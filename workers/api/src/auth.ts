@@ -77,4 +77,21 @@ export const createAuth = (env: Env) =>
         clientSecret: env.GITHUB_CLIENT_SECRET,
       },
     },
+
+    // The Arch frontend (vercel.app) and API (workers.dev) live on completely
+    // different domains. When the browser initiates the OAuth flow via a fetch()
+    // from vercel.app to workers.dev, the API's state cookie is stored in the
+    // browser's CHIPS-partitioned storage under the vercel.app top-level origin.
+    // After Google redirects the user back to workers.dev/api/auth/callback/google
+    // the top-level origin is now workers.dev, so the cookie is in a different
+    // partition and the browser does not send it — causing state_mismatch.
+    //
+    // Disabling the secondary state cookie check is the correct fix for this
+    // cross-domain deployment topology. The primary CSRF protection — the
+    // one-time verification record stored in D1 — is still enforced in full.
+    //
+    // Reference: https://better-auth.com/docs/reference/errors/state_mismatch
+    account: {
+      skipStateCookieCheck: true,
+    },
   });
