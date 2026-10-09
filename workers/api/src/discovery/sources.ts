@@ -7,11 +7,15 @@ export class SeedDiscoverySource implements OpportunityDiscoveryProvider {
 
   async discover(_context?: DiscoveryContext): Promise<OpportunityCandidate[]> {
     const rawInputs = await this.discoverInputs();
+    // All seed entries are fully structured — mark them as pre-extracted so the
+    // pipeline never attempts to fetch the source pages, which would waste
+    // subrequests and fail for URLs that don't host parseable opportunity content.
     return rawInputs.map((input) => ({
       url: input.sourceUrl,
       title: input.title,
       snippet: input.description,
       sourceType: "manual" as const,
+      preExtracted: input as Partial<OpportunityInput>,
     }));
   }
 

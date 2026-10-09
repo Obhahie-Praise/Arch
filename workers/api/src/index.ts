@@ -41,8 +41,69 @@ app.route("/api/profile", profileRouter);
 app.route("/api/settings", settingsRouter);
 app.route("/api/opportunities", opportunitiesRouter);
 
-app.get("/api/test-discovery", async (c) => {
-  const summary = await runDiscoveryJob(c.env.arch_db, c.env as unknown as Record<string, unknown>);
+/**
+ * POST /api/test-discovery
+ *
+ * Manually triggers a single discovery run on the production Worker.
+ *
+ * Authorization: X-Internal-Secret header must match the INTERNAL_ENGINE_SECRET
+ * environment secret. In local development (no secret configured) only
+ * localhost callers are allowed — this is enforced by isInternalAuthorized().
+ *
+ * Concurrency guard: if a run is already in progress (status = 'running' and
+ * started within the last 30 minutes) the request is rejected with 409. This
+ * prevents overlapping runs and accidental quota exhaustion from repeated calls.
+ *
+ * State-changing, so POST only.
+ */
+app.post("/api/test-discovery", async (c) => {
+  // Authorization — must come before any side effects.
+  // Mirrors isInternalAuthorized() in routes.ts to avoid a circular import.
+  const secret = c.req.header("X-Internal-Secret");
+  const envSecret = (c.env as unknown as Record<string, string>).INTERNAL_ENGINE_SECRET;
+  if (envSecret) {
+    if (secret !== envSecret) {
+      return c.json({ error: { code: "FORBIDDEN", message: "Not authorized" } }, 403);
+    }
+  } else {
+    // No secret configured — allow localhost callers only (local dev).
+    const origin = c.req.header("origin") ?? c.req.header("referer") ?? "";
+    if (!origin.startsWith("http://localhost") && !origin.startsWith("http://127.0.0.1")) {
+      return c.json({ error: { code: "FORBIDDEN", message: "Not authorized" } }, 403);
+    }
+  }
+
+  // Concurrency guard: reject if a run is already active.
+  try {
+    const active = await c.env.arch_db
+      .prepare(
+        `SELECT id FROM discovery_runs
+         WHERE status = 'running'
+           AND started_at >= datetime('now', '-30 minutes')
+         LIMIT 1`
+      )
+      .first<{ id: string }>();
+
+    if (active) {
+      return c.json(
+        {
+          error: {
+            code: "CONFLICT",
+            message: `A discovery run is already in progress (id: ${active.id}). Wait for it to complete or time out.`,
+          },
+        },
+        409
+      );
+    }
+  } catch {
+    // If the discovery_runs table does not yet exist, proceed — the pipeline
+    // will create the row itself.
+  }
+
+  const summary = await runDiscoveryJob(
+    c.env.arch_db,
+    c.env as unknown as Record<string, unknown>
+  );
   return c.json(summary);
 });
 

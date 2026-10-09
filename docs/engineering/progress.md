@@ -90,6 +90,16 @@ All mock data removed from production rendering paths. Home metrics, charts, and
 - Removed unused/obsolete boilerplate, dead code, and development constants.
 - Passed full TS type checks for both Web and API.
 
+**Production Discovery Recovery Complete:**
+- Root cause identified: Tavily API key had been rotated locally but not pushed to production secrets, causing `web-search-provider` to silently return zero candidates on every run since Oct 6. Devpost API adapter (key-free) continued working, which is why only hackathons appeared.
+- Fixed `/api/test-discovery`: changed from public unauthenticated `GET` to `POST` requiring `X-Internal-Secret` header matching `INTERNAL_ENGINE_SECRET` secret. Added D1-backed concurrency guard (rejects with 409 if a run is active in the last 30 minutes).
+- Fixed `SeedDiscoverySource`: seed candidates now carry `preExtracted` data so the pipeline never fetches their pages (which were wasting subrequest budget on every run).
+- Fixed `WebSearchDiscoveryProvider`: now respects `context.activeTiers` (only queries sources whose tier is actually due), caps total Tavily calls at 25 per run, builds `preExtracted` data from Tavily snippets (≥150 chars) to skip page fetches for search results, and logs Tavily 401/403 errors explicitly instead of silently swallowing them.
+- `INTERNAL_ENGINE_SECRET` moved from plain dashboard variable to proper `wrangler secret put` secret.
+- Cron confirmed deployed as `0 0 * * *` (daily midnight UTC) — previously deployed code was still running the old hourly schedule.
+- Controlled production run (ID: `dec96406-5bdd-4537-9f83-cf2cd56c8c93`): 407 candidates found, 155 created, 5 updated, 0 rejected. DB now contains 208 active hackathons, 132 active jobs, 6 other, 2 grants, 1 fellowship.
+- Remaining known issue: Devpost's 200 API candidates still require individual page fetches (they are pre-extracted from the API but the pipeline falls through to page fetch for any pre-extracted record missing `description`). These exhaust the subrequest budget after ~150 ingestions. Long-term fix: move page fetching into Cloudflare Queues per the architecture docs.
+
 **Google OAuth `state_mismatch` Fixed:**
 - Root cause: cross-origin partitioned cookie problem. The frontend (vercel.app) initiates the OAuth flow via a `fetch()` to the API (workers.dev). Browsers store the resulting state cookie partitioned under the vercel.app top-level origin. When Google redirects back to workers.dev, the top-level origin changes and the partitioned cookie is not sent, causing `state_mismatch`.
 - Fix 1: Added `account: { skipStateCookieCheck: true }` to Better Auth config (`workers/api/src/auth.ts`). This removes the secondary state cookie check. The primary CSRF protection — the one-time verification record in D1 — is still enforced.
