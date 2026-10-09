@@ -1,4 +1,5 @@
 "use client";
+"use client";
 import { API_URL } from "../../lib/api";
 
 import React, { useState, useEffect, useRef, useLayoutEffect } from "react";
@@ -24,7 +25,23 @@ export default function DashboardLayout({
 }) {
   const pathname = usePathname();
   const router = useRouter();
-  const { data: session } = authClient.useSession();
+  const { data: session, isPending } = authClient.useSession();
+
+  // Client-side session guard.
+  //
+  // The frontend (vercel.app) and API (workers.dev) are on different domains.
+  // The session cookie is set by workers.dev and the browser never includes it
+  // in requests to vercel.app, so Next.js middleware cannot inspect it.
+  // authClient.useSession() uses a credentialed fetch directly to the API and
+  // is the only reliable way to check session state in this topology.
+  //
+  // Wait until isPending is false before redirecting — redirecting during the
+  // initial session fetch would bounce authenticated users to /signin.
+  useEffect(() => {
+    if (!isPending && !session) {
+      router.replace(`/signin?redirect=${encodeURIComponent(pathname)}`);
+    }
+  }, [isPending, session, pathname, router]);
 
   // Navigation indicator state (desktop pill)
   const containerRef = useRef<HTMLDivElement>(null);
@@ -151,6 +168,18 @@ export default function DashboardLayout({
   }, [session]);
 
   const avatarSrc = profileAvatar || user?.image;
+
+  // While the session is loading, render nothing to avoid a flash of
+  // protected content. The useEffect above will redirect unauthenticated
+  // users as soon as isPending becomes false.
+  if (isPending) {
+    return null;
+  }
+
+  // If session is absent and redirect hasn't fired yet, render nothing.
+  if (!session) {
+    return null;
+  }
 
   return (
     <div className="h-screen flex flex-col">

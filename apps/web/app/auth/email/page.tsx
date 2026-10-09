@@ -28,20 +28,43 @@ const EmailAuthPage = () => {
       return;
     }
 
-    const { error: authError } = await authClient.signUp.email({
-      name,
-      email,
-      password,
-      callbackURL: "/home",
-    });
-
-    if (authError) {
-      setError(authError.message ?? "Something went wrong. Please try again.");
-      setLoading(false);
-      return;
-    }
-    /* 
-    router.push("/home"); */
+    await authClient.signUp.email(
+      {
+        name,
+        email,
+        password,
+      },
+      {
+        onSuccess: () => {
+          // Account created and session established. Navigate to home.
+          // router.push preserves the session cookie that the Better Auth
+          // client already stored before this callback fires.
+          router.push("/home");
+        },
+        onError: (ctx) => {
+          // Distinguish credential/validation errors from network failures.
+          const status = ctx.error?.status;
+          if (status === 0 || status == null) {
+            setError(
+              "Could not reach the server. Check your connection and try again."
+            );
+          } else if (status === 422 || status === 400) {
+            setError(
+              ctx.error?.message ?? "Invalid details. Please check and try again."
+            );
+          } else if (status === 409) {
+            setError(
+              "An account with this email already exists. Try signing in instead."
+            );
+          } else {
+            setError(
+              ctx.error?.message ?? "Something went wrong. Please try again."
+            );
+          }
+          setLoading(false);
+        },
+      }
+    );
   };
 
   return (

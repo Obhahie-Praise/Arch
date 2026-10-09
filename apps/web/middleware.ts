@@ -1,60 +1,45 @@
 import { NextRequest, NextResponse } from "next/server";
 
-import { API_URL } from "./lib/api";
-
-const PROTECTED_ROUTES = ["/home", "/opportunities", "/saved", "/profile", "/settings"];
-
-export async function middleware(request: NextRequest) {
-  const { pathname } = request.nextUrl;
-
-  const isProtected = PROTECTED_ROUTES.some(
-    (route) => pathname === route || pathname.startsWith(`${route}/`)
-  );
-
-  if (!isProtected) {
-    return NextResponse.next();
-  }
-
-  // Better Auth sets the session cookie as "better-auth.session_token"
-  const sessionToken = request.cookies.get("better-auth.session_token")?.value;
-
-  if (!sessionToken) {
-    const signInUrl = new URL("/signin", request.url);
-    signInUrl.searchParams.set("redirect", pathname);
-    return NextResponse.redirect(signInUrl);
-  }
-
-  // Validate the session token against the API
-  try {
-    const response = await fetch(`${API_URL}/api/auth/get-session`, {
-      headers: {
-        cookie: `better-auth.session_token=${sessionToken}`,
-      },
-    });
-
-    if (!response.ok) {
-      const signInUrl = new URL("/signin", request.url);
-      signInUrl.searchParams.set("redirect", pathname);
-      return NextResponse.redirect(signInUrl);
-    }
-
-    const session = await response.json() as { user?: unknown } | null;
-
-    if (!session?.user) {
-      const signInUrl = new URL("/signin", request.url);
-      signInUrl.searchParams.set("redirect", pathname);
-      return NextResponse.redirect(signInUrl);
-    }
-  } catch {
-    // If the session check fails (e.g. API unreachable), block access
-    const signInUrl = new URL("/signin", request.url);
-    signInUrl.searchParams.set("redirect", pathname);
-    return NextResponse.redirect(signInUrl);
-  }
-
+/**
+ * Route protection for Arch.
+ *
+ * The frontend (vercel.app) and API (workers.dev) are on different domains.
+ * Better Auth sets the session cookie on the API domain (workers.dev). When the
+ * browser navigates to the frontend, it does not include the workers.dev cookie
+ * in the request — cookies are scoped to the domain that set them.
+ *
+ * A server-side cookie check in Next.js middleware therefore always sees an
+ * empty cookie jar for authenticated users, which caused every navigation to a
+ * protected route to redirect to /signin regardless of actual session state.
+ *
+ * Session validation is handled client-side in the dashboard layout using
+ * authClient.useSession(), which makes a credentialed fetch back to the API
+ * (workers.dev) and correctly receives the session cookie. Unauthenticated
+ * users are redirected to /signin from there.
+ *
+ * This middleware still handles:
+ * - Redirecting already-authenticated users away from /signin and /auth when
+ *   the session is known (this is not yet possible without server-side cookies,
+ *   so these routes are simply passed through and the pages handle it).
+ * - All other non-protected routes pass through unconditionally.
+ */
+export function middleware(_request: NextRequest) {
   return NextResponse.next();
 }
 
 export const config = {
-  matcher: ["/home/:path*", "/opportunities/:path*", "/saved/:path*", "/profile/:path*", "/settings/:path*"],
+  /*
+   * Match all routes except:
+   * - _next/static  (Next.js static files)
+   * - _next/image   (Next.js image optimisation)
+   * - favicon.ico
+   * - public files  (images, fonts, etc.)
+   *
+   * Keeping the matcher narrow avoids running the middleware on every asset
+   * request while still covering all application routes if the implementation
+   * needs to expand in the future.
+   */
+  matcher: [
+    "/((?!_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp|woff|woff2|ttf)$).*)",
+  ],
 };
