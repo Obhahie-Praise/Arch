@@ -106,6 +106,14 @@ All mock data removed from production rendering paths. Home metrics, charts, and
 - Fix 2: Added `NEXT_PUBLIC_APP_URL` env var (`apps/web/.env.production`, `.env`, `.env.example`) and exported `APP_URL` from `apps/web/lib/api.ts`. Changed `callbackURL: "/home"` to `callbackURL: \`${APP_URL}/home\`` in `auth/page.tsx` and `signin/page.tsx`. A relative callbackURL was resolved against the API's baseURL (workers.dev) instead of the frontend — sending users to the wrong domain after authentication.
 - TypeScript type checks pass for both web and API packages.
 
+**Signup/Signin Session Redirect Fixed:**
+- Root cause: Next.js middleware (`apps/web/middleware.ts`) read `better-auth.session_token` directly from the incoming browser request cookies. The session cookie is set by the API domain (workers.dev). The browser never includes workers.dev cookies in requests to the frontend (vercel.app) due to cookie domain scoping — so every navigation to a protected route was blocked with a redirect to `/signin?redirect=<path>` regardless of actual session state.
+- Fix 1 (`middleware.ts`): Removed the cookie-based server-side session guard entirely. It cannot work in this cross-origin topology. The middleware now passes all requests through.
+- Fix 2 (`app/(dashboard)/layout.tsx`): Added a client-side `useEffect` session guard using the existing `authClient.useSession()`. The Better Auth client makes a credentialed fetch directly to the API and correctly reads the session cookie. Renders `null` while `isPending` to avoid a flash of protected content. Unauthenticated users are redirected to `/signin?redirect=<current path>`.
+- Fix 3 (`app/auth/email/page.tsx`): Replaced the commented-out `router.push` with `fetchOptions.onSuccess` (the correct Better Auth v1 client pattern). Distinguishes credential validation errors (400/422/409) from network failures (status 0). Removes the `callbackURL` parameter which was ignored by the client for email/password flows.
+- Fix 4 (`app/signin/email/page.tsx`): Same `fetchOptions.onSuccess` pattern. Honours the `?redirect=` search param. Wraps in `<Suspense>` as required for `useSearchParams` in Next.js 15+. Distinguishes network failures from invalid credentials.
+- DB confirmed: every user account already had corresponding session records from signup — the server side was always correct. The failure was entirely in the frontend redirect/guard layer.
+
 **Discovery Chart Fixed:**
 - Root cause: `isDataEmpty` gate in Home page was hiding the discovery chart for users with no personal matches. The chart represents global system activity and must be visible regardless of match state.
 - Fix: `hasDiscoveryActivity = chart.some(d => d.created > 0)` added to the `isDataEmpty` check — the full dashboard is shown whenever opportunities have been discovered.
