@@ -20,11 +20,6 @@ import {
   TimelineItemSkeleton,
 } from "../../../components/skeletons";
 
-// ============================================================================
-// Development override: set to null to use real profile API, or a number
-// (< 20 to test the completion gate, >= 20 for the full dashboard).
-// ============================================================================
-const MOCK_PROFILE_COMPLETION: number | null = null;
 
 
 // ─── Data shapes ────────────────────────────────────────────────────────────
@@ -214,19 +209,17 @@ export default function HomePage() {
   // valid data is shown immediately. We still fetch in the background to
   // revalidate, but we don't show skeletons while doing so.
   const hasCachedSummary = summary !== null;
-  const [loadingProfile, setLoadingProfile] = useState(MOCK_PROFILE_COMPLETION === null);
+  const [loadingProfile, setLoadingProfile] = useState(true);
   const [loadingMetrics, setLoadingMetrics] = useState(!hasCachedSummary);
   const [loadingCharts, setLoadingCharts] = useState(!hasCachedSummary);
   const [loadingMatches, setLoadingMatches] = useState(!hasCachedSummary);
   const [loadingSaved, setLoadingSaved] = useState(!hasCachedSummary);
   const [loadingTimeline, setLoadingTimeline] = useState(!hasCachedSummary);
 
-  const profileCompletion =
-    MOCK_PROFILE_COMPLETION !== null ? MOCK_PROFILE_COMPLETION : (realProfileCompletion ?? 0);
+  const profileCompletion = realProfileCompletion ?? 0;
 
-  // Fetch profile completion if not overridden
+  // Fetch profile completion from the API
   useEffect(() => {
-    if (MOCK_PROFILE_COMPLETION !== null) return;
     async function check() {
       try {
         const data = await cachedFetch<any>(`${API_URL}/api/profile`, {

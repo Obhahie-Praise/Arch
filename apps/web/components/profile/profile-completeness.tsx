@@ -18,8 +18,11 @@ export const ProfileCompleteness: React.FC<ProfileCompletenessProps> = ({
   education,
   sessionUser,
 }) => {
-  const hasName = Boolean(profile.fullName || profile.preferredName || sessionUser?.name);
-  const hasUsername = Boolean(profile.username || sessionUser?.email);
+  // Only count values the user has explicitly saved to their profile.
+  // Session data (OAuth name, email) must not substitute for missing profile
+  // fields because the score must reflect what the user has actually filled in.
+  const hasName = Boolean(profile.fullName || profile.preferredName);
+  const hasUsername = Boolean(profile.username);
 
   const sections = [
     {

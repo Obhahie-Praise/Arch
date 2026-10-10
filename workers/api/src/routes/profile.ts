@@ -4,16 +4,22 @@ import { uploadFile } from "../lib/storage";
 
 export const profileRouter = new Hono<{ Bindings: Env }>();
 
-// Helper to calculate profile completeness score
-function calculateCompletenessScore(profile: any, experiences: any[], education: any[], sessionUser?: any) {
+// Helper to calculate profile completeness score.
+//
+// Only fields that the user has explicitly saved are counted. Default values
+// pre-populated by the server (e.g. username derived from email, OAuth avatar,
+// currency defaulting to "USD") must NOT contribute to the score because they
+// do not represent deliberate input from the user.
+function calculateCompletenessScore(profile: any, experiences: any[], education: any[]) {
   let score = 0;
 
-  const name = profile.fullName || profile.preferredName || sessionUser?.name;
-  const email = profile.email || sessionUser?.email;
-  const username = profile.username || (email ? email.split("@")[0] : "");
-  const avatar = profile.avatarUrl || sessionUser?.image;
+  // Identity (20%) — only count values the user saved to their profile row.
+  // `sessionUser` is intentionally excluded so that OAuth-injected name/image
+  // do not inflate the score before the user fills in their profile.
+  const name = profile.fullName || profile.preferredName;
+  const username = profile.username; // only count if explicitly set by user
+  const avatar = profile.avatarUrl;  // only count uploaded/saved avatar URL
 
-  // Identity (20%)
   if (name) score += 6;
   if (username) score += 5;
   if (profile.country || profile.city) score += 5;
@@ -44,7 +50,10 @@ function calculateCompletenessScore(profile: any, experiences: any[], education:
   if (education.length > 0) score += 8;
 
   // Preferences & Application Materials (20%)
-  if (profile.desiredCompensationMin || profile.desiredCompensationMax || profile.currency) score += 5;
+  // Only count compensation when the user has explicitly entered an amount.
+  // The currency field defaults to "USD" on the server, so it cannot be used
+  // as a signal that the user has thought about compensation at all.
+  if (profile.desiredCompensationMin || profile.desiredCompensationMax) score += 5;
   const priorities = safeParseJson(profile.keyPriorities);
   if (priorities.length > 0 || profile.shortTermGoals || profile.longTermGoals) score += 5;
   if (profile.resumeUrl) score += 10;
@@ -83,14 +92,20 @@ profileRouter.get("/", async (c) => {
     const profile = await profileStmt.bind(userId).first<any>();
 
     if (!profile) {
-      // Return empty profile shell with auth user default data & initial non-zero completeness
+      // No profile row exists yet — this is a brand new user.
+      // Return a shell pre-populated with auth data only for form convenience
+      // (so the user sees their name/email prefilled). The completeness score
+      // MUST be 0 because the user has not saved any profile data yet.
+      // Do not call calculateCompletenessScore on this shell — derived defaults
+      // like the email-prefix username and the "USD" currency default are not
+      // meaningful user input and must not inflate the score.
       const defaultShell = {
         userId,
         fullName: session.user.name || "",
         preferredName: "",
-        username: session.user.email ? session.user.email.split("@")[0] : "",
+        username: "",
         email: session.user.email || "",
-        avatarUrl: session.user.image || "",
+        avatarUrl: "",
         country: "",
         state: "",
         city: "",
@@ -132,15 +147,11 @@ profileRouter.get("/", async (c) => {
         dealBreakers: [],
         resumeUrl: "",
         resumeFilename: "",
+        completenessScore: 0,
       };
 
-      const initialScore = calculateCompletenessScore(defaultShell, [], [], session.user);
-
       return c.json({
-        profile: {
-          ...defaultShell,
-          completenessScore: initialScore,
-        },
+        profile: defaultShell,
         experiences: [],
         education: [],
         projects: [],
@@ -288,7 +299,7 @@ profileRouter.put("/", async (c) => {
     const now = new Date().toISOString();
     const profileId = existing ? existing.id : crypto.randomUUID();
 
-    const completenessScore = calculateCompletenessScore(body, experiences, education, session.user);
+    const completenessScore = calculateCompletenessScore(body, experiences, education);
 
     if (existing) {
       // Update existing profile
