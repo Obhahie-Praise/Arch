@@ -94,4 +94,37 @@ export const createAuth = (env: Env) =>
     account: {
       skipStateCookieCheck: true,
     },
+
+    // Cross-origin cookie fix.
+    //
+    // Better Auth defaults to sameSite: "lax" for all cookies. SameSite=Lax
+    // instructs browsers NOT to attach a cookie when the request originates from
+    // a different top-level site. In this deployment:
+    //
+    //   Frontend:  https://arch-eight-orcin.vercel.app  (vercel.app)
+    //   API:       https://api.obhahiepraise.workers.dev (workers.dev)
+    //
+    // These are entirely separate registrable domains. When authClient.useSession()
+    // makes a credentialed fetch from vercel.app → workers.dev, the browser
+    // silently drops the session cookie because it was set with SameSite=Lax.
+    // The API sees no cookie, returns null, and the dashboard layout redirects to
+    // /signin — even for a fully authenticated user.
+    //
+    // Setting sameSite: "none" + secure: true on all cookies tells the browser
+    // to attach them in cross-site requests, which is the correct behaviour for
+    // this frontend/API split topology.
+    //
+    // Requirements for SameSite=None to work in all modern browsers:
+    //   1. The cookie MUST also be Secure (HTTPS). Both domains are HTTPS in
+    //      production, so this is always satisfied.
+    //   2. The API CORS config must send Access-Control-Allow-Credentials: true
+    //      and a specific (non-wildcard) origin — already the case in index.ts.
+    //   3. The client must fetch with credentials: "include" — Better Auth's
+    //      client always does this by default.
+    advanced: {
+      defaultCookieAttributes: {
+        sameSite: "none",
+        secure: true,
+      },
+    },
   });
