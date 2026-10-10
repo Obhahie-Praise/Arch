@@ -17,6 +17,8 @@ import { OpportunityCardSkeleton } from "../../../components/skeletons";
 
 const MOCK_PROFILE_COMPLETION: number | null = null;
 
+const SAVED_URL = `${API_URL}/api/opportunities/saved`;
+
 export default function SavedPage() {
   const { data: session } = authClient.useSession();
   const [realProfileCompletion, setRealProfileCompletion] = useState<number | null>(null);
@@ -24,12 +26,36 @@ export default function SavedPage() {
   const [searchQuery, setSearchQuery] = useState("");
   const [activeType, setActiveType] = useState<string>("All");
   const [matchedFilter, setMatchedFilter] = useState(false);
-  
-  const [savedIds, setSavedIds] = useState<Set<string>>(new Set());
-  const [pursuingIds, setPursuingIds] = useState<Set<string>>(new Set());
 
-  const [opportunities, setOpportunities] = useState<any[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
+  // ── Cache-primed initial state ──────────────────────────────────────────
+  // Read the saved list synchronously from the in-memory cache so that
+  // navigating back to this page never flashes an empty state when valid data
+  // is already available in memory.
+  const [opportunities, setOpportunities] = useState<any[]>(() => {
+    const cached = cachedFetch.peek<any>(SAVED_URL);
+    return cached?.data ?? [];
+  });
+  const [savedIds, setSavedIds] = useState<Set<string>>(() => {
+    const cached = cachedFetch.peek<any>(SAVED_URL);
+    if (!cached?.data) return new Set();
+    const saved = new Set<string>();
+    (cached.data as any[]).forEach((opp) => saved.add(opp.id));
+    return saved;
+  });
+  const [pursuingIds, setPursuingIds] = useState<Set<string>>(() => {
+    const cached = cachedFetch.peek<any>(SAVED_URL);
+    if (!cached?.data) return new Set();
+    const pursuing = new Set<string>();
+    (cached.data as any[]).forEach((opp) => {
+      if (opp.userStatus === "pursuing") pursuing.add(opp.id);
+    });
+    return pursuing;
+  });
+
+  const hasCachedData = opportunities.length > 0;
+
+  // Only show loading skeletons when we have nothing to display.
+  const [isLoading, setIsLoading] = useState(!hasCachedData);
   const [hasError, setHasError] = useState(false);
   const [isDeveloper, setIsDeveloper] = useState(false);
 
@@ -38,8 +64,7 @@ export default function SavedPage() {
     if (MOCK_PROFILE_COMPLETION !== null) return;
     async function checkCompleteness() {
       try {
-        const apiUrl = API_URL;
-        const data = await cachedFetch<any>(`${apiUrl}/api/profile`, {
+        const data = await cachedFetch<any>(`${API_URL}/api/profile`, {
           credentials: "include",
           ttl: 120_000,
         });
@@ -66,46 +91,47 @@ export default function SavedPage() {
     }
 
     async function fetchSavedOpportunities() {
+      // Only show skeletons when there is nothing to display yet
+      const alreadyCached = cachedFetch.peek<any>(SAVED_URL);
+      if (!alreadyCached) setIsLoading(true);
+
       try {
-        const apiUrl = API_URL;
-        const json = await cachedFetch<any>(`${apiUrl}/api/opportunities/saved`, {
+        const json = await cachedFetch<any>(SAVED_URL, {
           credentials: "include",
           ttl: 60_000,
         });
-        
+
         setOpportunities(json.data || []);
 
         if (json.meta) {
           setIsDeveloper(!!json.meta.isDeveloper);
         }
-        
+
         if (json.data) {
           const saved = new Set<string>();
           const pursuing = new Set<string>();
           json.data.forEach((opp: any) => {
-            saved.add(opp.id); // If it's returned here, it is saved/pursuing
-            if (opp.userStatus === "pursuing") {
-              pursuing.add(opp.id);
-            }
+            saved.add(opp.id);
+            if (opp.userStatus === "pursuing") pursuing.add(opp.id);
           });
           setSavedIds(saved);
           setPursuingIds(pursuing);
         }
       } catch (err) {
         console.error("Failed to fetch saved opportunities:", err);
-        setHasError(true);
+        if (!hasCachedData) setHasError(true);
       } finally {
         setIsLoading(false);
       }
     }
-    
+
     fetchSavedOpportunities();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [profileCompletion]);
 
   const availableTypes = useMemo(() => {
     const types = new Set<string>();
     opportunities.forEach((opp) => {
-      // only count if actually still saved in local state
       if (savedIds.has(opp.id)) types.add(opp.type);
     });
     return ["All", ...Array.from(types)] as string[];
@@ -113,12 +139,8 @@ export default function SavedPage() {
 
   const filteredOpportunities = useMemo(() => {
     return opportunities.filter((opp) => {
-      // Must be currently saved locally (to handle optimistic un-saves hiding it immediately)
       if (!savedIds.has(opp.id)) return false;
-
       if (activeType !== "All" && opp.type !== activeType) return false;
-
-      // Developer-only: only show opportunities with a valid profile match score.
       if (matchedFilter && !(opp.matchScore != null && opp.matchScore > 0)) return false;
 
       if (searchQuery.trim()) {
@@ -130,7 +152,6 @@ export default function SavedPage() {
           s.toLowerCase().includes(query)
         );
         const matchesType = opp.type?.toLowerCase().includes(query);
-
         if (!matchesTitle && !matchesOrg && !matchesDesc && !matchesSkills && !matchesType) {
           return false;
         }
@@ -139,14 +160,11 @@ export default function SavedPage() {
     });
   }, [opportunities, searchQuery, activeType, savedIds, matchedFilter]);
 
-  // True when the user has narrowed the result set via search/filters.
-  // Used to distinguish "no results for this query" from "no saved items at all".
   const hasActiveFilters =
     searchQuery.trim() !== "" ||
     activeType !== "All" ||
     matchedFilter;
 
-  // The true saved count — items still tracked as saved in local state.
   const totalSaved = useMemo(
     () => opportunities.filter((opp) => savedIds.has(opp.id)).length,
     [opportunities, savedIds]
@@ -155,7 +173,7 @@ export default function SavedPage() {
   const toggleSave = async (id: string, e: React.MouseEvent) => {
     e.preventDefault();
     const isCurrentlySaved = savedIds.has(id);
-    
+
     setSavedIds((prev) => {
       const next = new Set(prev);
       if (next.has(id)) next.delete(id);
@@ -164,13 +182,12 @@ export default function SavedPage() {
     });
 
     try {
-      const apiUrl = API_URL;
       const method = isCurrentlySaved ? "DELETE" : "POST";
-      const res = await fetch(`${apiUrl}/api/opportunities/${id}/save`, {
+      const res = await fetch(`${API_URL}/api/opportunities/${id}/save`, {
         method,
         credentials: "include",
       });
-      
+
       if (!res.ok) {
         setSavedIds((prev) => {
           const next = new Set(prev);
@@ -179,9 +196,9 @@ export default function SavedPage() {
           return next;
         });
       } else {
-        cachedFetch.invalidate(`${apiUrl}/api/opportunities/home`);
-        cachedFetch.invalidate(`${apiUrl}/api/opportunities/saved`);
-        cachedFetch.invalidatePrefix(`${apiUrl}/api/opportunities?`);
+        cachedFetch.invalidate(`${API_URL}/api/opportunities/home`);
+        cachedFetch.invalidate(SAVED_URL);
+        cachedFetch.invalidatePrefix(`${API_URL}/api/opportunities?`);
       }
     } catch (err) {
       setSavedIds((prev) => {
@@ -196,7 +213,7 @@ export default function SavedPage() {
   const togglePursue = async (id: string, e: React.MouseEvent) => {
     e.preventDefault();
     const isCurrentlyPursuing = pursuingIds.has(id);
-    
+
     setPursuingIds((prev) => {
       const next = new Set(prev);
       if (next.has(id)) next.delete(id);
@@ -205,13 +222,12 @@ export default function SavedPage() {
     });
 
     try {
-      const apiUrl = API_URL;
       const method = isCurrentlyPursuing ? "DELETE" : "POST";
-      const res = await fetch(`${apiUrl}/api/opportunities/${id}/pursue`, {
+      const res = await fetch(`${API_URL}/api/opportunities/${id}/pursue`, {
         method,
         credentials: "include",
       });
-      
+
       if (!res.ok) {
         setPursuingIds((prev) => {
           const next = new Set(prev);
@@ -220,10 +236,10 @@ export default function SavedPage() {
           return next;
         });
       } else {
-        cachedFetch.invalidate(`${apiUrl}/api/opportunities/home`);
-        cachedFetch.invalidate(`${apiUrl}/api/opportunities/saved`);
-        cachedFetch.invalidate(`${apiUrl}/api/opportunities/pursuing`);
-        cachedFetch.invalidatePrefix(`${apiUrl}/api/opportunities?`);
+        cachedFetch.invalidate(`${API_URL}/api/opportunities/home`);
+        cachedFetch.invalidate(SAVED_URL);
+        cachedFetch.invalidate(`${API_URL}/api/opportunities/pursuing`);
+        cachedFetch.invalidatePrefix(`${API_URL}/api/opportunities?`);
       }
     } catch (err) {
       setPursuingIds((prev) => {
@@ -235,6 +251,7 @@ export default function SavedPage() {
     }
   };
 
+  // ── Profile completion gate ───────────────────────────────────────────────
   if (profileCompletion < 20) {
     return (
       <div className="max-w-4xl mx-auto space-y-8 pb-16">
@@ -269,9 +286,7 @@ export default function SavedPage() {
     );
   }
 
-  // TRUE EMPTY STATE — user has genuinely saved nothing and no filters are active.
-  // When filters/search are active and return 0 results we stay in the full
-  // dashboard layout and show the inline list-level empty state instead.
+  // ── True empty state — nothing saved, no active filters ──────────────────
   if (!isLoading && !hasError && totalSaved === 0 && !hasActiveFilters) {
     return (
       <div className="max-w-4xl mx-auto space-y-8 pb-16">
@@ -293,6 +308,7 @@ export default function SavedPage() {
     );
   }
 
+  // ── Full page ─────────────────────────────────────────────────────────────
   return (
     <div className="max-w-4xl mx-auto space-y-6 pb-32">
       <div className="flex flex-col gap-1">
@@ -384,7 +400,7 @@ export default function SavedPage() {
           </div>
         ) : (
           // Filtered/search empty state — saved items exist but the current
-          // query/filters return nothing. The full page layout stays intact.
+          // query/filters return nothing. Keep the full page layout intact.
           <div className="border border-dashed border-border rounded-4xl p-12 text-center flex flex-col items-center justify-center gap-3">
             <Search size={24} className="text-muted-foreground" />
             <p className="text-sm font-medium text-foreground">

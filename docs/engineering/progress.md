@@ -121,6 +121,15 @@ All mock data removed from production rendering paths. Home metrics, charts, and
 - Added `idx_opportunities_first_seen_at` index (migration 0011) to prevent full table scans on the chart query.
 - Fixed pre-existing TypeScript 7.0 incompatibility: removed `baseUrl` from `apps/web/tsconfig.json` (breaking in TS 7.0.2) and added null-safety fallbacks in `morphing.tsx` and `rotating.tsx` that were surfaced by strict mode once `baseUrl` was removed.
 
+**Matching States, Page Caching, and Card Actions:**
+- Root cause of empty-state flash: all three pages (`home`, `opportunities`, `saved`) initialised their data state as `null`/`[]` in `useState`. On client-side navigation the component remounts, so valid data was wiped before the async `cachedFetch` resolved — even when the cache already held a fresh response.
+- Fix: added `cachedFetch.peek<T>(url)` — a synchronous cache read that returns a non-expired entry or `null`. All three pages initialise their data and loading-flag state via `useState(() => cachedFetch.peek(...))`, so returning to a page immediately shows existing results without any skeleton flash. Background revalidation still runs; loading flags are only set to `true` when the cache has nothing to show.
+- Matching states on Home (Recent Matches): the section now has three explicit states — (1) loading (skeletons), (2) error (red message), (3) results present (card list with bookmark icons), (4) results empty after matching ran ("Finding your opportunities" with a link to browse). The whole-page empty state ("No matches found yet") is still shown only when the entire dashboard has no data AND no discovery activity has occurred.
+- Matching state on Opportunities page: when matching completes with zero results and no active filters/search, shows "Finding your opportunities" with a "Strengthen your profile" link instead of the old "We are currently sourcing" message. The filtered-empty state (search/type narrowed results to zero) remains a separate inline message.
+- Card action mode: `OpportunityCard` gained an `actionMode?: "bookmark" | "menu"` prop (default `"menu"` for backward compatibility). Home (Recent Matches) and Opportunities pass `actionMode="bookmark"` — cards render a single accessible `<button>` with a filled/unfilled `Bookmark` icon that directly toggles save state. Saved page omits the prop, keeping its existing three-dot dropdown with Save, Chat, and Pursuing actions unchanged.
+- Profile completion: verified backend `calculateCompletenessScore` is the authoritative source for all three pages' completion gate. No calculation bug found. The `< 20` threshold and field weights are correct and unchanged.
+- TypeScript: `npx tsc --noEmit` passes with zero errors after all changes. `next build` compiles all 14 routes cleanly.
+
 Next steps:
 
 1. Implement the Applications page.

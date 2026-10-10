@@ -21,6 +21,16 @@ export interface OpportunityCardProps {
   isPursuing?: boolean;
   onPursueToggle?: (id: string, e: React.MouseEvent) => void;
   chatHref?: string;
+  /**
+   * Controls how the card's action control is rendered.
+   *
+   * - `"bookmark"` — A single bookmark icon button that directly saves/unsaves
+   *   the opportunity. Used on Home (Recent Matches) and Opportunities.
+   * - `"menu"` — The existing three-dot dropdown with Save, Chat, and Pursuing
+   *   actions. Used on the Saved page. This is the default to preserve backward
+   *   compatibility.
+   */
+  actionMode?: "bookmark" | "menu";
 }
 
 interface DropdownPortalProps {
@@ -136,13 +146,19 @@ export function OpportunityCard({
   isPursuing,
   onPursueToggle,
   chatHref,
+  actionMode = "menu",
 }: OpportunityCardProps) {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const triggerRef = useRef<HTMLButtonElement>(null);
 
   const closeMenu = useCallback(() => setIsMenuOpen(false), []);
 
-  const hasMenuActions = Boolean(onSaveToggle || saveHref || chatHref || onPursueToggle);
+  // In bookmark mode we show the bookmark icon directly; in menu mode we show
+  // the three-dot dropdown. Only render any action controls when there is at
+  // least one action available.
+  const hasAnyAction = Boolean(onSaveToggle || saveHref || chatHref || onPursueToggle);
+  const showBookmark = actionMode === "bookmark" && Boolean(onSaveToggle);
+  const showMenu = actionMode === "menu" && hasAnyAction;
 
   return (
     <div className="border border-border/50 rounded-4xl p-5 bg-card/30 backdrop-blur-2xl flex flex-col sm:flex-row sm:items-center justify-between gap-4 transition-colors duration-200 hover:border-foreground/40">
@@ -197,7 +213,27 @@ export function OpportunityCard({
           Details
         </Link>
 
-        {hasMenuActions && (
+        {/* ── Bookmark mode ─────────────────────────────────────────────── */}
+        {showBookmark && (
+          <button
+            onClick={(e) => onSaveToggle!(id, e)}
+            aria-label={isSaved ? "Remove from saved" : "Save opportunity"}
+            aria-pressed={isSaved}
+            className={`p-2 rounded-full transition-colors duration-150 ${
+              isSaved
+                ? "text-foreground bg-muted"
+                : "text-muted-foreground hover:bg-muted hover:text-foreground"
+            }`}
+          >
+            <Bookmark
+              size={18}
+              className={isSaved ? "fill-foreground" : ""}
+            />
+          </button>
+        )}
+
+        {/* ── Menu mode (three-dot dropdown) ────────────────────────────── */}
+        {showMenu && (
           <button
             ref={triggerRef}
             onClick={() => setIsMenuOpen((prev) => !prev)}
@@ -214,7 +250,7 @@ export function OpportunityCard({
           </button>
         )}
 
-        {hasMenuActions && (
+        {showMenu && (
           <DropdownPortal anchorRef={triggerRef} isOpen={isMenuOpen} onClose={closeMenu}>
             <div className="p-1.5 flex flex-col gap-0.5">
               {onSaveToggle ? (

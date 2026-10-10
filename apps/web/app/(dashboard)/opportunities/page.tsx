@@ -7,11 +7,7 @@ import { authClient } from "../../../lib/auth-client";
 import { cachedFetch } from "../../../lib/cache";
 import {
   Sparkles,
-  Bookmark,
   Search,
-  MapPin,
-  Clock,
-  ArrowRight,
   X,
   ChevronRight,
 } from "lucide-react";
@@ -21,37 +17,81 @@ import { OpportunityCardSkeleton } from "../../../components/skeletons";
 // Reuse the mock profile completion for consistency with Home
 const MOCK_PROFILE_COMPLETION: number | null = null;
 
+// ─── Helpers ─────────────────────────────────────────────────────────────────
+
+/** Build the canonical cache key for a given page/filter combination. */
+function buildOppsUrl(
+  page: number,
+  activeType: string,
+  debouncedSearch: string,
+  matchedFilter: boolean
+): string {
+  const params = new URLSearchParams({ page: page.toString(), pageSize: "30" });
+  if (activeType !== "All") params.append("type", activeType);
+  if (debouncedSearch) params.append("search", debouncedSearch);
+  if (matchedFilter) params.append("matched", "true");
+  return `${API_URL}/api/opportunities?${params.toString()}`;
+}
+
+// ─── Page ─────────────────────────────────────────────────────────────────────
+
 export default function OpportunitiesPage() {
   const { data: session } = authClient.useSession();
-  const [realProfileCompletion, setRealProfileCompletion] = useState<
-    number | null
-  >(null);
+  const [realProfileCompletion, setRealProfileCompletion] = useState<number | null>(null);
 
   const [searchQuery, setSearchQuery] = useState("");
   const [debouncedSearch, setDebouncedSearch] = useState("");
   const [activeType, setActiveType] = useState<string>("All");
-  const [savedIds, setSavedIds] = useState<Set<string>>(new Set());
-
-  // Real backend integration states
-  const [opportunities, setOpportunities] = useState<any[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
-  const [hasError, setHasError] = useState(false);
   const [page, setPage] = useState(1);
+  const [matchedFilter, setMatchedFilter] = useState(false);
+
+  // Derive the URL for the current filter state so we can peek the cache
+  // synchronously before the component even mounts effects.
+  const currentUrl = buildOppsUrl(page, activeType, debouncedSearch, matchedFilter);
+
+  // ── Cache-primed initial state ──────────────────────────────────────────
+  // Initialise from cache synchronously so that navigating back to this page
+  // never flashes an empty list when valid data is already in memory.
+  const [opportunities, setOpportunities] = useState<any[]>(() => {
+    const cached = cachedFetch.peek<any>(currentUrl);
+    return cached?.data ?? [];
+  });
+  const [savedIds, setSavedIds] = useState<Set<string>>(() => {
+    const cached = cachedFetch.peek<any>(currentUrl);
+    if (!cached?.data) return new Set();
+    const saved = new Set<string>();
+    (cached.data as any[]).forEach((opp) => {
+      if (opp.userStatus === "saved" || opp.userStatus === "pursuing") saved.add(opp.id);
+    });
+    return saved;
+  });
+
+  const hasCachedData = opportunities.length > 0;
+
+  // When we already have cached data, do not show loading skeletons — fetch
+  // silently in the background to revalidate.
+  const [isLoading, setIsLoading] = useState(!hasCachedData);
+  const [hasError, setHasError] = useState(false);
   const [totalPages, setTotalPages] = useState(1);
   const [total, setTotal] = useState(0);
   const [hasNext, setHasNext] = useState(false);
   const [hasPrevious, setHasPrevious] = useState(false);
   const [isDeveloper, setIsDeveloper] = useState(false);
-  // knownTypes accumulates every opportunity type seen across all fetches so the
+
+  // knownTypes accumulates every opportunity type seen across all fetches so
   // filter pills never disappear when a type filter narrows the result set.
-  const [knownTypes, setKnownTypes] = useState<string[]>([]);
-  // Developer-only: whether the Matched filter is currently active.
-  const [matchedFilter, setMatchedFilter] = useState(false);
+  const [knownTypes, setKnownTypes] = useState<string[]>(() => {
+    const cached = cachedFetch.peek<any>(currentUrl);
+    if (!cached?.data) return [];
+    const types = new Set<string>();
+    (cached.data as any[]).forEach((opp) => { if (opp.type) types.add(opp.type); });
+    return Array.from(types);
+  });
 
   useEffect(() => {
     const timer = setTimeout(() => {
       setDebouncedSearch(searchQuery);
-      setPage(1); // Reset to page 1 on new search
+      setPage(1);
     }, 300);
     return () => clearTimeout(timer);
   }, [searchQuery]);
@@ -60,13 +100,12 @@ export default function OpportunitiesPage() {
     setPage(1);
   }, [activeType]);
 
-  // Fetch actual completeness score from profile backend if mock override is null
+  // Fetch completeness score from profile backend if mock override is null
   useEffect(() => {
     if (MOCK_PROFILE_COMPLETION !== null) return;
     async function checkCompleteness() {
       try {
-        const apiUrl = API_URL;
-        const data = await cachedFetch<any>(`${apiUrl}/api/profile`, {
+        const data = await cachedFetch<any>(`${API_URL}/api/profile`, {
           credentials: "include",
           ttl: 120_000,
         });
@@ -93,33 +132,20 @@ export default function OpportunitiesPage() {
     }
 
     async function fetchOpportunities() {
-      setIsLoading(true);
-      try {
-        const apiUrl = API_URL;
-        const params = new URLSearchParams({
-          page: page.toString(),
-          pageSize: "30",
-        });
-        
-        if (activeType !== "All") {
-          params.append("type", activeType);
-        }
-        if (debouncedSearch) {
-          params.append("search", debouncedSearch);
-        }
-        // matchedFilter is only ever true when isDeveloper — the server also enforces this.
-        if (matchedFilter) {
-          params.append("matched", "true");
-        }
+      // Only show loading skeleton when there is nothing to display yet
+      const url = buildOppsUrl(page, activeType, debouncedSearch, matchedFilter);
+      const alreadyCached = cachedFetch.peek<any>(url);
+      if (!alreadyCached) setIsLoading(true);
 
-        const json = await cachedFetch<any>(`${apiUrl}/api/opportunities?${params.toString()}`, {
+      try {
+        const json = await cachedFetch<any>(url, {
           credentials: "include",
           ttl: 60_000,
         });
-        
+
         setOpportunities(json.data || []);
 
-        // Accumulate types seen so far — never remove a type that was already visible.
+        // Accumulate known types — never remove a type that was already visible
         if (json.data?.length) {
           setKnownTypes((prev) => {
             const next = new Set(prev);
@@ -138,8 +164,8 @@ export default function OpportunitiesPage() {
         if (json.meta) {
           setIsDeveloper(!!json.meta.isDeveloper);
         }
-        
-        // Seed the saved status from the backend userStatus
+
+        // Seed saved status from backend userStatus
         if (json.data) {
           const saved = new Set<string>();
           json.data.forEach((opp: any) => {
@@ -151,28 +177,24 @@ export default function OpportunitiesPage() {
         }
       } catch (err) {
         console.error("Failed to fetch opportunities:", err);
-        setHasError(true);
+        // Preserve existing data on error when we have something to show
+        if (opportunities.length === 0) setHasError(true);
       } finally {
         setIsLoading(false);
       }
     }
-    
+
     fetchOpportunities();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [profileCompletion, page, activeType, debouncedSearch, matchedFilter]);
 
-  // Filter pills use knownTypes so the complete pill set stays visible regardless
-  // of which type filter is currently active.
   const availableTypes = useMemo(
     () => ["All", ...knownTypes],
     [knownTypes]
   );
 
-  // Filter logic is now server-side, so we just use opportunities
   const filteredOpportunities = opportunities;
 
-  // True when the user has narrowed the result set via search/filters.
-  // Used to distinguish a "no results for this query" state from a genuine
-  // "no opportunities exist for this user" state.
   const hasActiveFilters =
     debouncedSearch.trim() !== "" ||
     activeType !== "All" ||
@@ -180,28 +202,23 @@ export default function OpportunitiesPage() {
 
   const toggleSave = async (id: string, e: React.MouseEvent) => {
     e.preventDefault();
-    
     const isCurrentlySaved = savedIds.has(id);
-    
-    // Optimistic UI update
+
     setSavedIds((prev) => {
       const next = new Set(prev);
       if (next.has(id)) next.delete(id);
       else next.add(id);
       return next;
     });
-    
-    // Persist via backend API
+
     try {
-      const apiUrl = API_URL;
       const method = isCurrentlySaved ? "DELETE" : "POST";
-      const res = await fetch(`${apiUrl}/api/opportunities/${id}/save`, {
+      const res = await fetch(`${API_URL}/api/opportunities/${id}/save`, {
         method,
         credentials: "include",
       });
-      
+
       if (!res.ok) {
-        // Revert on failure
         setSavedIds((prev) => {
           const next = new Set(prev);
           if (isCurrentlySaved) next.add(id);
@@ -209,13 +226,11 @@ export default function OpportunitiesPage() {
           return next;
         });
       } else {
-        // Invalidate caches
-        cachedFetch.invalidate(`${apiUrl}/api/opportunities/home`);
-        cachedFetch.invalidatePrefix(`${apiUrl}/api/opportunities?`);
-        cachedFetch.invalidate(`${apiUrl}/api/opportunities`);
+        cachedFetch.invalidate(`${API_URL}/api/opportunities/home`);
+        cachedFetch.invalidatePrefix(`${API_URL}/api/opportunities?`);
+        cachedFetch.invalidate(`${API_URL}/api/opportunities`);
       }
     } catch (err) {
-      // Revert on error
       setSavedIds((prev) => {
         const next = new Set(prev);
         if (isCurrentlySaved) next.add(id);
@@ -225,7 +240,7 @@ export default function OpportunitiesPage() {
     }
   };
 
-  // 1. PROFILE COMPLETION GATE (< 20%)
+  // ── 1. PROFILE COMPLETION GATE (< 20%) ──────────────────────────────────
   if (profileCompletion < 20) {
     return (
       <div className="max-w-4xl mx-auto space-y-8 pb-16">
@@ -262,9 +277,10 @@ export default function OpportunitiesPage() {
     );
   }
 
-  // 1.5 TRUE EMPTY STATE — no opportunities available at all, no active filters.
-  // When filters/search are active and return 0 results, we stay in the full
-  // dashboard layout and show the inline list-level empty state instead.
+  // ── 2. MATCHING STATE — no results, no active filters ───────────────────
+  // The matching engine ran and returned zero results (not caused by search or
+  // type filters). Show an intentional state rather than implying Arch has no
+  // opportunities.
   if (!isLoading && !hasError && opportunities.length === 0 && !hasActiveFilters) {
     return (
       <div className="max-w-4xl mx-auto space-y-8 pb-16">
@@ -273,20 +289,31 @@ export default function OpportunitiesPage() {
             Opportunities
           </h1>
         </div>
-        <div className="rounded-3xl p-12 text-center flex flex-col items-center justify-center gap-3">
-          <Sparkles size={24} className="text-muted-foreground" />
-          <p className="text-sm font-medium text-foreground">
-            No opportunities available
-          </p>
-          <p className="text-xs text-muted-foreground max-w-sm">
-            We are currently sourcing new opportunities. Check back later.
-          </p>
+        <div className="rounded-3xl p-12 text-center flex flex-col items-center justify-center gap-4">
+          <div className="p-3 bg-muted/40 rounded-full">
+            <Sparkles size={22} className="text-muted-foreground" strokeWidth={1.5} />
+          </div>
+          <div className="space-y-1.5 max-w-sm">
+            <p className="text-sm font-medium text-foreground">
+              Finding your opportunities
+            </p>
+            <p className="text-xs text-muted-foreground leading-relaxed">
+              Arch is matching opportunities to your profile. Your best-fit results will appear here as they become available.
+            </p>
+          </div>
+          <Link
+            href="/profile"
+            className="text-xs font-medium text-foreground hover:opacity-70 flex items-center gap-1 transition-opacity mt-1"
+          >
+            <span>Strengthen your profile</span>
+            <ChevronRight size={13} />
+          </Link>
         </div>
       </div>
     );
   }
 
-  // 2. FULL DASHBOARD (>= 20%)
+  // ── 3. FULL DASHBOARD (profile complete, results available or loading) ───
   return (
     <div className="max-w-4xl mx-auto space-y-6 pb-16">
       {/* Header */}
@@ -318,7 +345,7 @@ export default function OpportunitiesPage() {
         )}
       </div>
 
-      {/* Dynamic Filter Pills */}
+      {/* Filter Pills */}
       <div className="flex items-center gap-2 overflow-x-auto pb-2 scrollbar-none snap-x">
         {availableTypes.map((type) => (
           <button
@@ -367,7 +394,7 @@ export default function OpportunitiesPage() {
             </p>
           </div>
         ) : filteredOpportunities.length === 0 ? (
-          // Filtered/search empty state — opportunities exist but the current
+          // Filtered/search empty state — opportunities exist but current
           // query/filters return nothing. Keep the full page layout intact.
           <div className="rounded-3xl p-12 text-center flex flex-col items-center justify-center gap-3">
             <Search size={24} className="text-muted-foreground" />
@@ -435,16 +462,16 @@ export default function OpportunitiesPage() {
                 tags={opp.skills || []}
                 isSaved={savedIds.has(opp.id)}
                 onSaveToggle={toggleSave}
+                actionMode="bookmark"
               />
             ))}
           </div>
         )}
       </section>
 
-      {/* Pagination row — always rendered when there are results so the layout never jumps */}
+      {/* Pagination */}
       {filteredOpportunities.length > 0 && (
         <div className="flex items-center justify-between gap-4 pt-2 border-t border-border">
-          {/* Left: total count + page position */}
           <p className="text-xs text-muted-foreground tabular-nums">
             <span className="font-medium text-foreground">{total}</span>
             {" opportunit"}{total === 1 ? "y" : "ies"}
@@ -454,7 +481,6 @@ export default function OpportunitiesPage() {
             <span className="font-medium text-foreground">{totalPages}</span>
           </p>
 
-          {/* Right: navigation controls */}
           <div className="flex items-center gap-1">
             <button
               onClick={() => {
@@ -482,9 +508,9 @@ export default function OpportunitiesPage() {
         </div>
       )}
 
-      {/* Matching context message — below pagination, outside the list, secondary */}
+      {/* Matching context message */}
       {filteredOpportunities.length > 0 && !isDeveloper && (
-        <div className="pb-2 text-center space-y-0.5">
+        <div className="pb-2 text-center">
           <p className="text-xs text-muted-foreground">
             These opportunities have been matched to your profile.
           </p>

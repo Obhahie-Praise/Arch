@@ -73,4 +73,21 @@ cachedFetch.invalidatePrefix = (prefix: string) => {
   }
 };
 
+/**
+ * Synchronously read a cached value without triggering a fetch.
+ * Returns the cached data when the entry exists and has not expired,
+ * or `null` otherwise.
+ *
+ * Use this to initialise component state from the cache before the
+ * first render so that returning to a page never flashes an empty state
+ * when valid data is already available.
+ */
+cachedFetch.peek = <T>(url: string): T | null => {
+  const entry = store.get(url);
+  if (entry && Date.now() < entry.expiresAt) {
+    return entry.data as T;
+  }
+  return null;
+};
+
 export { cachedFetch };

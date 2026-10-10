@@ -188,18 +188,38 @@ export default function HomePage() {
   const { data: session } = authClient.useSession();
   const [realProfileCompletion, setRealProfileCompletion] = useState<number | null>(null);
 
-  // Real data
-  const [summary, setSummary] = useState<HomeSummary | null>(null);
-  const [savedIds, setSavedIds] = useState<Set<string>>(new Set());
+  // ── Cache-primed initial state ──────────────────────────────────────────
+  // Read the home summary synchronously from the in-memory cache so that
+  // returning to this page never resets to an empty state before the async
+  // fetch resolves. On the first visit this will be null and the page falls
+  // back to skeleton loading as before.
+  const [summary, setSummary] = useState<HomeSummary | null>(() => {
+    const cached = cachedFetch.peek<{ data: HomeSummary }>(`${API_URL}/api/opportunities/home`);
+    return cached?.data ?? null;
+  });
+  const [savedIds, setSavedIds] = useState<Set<string>>(() => {
+    const cached = cachedFetch.peek<{ data: HomeSummary }>(`${API_URL}/api/opportunities/home`);
+    if (!cached?.data) return new Set();
+    const saved = new Set<string>();
+    cached.data.recentMatches.forEach((opp: any) => {
+      if (opp.userStatus === "saved" || opp.userStatus === "pursuing") saved.add(opp.id);
+    });
+    cached.data.recentSaved.forEach((opp: any) => saved.add(opp.id));
+    return saved;
+  });
   const [hasError, setHasError] = useState(false);
 
-  // Progressive loading states
+  // Progressive loading states.
+  // When we already have cached data, start all sections as NOT loading so
+  // valid data is shown immediately. We still fetch in the background to
+  // revalidate, but we don't show skeletons while doing so.
+  const hasCachedSummary = summary !== null;
   const [loadingProfile, setLoadingProfile] = useState(MOCK_PROFILE_COMPLETION === null);
-  const [loadingMetrics, setLoadingMetrics] = useState(true);
-  const [loadingCharts, setLoadingCharts] = useState(true);
-  const [loadingMatches, setLoadingMatches] = useState(true);
-  const [loadingSaved, setLoadingSaved] = useState(true);
-  const [loadingTimeline, setLoadingTimeline] = useState(true);
+  const [loadingMetrics, setLoadingMetrics] = useState(!hasCachedSummary);
+  const [loadingCharts, setLoadingCharts] = useState(!hasCachedSummary);
+  const [loadingMatches, setLoadingMatches] = useState(!hasCachedSummary);
+  const [loadingSaved, setLoadingSaved] = useState(!hasCachedSummary);
+  const [loadingTimeline, setLoadingTimeline] = useState(!hasCachedSummary);
 
   const profileCompletion =
     MOCK_PROFILE_COMPLETION !== null ? MOCK_PROFILE_COMPLETION : (realProfileCompletion ?? 0);
@@ -228,7 +248,6 @@ export default function HomePage() {
   // Fetch home summary
   const fetchSummary = useCallback(async () => {
     if (profileCompletion < 20) {
-      // Don't bother loading
       setLoadingMetrics(false);
       setLoadingCharts(false);
       setLoadingMatches(false);
@@ -240,12 +259,12 @@ export default function HomePage() {
     try {
       const json = await cachedFetch<{ data: HomeSummary }>(
         `${API_URL}/api/opportunities/home`,
-        { credentials: "include", ttl: 60_000 } // 60 s
+        { credentials: "include", ttl: 60_000 }
       );
       const data = json.data;
       setSummary(data);
 
-      // Seed saved IDs
+      // Refresh saved IDs from the latest server response
       const saved = new Set<string>();
       data.recentMatches.forEach((opp: any) => {
         if (opp.userStatus === "saved" || opp.userStatus === "pursuing") saved.add(opp.id);
@@ -253,29 +272,37 @@ export default function HomePage() {
       data.recentSaved.forEach((opp: any) => saved.add(opp.id));
       setSavedIds(saved);
     } catch {
-      // leave summary as null
-      setHasError(true);
+      // Preserve cached data — only set error when there is nothing to show
+      if (!hasCachedSummary) setHasError(true);
     }
 
-    // Progressively reveal sections staggered
-    const t1 = setTimeout(() => setLoadingMetrics(false), 300);
-    const t2 = setTimeout(() => setLoadingMatches(false), 500);
-    const t3 = setTimeout(() => setLoadingSaved(false), 650);
-    const t4 = setTimeout(() => setLoadingTimeline(false), 800);
-    const t5 = setTimeout(() => setLoadingCharts(false), 1000);
-
-    return () => {
-      clearTimeout(t1); clearTimeout(t2); clearTimeout(t3);
-      clearTimeout(t4); clearTimeout(t5);
-    };
-  }, [profileCompletion]);
+    // When we had cached data, loading flags were already false — just ensure
+    // they are cleared. On a first visit, stagger them for a progressive reveal.
+    if (!hasCachedSummary) {
+      const t1 = setTimeout(() => setLoadingMetrics(false), 300);
+      const t2 = setTimeout(() => setLoadingMatches(false), 500);
+      const t3 = setTimeout(() => setLoadingSaved(false), 650);
+      const t4 = setTimeout(() => setLoadingTimeline(false), 800);
+      const t5 = setTimeout(() => setLoadingCharts(false), 1000);
+      return () => {
+        clearTimeout(t1); clearTimeout(t2); clearTimeout(t3);
+        clearTimeout(t4); clearTimeout(t5);
+      };
+    } else {
+      setLoadingMetrics(false);
+      setLoadingMatches(false);
+      setLoadingSaved(false);
+      setLoadingTimeline(false);
+      setLoadingCharts(false);
+    }
+  }, [profileCompletion, hasCachedSummary]);
 
   useEffect(() => {
     const cleanup = fetchSummary();
     return () => { cleanup?.then?.(fn => fn?.()); };
   }, [fetchSummary]);
 
-  // Optimistic save toggle — invalidates the home cache so it's fresh on next visit
+  // Optimistic save toggle — invalidates the home cache so next visit is fresh
   const toggleSave = async (id: string, e: React.MouseEvent) => {
     e.preventDefault();
     const wasSaved = savedIds.has(id);
@@ -298,7 +325,6 @@ export default function HomePage() {
           return next;
         });
       } else {
-        // Invalidate home + opportunities caches so next visit reflects change
         cachedFetch.invalidate(`${API_URL}/api/opportunities/home`);
         cachedFetch.invalidatePrefix(`${API_URL}/api/opportunities?`);
       }
@@ -311,7 +337,7 @@ export default function HomePage() {
     }
   };
 
-  // Profile completion gate
+  // ── Profile completion gate ───────────────────────────────────────────────
   if (!loadingProfile && profileCompletion < 20) {
     return (
       <div className="max-w-4xl mx-auto space-y-8 pb-16">
@@ -348,11 +374,9 @@ export default function HomePage() {
   const timeline = summary?.timeline ?? [];
   const chart = summary?.discoveryChart ?? [];
 
-  // The discovery chart represents global system activity (opportunities Arch has found),
-  // not the user's personal match state. It must be visible even before the matching
-  // engine has surfaced any opportunities to this user. We therefore include chart data
-  // in the empty-state check: if any day has discovered opportunities, show the full
-  // dashboard rather than the "no matches yet" placeholder.
+  // The discovery chart represents global system activity (opportunities Arch has
+  // found), not a user's personal match state. If any day has discovered
+  // opportunities, show the full dashboard rather than an empty-state placeholder.
   const hasDiscoveryActivity = chart.some((d) => d.created > 0);
 
   const isDataEmpty =
@@ -505,7 +529,9 @@ export default function HomePage() {
           </div>
         ) : hasError ? (
           <div className="border border-dashed border-border rounded-4xl p-8 text-center flex flex-col items-center justify-center gap-3">
-            <p className="text-sm font-medium text-red-500">Failed to load recent matches. Please try again.</p>
+            <p className="text-sm font-medium text-red-500">
+              Failed to load recent matches. Please try again.
+            </p>
           </div>
         ) : recentMatches.length > 0 ? (
           <div className="space-y-3">
@@ -522,10 +548,32 @@ export default function HomePage() {
                 tags={opp.skills || []}
                 isSaved={savedIds.has(opp.id)}
                 onSaveToggle={toggleSave}
+                actionMode="bookmark"
               />
             ))}
           </div>
-        ) : null}
+        ) : (
+          // The matching engine ran and returned zero results. Show an honest,
+          // reassuring state rather than implying the catalogue is empty.
+          <div className="border border-dashed border-border/60 rounded-4xl p-8 text-center flex flex-col items-center justify-center gap-3">
+            <div className="p-3 bg-muted/40 rounded-full">
+              <Sparkles size={20} className="text-muted-foreground" strokeWidth={1.5} />
+            </div>
+            <div className="space-y-1 max-w-sm">
+              <p className="text-sm font-medium text-foreground">Finding your opportunities</p>
+              <p className="text-xs text-muted-foreground leading-relaxed">
+                Arch is matching opportunities to your profile. Your best-fit results will appear here as they become available.
+              </p>
+            </div>
+            <Link
+              href="/opportunities"
+              className="text-xs font-medium text-foreground hover:opacity-70 flex items-center gap-1 transition-opacity mt-1"
+            >
+              <span>Browse all opportunities</span>
+              <ChevronRight size={13} />
+            </Link>
+          </div>
+        )}
       </section>
 
       {/* Recent Saved & Timeline */}
